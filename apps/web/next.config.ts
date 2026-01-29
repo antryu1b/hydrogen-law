@@ -3,7 +3,6 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@hydrogen-law/shared-types'],
   outputFileTracingRoot: path.join(__dirname, '../../'),
   turbopack: {
     rules: {
