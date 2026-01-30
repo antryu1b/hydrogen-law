@@ -98,11 +98,17 @@ export function SearchResults({ results }: SearchResultsProps) {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4 w-full">
+          <CardContent className="space-y-4">
             {/* 본문 */}
             <div
-              className="text-sm leading-relaxed text-muted-foreground bg-muted/30 p-4 rounded-lg whitespace-pre-wrap break-words w-full"
-              style={{ maxWidth: '100%', wordBreak: 'break-word' }}
+              className="text-sm leading-relaxed text-muted-foreground bg-muted/30 p-4 rounded-lg"
+              style={{
+                width: '100%',
+                maxWidth: 'none',
+                display: 'block',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
+              }}
               dangerouslySetInnerHTML={{ __html: article.highlighted_content }}
             />
 
