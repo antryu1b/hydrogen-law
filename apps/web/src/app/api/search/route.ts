@@ -45,6 +45,9 @@ export async function POST(request: Request) {
 
     // Transform results to match frontend expectations
     const articles = data.map((row: any) => {
+      // Debug: Log article_type
+      console.log('Article:', row.metadata.article_number, 'Type:', row.metadata.article_type);
+
       // Highlight search keywords in content
       const keywords = query.trim().split(/\s+/);
       let highlightedContent = row.content;
