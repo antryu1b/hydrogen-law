@@ -75,7 +75,7 @@ export default function HomePage() {
                   handleSearch(e as any);
                 }
               }}
-              placeholder="예: 고압가스 제조 허가, 수소충전소 설치 기준"
+              placeholder="예: 수소충전소, 안전기준 (콤마 또는 공백으로 키워드 구분)"
               className="h-12 sm:h-14 lg:h-16 text-base sm:text-lg px-4 sm:px-6"
             />
             <Button

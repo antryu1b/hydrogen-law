@@ -48,8 +48,8 @@ export async function POST(request: Request) {
       // Debug: Log article_type
       console.log('Article:', row.metadata.article_number, 'Type:', row.metadata.article_type);
 
-      // Highlight search keywords in content
-      const keywords = query.trim().split(/\s+/);
+      // Highlight search keywords in content (support both comma and space separation)
+      const keywords = query.trim().split(/[\s,]+/).filter(k => k.length > 0);
       let highlightedContent = row.content;
 
       keywords.forEach(keyword => {
