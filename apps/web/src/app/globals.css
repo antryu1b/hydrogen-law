@@ -56,23 +56,3 @@
   }
 }
 
-/* Force center alignment */
-.max-w-7xl {
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-/* Force text center for all sections */
-section {
-  text-align: center !important;
-}
-
-/* Force center all headings */
-h1, h2, h3 {
-  text-align: center !important;
-}
-
-/* Force center all paragraphs */
-p {
-  text-align: center !important;
-}
