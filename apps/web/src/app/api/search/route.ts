@@ -60,6 +60,9 @@ export async function POST(request: Request) {
         );
       });
 
+      // Convert newlines to <br> tags for HTML rendering
+      highlightedContent = highlightedContent.replace(/\n/g, '<br>');
+
       // Normalize score: highest result = 100%, others scaled proportionally
       const normalizedScore = (row.relevance_score / maxScore) * 100;
 
