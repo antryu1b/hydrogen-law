@@ -48,9 +48,9 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
       {/* Search Section */}
-      <section className="text-center space-y-6 sm:space-y-8 max-w-4xl mx-auto w-full">
+      <section className="text-center space-y-6 sm:space-y-8 max-w-4xl mx-auto w-full mb-8">
         <div className="space-y-3 sm:space-y-4">
           <div className="flex justify-center">
             <div className="p-2.5 sm:p-3 bg-primary/10 rounded-xl">
