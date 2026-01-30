@@ -2,5 +2,12 @@
   "buildCommand": "cd apps/web && npm run build",
   "devCommand": "cd apps/web && npm run dev",
   "installCommand": "cd apps/web && npm install",
-  "outputDirectory": "apps/web/.next"
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/apps/web/$1"
+    }
+  ]
 }
