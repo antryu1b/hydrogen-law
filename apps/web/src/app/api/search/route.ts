@@ -65,8 +65,6 @@ export async function POST(request: Request) {
       highlightedContent = highlightedContent.replace(/\n\n+/g, '<br><br>');
       // 2. Single newlines -> space (to allow text to flow naturally)
       highlightedContent = highlightedContent.replace(/\n/g, ' ');
-      // 3. Add line breaks before numbered items for readability
-      highlightedContent = highlightedContent.replace(/(\s)(제\d+조|제\d+항|제\d+호|별표\s*\d+|\d+\.\s|[가-힣]\.\s|①|②|③|④|⑤|⑥|⑦|⑧|⑨|⑩)/g, '<br>$2');
 
       // Normalize score: highest result = 100%, others scaled proportionally
       const normalizedScore = (row.relevance_score / maxScore) * 100;
