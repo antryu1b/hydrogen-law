@@ -40,6 +40,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Normalize relevance scores to 0-100 range
+    const maxScore = Math.max(...data.map((row: any) => row.relevance_score), 0.0001);
+
     // Transform results to match frontend expectations
     const articles = data.map((row: any) => {
       // Highlight search keywords in content
@@ -54,6 +57,9 @@ export async function POST(request: Request) {
         );
       });
 
+      // Normalize score: highest result = 100%, others scaled proportionally
+      const normalizedScore = (row.relevance_score / maxScore) * 100;
+
       return {
         article_id: row.id,
         law_name: row.metadata.law_name || '수소경제육성및수소안전관리에관한법률',
@@ -61,7 +67,7 @@ export async function POST(request: Request) {
         title: row.metadata.title || '',
         content: row.content,
         highlighted_content: highlightedContent,
-        relevance_score: Math.min(100, row.relevance_score),
+        relevance_score: normalizedScore,
         related_articles: []
       };
     });
