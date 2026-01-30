@@ -60,19 +60,11 @@ export async function POST(request: Request) {
         );
       });
 
-      // Smart newline handling based on article type
-      const isAppendix = row.metadata.article_type === 'appendix';
-
-      if (isAppendix) {
-        // For appendix (별표): preserve all line breaks for table/list structure
-        highlightedContent = highlightedContent.replace(/\n/g, '<br>');
-      } else {
-        // For regular articles: flow text naturally
-        // 1. Double newlines -> paragraph break
-        highlightedContent = highlightedContent.replace(/\n\n+/g, '<br><br>');
-        // 2. Single newlines -> space
-        highlightedContent = highlightedContent.replace(/\n/g, ' ');
-      }
+      // Smart newline handling (same for all content types)
+      // 1. Double newlines -> paragraph break
+      highlightedContent = highlightedContent.replace(/\n\n+/g, '<br><br>');
+      // 2. Single newlines -> space (allow text to flow naturally)
+      highlightedContent = highlightedContent.replace(/\n/g, ' ');
 
       // Normalize score: highest result = 100%, others scaled proportionally
       const normalizedScore = (row.relevance_score / maxScore) * 100;
