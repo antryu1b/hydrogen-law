@@ -69,6 +69,12 @@ export default function HomePage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSearch(e as any);
+                }
+              }}
               placeholder="예: 고압가스 제조 허가, 수소충전소 설치 기준"
               className="h-12 sm:h-14 lg:h-16 text-base sm:text-lg px-4 sm:px-6"
             />
