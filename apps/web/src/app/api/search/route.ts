@@ -41,15 +41,30 @@ export async function POST(request: Request) {
     }
 
     // Transform results to match frontend expectations
-    const articles = data.map((row: any) => ({
-      article_id: row.id,
-      law_name: row.metadata.law_name || '수소경제육성및수소안전관리에관한법률',
-      article_number: row.metadata.article_number || row.id.split('_')[1],
-      title: row.metadata.title || '',
-      content: row.content,
-      relevance_score: Math.min(100, row.relevance_score),
-      related_articles: []
-    }));
+    const articles = data.map((row: any) => {
+      // Highlight search keywords in content
+      const keywords = query.trim().split(/\s+/);
+      let highlightedContent = row.content;
+
+      keywords.forEach(keyword => {
+        const regex = new RegExp(`(${keyword})`, 'gi');
+        highlightedContent = highlightedContent.replace(
+          regex,
+          '<mark style="background-color: #fef08a; padding: 2px 4px; border-radius: 2px;">$1</mark>'
+        );
+      });
+
+      return {
+        article_id: row.id,
+        law_name: row.metadata.law_name || '수소경제육성및수소안전관리에관한법률',
+        article_number: row.metadata.article_number || row.id.split('_')[1],
+        title: row.metadata.title || '',
+        content: row.content,
+        highlighted_content: highlightedContent,
+        relevance_score: Math.min(100, row.relevance_score),
+        related_articles: []
+      };
+    });
 
     return NextResponse.json({
       query,
