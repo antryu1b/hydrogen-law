@@ -102,13 +102,6 @@ export function SearchResults({ results }: SearchResultsProps) {
             {/* 본문 */}
             <div
               className="text-sm leading-relaxed text-muted-foreground bg-muted/30 p-4 rounded-lg"
-              style={{
-                width: '100%',
-                maxWidth: 'none',
-                display: 'block',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word'
-              }}
               dangerouslySetInnerHTML={{ __html: article.highlighted_content }}
             />
 
