@@ -48,34 +48,34 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center space-y-16 py-12">
+    <div className="min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       {/* Search Section */}
-      <section className="text-center space-y-8">
-        <div className="space-y-3">
+      <section className="text-center space-y-6 sm:space-y-8 max-w-4xl mx-auto w-full">
+        <div className="space-y-3 sm:space-y-4">
           <div className="flex justify-center">
-            <div className="p-3 bg-primary/10 rounded-xl">
-              <Search className="w-8 h-8 text-primary" />
+            <div className="p-2.5 sm:p-3 bg-primary/10 rounded-xl">
+              <Search className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
           </div>
-          <h2 className="text-3xl font-bold">법령 검색</h2>
-          <p className="text-base text-muted-foreground max-w-xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">법령 검색</h2>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto px-4">
             자연어로 질문하시면 관련 법령을 즉시 찾아드립니다
           </p>
         </div>
 
         <div className="max-w-2xl mx-auto space-y-4">
-          <form onSubmit={handleSearch} className="space-y-4">
+          <form onSubmit={handleSearch} className="space-y-3 sm:space-y-4">
             <Input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="예: 고압가스 제조 허가, 수소충전소 설치 기준"
-              className="h-16 text-lg px-6"
+              className="h-12 sm:h-14 lg:h-16 text-base sm:text-lg px-4 sm:px-6"
             />
             <Button
               type="submit"
               disabled={loading || !query}
-              className="w-full h-14 text-lg font-semibold"
+              className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold"
               size="lg"
             >
               {loading ? (
@@ -92,15 +92,15 @@ export default function HomePage() {
             </Button>
           </form>
 
-          <div className="flex flex-wrap gap-3 items-center justify-center">
-            <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm">
-              <CheckCircle2 className="w-4 h-4" />
+          <div className="flex flex-wrap gap-2 sm:gap-3 items-center justify-center text-xs sm:text-sm">
+            <Badge variant="secondary" className="gap-1 sm:gap-1.5 py-1 sm:py-1.5 px-2 sm:px-3">
+              <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />
               LLM 미사용
             </Badge>
-            <Separator orientation="vertical" className="h-5" />
-            <span className="text-sm font-medium text-muted-foreground">1초 이내</span>
-            <Separator orientation="vertical" className="h-5" />
-            <span className="text-sm font-medium text-muted-foreground">100% 정확</span>
+            <Separator orientation="vertical" className="h-4 sm:h-5 hidden sm:block" />
+            <span className="font-medium text-muted-foreground">1초 이내</span>
+            <Separator orientation="vertical" className="h-4 sm:h-5 hidden sm:block" />
+            <span className="font-medium text-muted-foreground">100% 정확</span>
           </div>
 
           {error && (
