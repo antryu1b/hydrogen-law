@@ -27,7 +27,7 @@ export default function HomePage() {
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query.trim(), top_k: 5 }),
+        body: JSON.stringify({ query: query.trim(), top_k: 20 }),
       });
 
       if (!response.ok) {
