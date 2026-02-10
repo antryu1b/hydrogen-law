@@ -1,24 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import lawDocuments from '@/data/law_documents.json';
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_RESULTS = 100;
 const MAX_KEYWORDS = 20;
 const RAG_ENGINE_URL = process.env.RAG_ENGINE_URL || 'http://localhost:8000';
-
-interface LawDocument {
-  id: string;
-  content: string;
-  metadata: {
-    law_id: string;
-    law_name: string;
-    article_number: string;
-    paragraph_number: string;
-    title: string;
-    chunk_type: string;
-  };
-}
 
 interface SupabaseSearchResult {
   id: string;
@@ -230,108 +216,6 @@ async function searchViaSupabase(
   });
 }
 
-// Korean particle suffixes to strip during tokenization
-const KO_SUFFIXES = /(?:은|는|이|가|을|를|에|의|로|와|과|도|만|부터|까지|에서|으로|하여|하고|하는|하면|한다|된다|이다|한|된|할|함|등|및)$/;
-
-function tokenize(text: string): string[] {
-  const tokens: string[] = [];
-  for (const word of text.split(/[\s,]+/).filter(w => w.length > 0)) {
-    tokens.push(word.toLowerCase());
-    const stem = word.replace(KO_SUFFIXES, '');
-    if (stem !== word && stem.length > 0) {
-      tokens.push(stem.toLowerCase());
-    }
-  }
-  return tokens;
-}
-
-function splitKoreanCompound(word: string): string[] {
-  if (word.length < 4) return [word];
-  const parts: string[] = [word];
-  for (let i = 0; i <= word.length - 2; i++) {
-    parts.push(word.slice(i, i + 2));
-  }
-  return parts;
-}
-
-async function searchLocal(query: string, topK: number): Promise<NextResponse> {
-  const docs = lawDocuments as LawDocument[];
-  const queryTokens = tokenize(query);
-  const queryParts = query.split(/[\s,]+/).filter(w => w.length > 0);
-  const allSubstrings = queryParts.flatMap(splitKoreanCompound);
-
-  const scored = docs.map(doc => {
-    const content = doc.content.toLowerCase();
-    let score = 0;
-
-    // Exact substring match (highest weight)
-    for (const part of queryParts) {
-      if (content.includes(part.toLowerCase())) {
-        score += 3;
-      }
-    }
-
-    // Token match
-    const docTokens = new Set(tokenize(doc.content));
-    for (const token of queryTokens) {
-      if (docTokens.has(token)) {
-        score += 1;
-      }
-    }
-
-    // Compound substring match
-    for (const sub of allSubstrings) {
-      if (content.includes(sub.toLowerCase())) {
-        score += 0.5;
-      }
-    }
-
-    return { doc, score };
-  });
-
-  const results = scored
-    .filter(s => s.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topK);
-
-  const keywords = query.split(/[\s,]+/).filter(k => k.length > 0);
-  const keywordRegex = keywords.length > 0
-    ? new RegExp(`(${keywords.map(escapeRegex).join('|')})`, 'gi')
-    : null;
-
-  const articles = results.map(({ doc, score }) => {
-    let highlightedContent = doc.content;
-    if (keywordRegex) {
-      highlightedContent = highlightedContent.replace(
-        keywordRegex,
-        '<mark style="background-color: #fef08a; padding: 2px 4px; border-radius: 2px;">$1</mark>'
-      );
-    }
-    highlightedContent = highlightedContent.replace(/\n\n+/g, '<br><br>');
-    highlightedContent = highlightedContent.replace(/\n/g, ' ');
-
-    return {
-      article_id: doc.id,
-      law_name: doc.metadata.law_name || '(법령명 없음)',
-      article_number: doc.metadata.article_number || '',
-      title: doc.metadata.title || '',
-      content: doc.content,
-      highlighted_content: highlightedContent,
-      relevance_score: score,
-      article_type: 'article' as const,
-      related_articles: [],
-    };
-  });
-
-  return NextResponse.json({
-    query,
-    total_found: articles.length,
-    keywords,
-    relevant_laws: [...new Set(articles.map(a => a.law_name))],
-    articles,
-    metadata: { search_time_ms: 0, llm_used: false, search_method: 'local' },
-  });
-}
 
 export async function POST(request: Request) {
   try {
@@ -363,11 +247,13 @@ export async function POST(request: Request) {
     try {
       return await searchViaRagEngine(sanitizedQuery, validatedTopK);
     } catch {
-      console.log('RAG engine unreachable, falling back to local search');
+      console.log('RAG engine unreachable');
     }
 
-    // 3. Local search (always available)
-    return await searchLocal(sanitizedQuery, validatedTopK);
+    // 3. No data source available
+    return NextResponse.json({
+      error: '데이터베이스에 연결되지 않았습니다. 관리자에게 문의하세요.',
+    }, { status: 503 });
 
   } catch (error) {
     console.error('API error:', error);
