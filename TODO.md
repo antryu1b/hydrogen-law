@@ -10,14 +10,14 @@
 - [x] 테스트 프레임워크 셋업 (vitest + pytest)
 - [x] Pre-commit hooks (husky + lint-staged)
 
-## Phase 2: Core Features
-- [ ] page.tsx 미사용 import 정리 (Card, CardContent 등)
-- [ ] 검색 API 에러 응답 표준화 (error code + message)
-- [ ] 검색 결과 페이지네이션 구현
-- [ ] 법령 상세 페이지 (/laws/[id]) 구현
-- [ ] 검색 히스토리 (로컬 스토리지)
-- [ ] 검색어 자동완성 (자주 검색되는 법률 용어)
-- [ ] 모바일 반응형 개선
+## Phase 2: Core Features (완료)
+- [x] page.tsx 미사용 import 정리 (Card, CardContent 등)
+- [x] 검색 API 에러 응답 표준화 (error code + message)
+- [x] 검색 결과 페이지네이션 구현
+- [x] 법령 상세 페이지 (/laws/[id]) 구현
+- [x] 검색 히스토리 (로컬 스토리지)
+- [x] 검색어 자동완성 (자주 검색되는 법률 용어)
+- [x] 모바일 반응형 개선
 
 ## Phase 3: Quality
 - [ ] API route 테스트 추가 (Supabase mock)
