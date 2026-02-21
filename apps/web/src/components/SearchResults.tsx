@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import DOMPurify from 'dompurify';
-import { Clock, FileText, Hash, Scale, ChevronDown, ChevronUp, TableProperties } from 'lucide-react';
+import { Clock, FileText, Hash, Scale, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, TableProperties, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 import type { SearchResponse } from '@/types/search';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,10 @@ const CONTENT_PREVIEW_LENGTH = 300;
 
 interface SearchResultsProps {
   results: SearchResponse;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  startIndex?: number;
 }
 
 /** Format legal content: add line breaks before numbered items for readability */
@@ -58,25 +63,33 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
     return firstSentence ? firstSentence[0].trim() : plain.slice(0, 120) + '…';
   })();
 
+  const articleLink = `/laws/${encodeURIComponent(article.article_id || `${article.law_name}_${article.article_number}`)}`;
+
   return (
     <Card className={`border-2 hover:border-primary/50 transition-all hover:shadow-lg ${appendix ? 'border-amber-200 dark:border-amber-800' : ''}`}>
       <CardHeader className={appendix ? 'pb-2' : ''}>
         <div className="flex items-start gap-4 flex-1">
-          <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full font-bold text-lg ${appendix ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : 'bg-primary text-primary-foreground'}`}>
-            {appendix ? <TableProperties className="w-5 h-5" /> : index + 1}
+          <div className={`flex-shrink-0 w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center rounded-full font-bold text-sm sm:text-lg ${appendix ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : 'bg-primary text-primary-foreground'}`}>
+            {appendix ? <TableProperties className="w-4 h-4 sm:w-5 sm:h-5" /> : index + 1}
           </div>
-          <div className="space-y-1 flex-1">
+          <div className="space-y-1 flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <CardTitle className="text-xl leading-tight">
-                {article.law_name} {article.article_number}
+              <CardTitle className="text-sm sm:text-xl leading-tight">
+                <Link
+                  href={articleLink}
+                  className="hover:text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  {article.law_name} {article.article_number}
+                  <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 opacity-50" />
+                </Link>
               </CardTitle>
               {appendix && (
-                <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
+                <Badge variant="secondary" className="text-[10px] sm:text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
                   별표
                 </Badge>
               )}
             </div>
-            <CardDescription className="text-base">
+            <CardDescription className="text-xs sm:text-base truncate">
               {article.title}
             </CardDescription>
             {/* Appendix: show summary when collapsed */}
@@ -94,7 +107,7 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
         <CardContent className="space-y-4">
           <div className="relative">
             <div
-              className={`text-sm leading-relaxed text-muted-foreground bg-muted/30 p-4 rounded-lg ${!expanded && isLong ? 'max-h-40 overflow-hidden' : ''} ${appendix ? 'max-h-[60vh] overflow-y-auto' : ''}`}
+              className={`text-xs sm:text-sm leading-relaxed text-muted-foreground bg-muted/30 p-3 sm:p-4 rounded-lg ${!expanded && isLong ? 'max-h-40 overflow-hidden' : ''} ${appendix ? 'max-h-[60vh] overflow-y-auto' : ''}`}
               dangerouslySetInnerHTML={{ __html: sanitized }}
             />
             {!expanded && isLong && !appendix && (
@@ -106,18 +119,19 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
             <div className="space-y-2">
               <Separator />
               <div>
-                <p className="text-sm font-semibold text-muted-foreground mb-2">
+                <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2">
                   관련 조항
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {article.related_articles.map((ref) => (
-                    <Badge
-                      key={ref.id}
-                      variant="secondary"
-                      className="cursor-pointer hover:bg-secondary/80"
-                    >
-                      {ref.article_number}
-                    </Badge>
+                    <Link key={ref.id} href={`/laws/${encodeURIComponent(ref.id)}`}>
+                      <Badge
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-secondary/80 text-xs"
+                      >
+                        {ref.article_number}
+                      </Badge>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -128,7 +142,7 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
 
       {/* Expand/collapse button */}
       {collapsible && (
-        <div className="px-6 pb-4">
+        <div className="px-4 sm:px-6 pb-4">
           <Button
             variant="ghost"
             size="sm"
@@ -153,38 +167,57 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
   );
 }
 
-export function SearchResults({ results }: SearchResultsProps) {
+export function SearchResults({ results, currentPage = 1, totalPages = 1, onPageChange, startIndex = 0 }: SearchResultsProps) {
+  // 페이지 번호 생성 (현재 페이지 주변 표시)
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      if (start > 2) pages.push('ellipsis');
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (end < totalPages - 1) pages.push('ellipsis');
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* 검색 요약 */}
       <Card className="border-2">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
               검색 결과: {results.total_found}건
             </CardTitle>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Badge variant="outline" className="gap-1 sm:gap-1.5 text-xs sm:text-sm">
+                <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 {results.metadata.search_time_ms.toFixed(0)}ms
               </Badge>
               {!results.metadata.llm_used && (
-                <Badge variant="secondary">AI 분석</Badge>
+                <Badge variant="secondary" className="text-xs sm:text-sm">AI 분석</Badge>
               )}
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4 p-4 pt-0 sm:p-6 sm:pt-0">
           {/* 관련 법령 */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Scale className="w-4 h-4" />
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
+              <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               관련 법령
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {results.relevant_laws.map((law) => (
-                <Badge key={law} variant="default" className="text-sm py-1.5 px-3">
+                <Badge key={law} variant="default" className="text-xs sm:text-sm py-1 sm:py-1.5 px-2 sm:px-3">
                   {law}
                 </Badge>
               ))}
@@ -194,14 +227,14 @@ export function SearchResults({ results }: SearchResultsProps) {
           <Separator />
 
           {/* 키워드 */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Hash className="w-4 h-4" />
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
+              <Hash className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               검색 키워드
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {results.keywords.map((kw) => (
-                <Badge key={kw} variant="outline" className="text-xs">
+                <Badge key={kw} variant="outline" className="text-[10px] sm:text-xs">
                   {kw}
                 </Badge>
               ))}
@@ -213,11 +246,50 @@ export function SearchResults({ results }: SearchResultsProps) {
       {/* 조항 목록 */}
       {results.articles.map((article, i) => (
         <ArticleCard
-          key={`${article.law_name}-${article.article_number}-${i}`}
+          key={`${article.law_name}-${article.article_number}-${startIndex + i}`}
           article={article}
-          index={i}
+          index={startIndex + i}
         />
       ))}
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && onPageChange && (
+        <div className="flex items-center justify-center gap-1 sm:gap-2 pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          {getPageNumbers().map((page, idx) =>
+            page === 'ellipsis' ? (
+              <span key={`ellipsis-${idx}`} className="px-1 sm:px-2 text-muted-foreground text-sm">…</span>
+            ) : (
+              <Button
+                key={page}
+                variant={page === currentPage ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onPageChange(page)}
+                className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-xs sm:text-sm"
+              >
+                {page}
+              </Button>
+            )
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

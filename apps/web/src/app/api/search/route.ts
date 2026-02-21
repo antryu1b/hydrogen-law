@@ -42,6 +42,14 @@ interface RagResponse {
   };
 }
 
+// Phase 2: 표준 에러 응답 헬퍼
+function errorResponse(code: string, message: string, status: number) {
+  return NextResponse.json(
+    { error: { code, message } },
+    { status }
+  );
+}
+
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -56,10 +64,7 @@ async function searchViaRagEngine(query: string, topK: number): Promise<NextResp
   if (!response.ok) {
     const errorBody = await response.text();
     console.error('RAG engine error:', response.status, errorBody);
-    return NextResponse.json(
-      { error: 'RAG 엔진 검색 중 오류가 발생했습니다' },
-      { status: 502 }
-    );
+    return errorResponse('RAG_ERROR', 'RAG 엔진 검색 중 오류가 발생했습니다', 502);
   }
 
   const ragData: RagResponse = await response.json();
@@ -219,13 +224,17 @@ async function searchViaSupabase(
 
 export async function POST(request: Request) {
   try {
-    const { query, top_k = 10 } = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return errorResponse('INVALID_JSON', '올바른 JSON 형식이 아닙니다', 400);
+    }
+
+    const { query, top_k = 10 } = body;
 
     if (!query || typeof query !== 'string' || !query.trim()) {
-      return NextResponse.json(
-        { error: '검색어를 입력해주세요' },
-        { status: 400 }
-      );
+      return errorResponse('EMPTY_QUERY', '검색어를 입력해주세요', 400);
     }
 
     const sanitizedQuery = query.trim().slice(0, MAX_QUERY_LENGTH);
@@ -251,15 +260,10 @@ export async function POST(request: Request) {
     }
 
     // 3. No data source available
-    return NextResponse.json({
-      error: '데이터베이스에 연결되지 않았습니다. 관리자에게 문의하세요.',
-    }, { status: 503 });
+    return errorResponse('NO_DATASOURCE', '데이터베이스에 연결되지 않았습니다. 관리자에게 문의하세요.', 503);
 
   } catch (error) {
     console.error('API error:', error);
-    return NextResponse.json(
-      { error: '검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
-      { status: 500 }
-    );
+    return errorResponse('INTERNAL_ERROR', '서버 내부 오류가 발생했습니다', 500);
   }
 }

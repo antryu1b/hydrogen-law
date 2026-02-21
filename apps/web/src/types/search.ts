@@ -1,4 +1,12 @@
+export interface ApiError {
+  error: {
+    code: string;
+    message: string;
+  };
+}
+
 export interface Article {
+  article_id: string;
   law_name: string;
   article_number: string;
   title: string;
