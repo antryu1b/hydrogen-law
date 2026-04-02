@@ -19,10 +19,8 @@ interface LawDocument {
 }
 
 async function getLawDocument(id: string): Promise<LawDocument | null> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) return null;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ygohwygdwbckgtotlogm.supabase.co';
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlnb2h3eWdkd2Jja2d0b3Rsb2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MTc3NjIsImV4cCI6MjA4NTI5Mzc2Mn0.BDDWsF4WmYJcKMrom6DX9_3lpHBFLyL29IiN9BbUWf4';
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 

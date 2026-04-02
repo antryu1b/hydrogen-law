@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Scale, Clock, CheckCircle2, History, X } from 'lucide-react';
 import type { SearchResponse } from '@/types/search';
 import { SearchResults } from '@/components/SearchResults';
+import KGSComparison from '@/components/KGSComparison';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -320,7 +321,7 @@ export default function HomePage() {
 
       {/* Search Results */}
       {results && paginatedArticles && (
-        <>
+        <div className="max-w-6xl mx-auto">
           <div className="text-xs text-gray-400 text-center mb-2">
             {totalItems}건 중 {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}건 표시
           </div>
@@ -335,7 +336,14 @@ export default function HomePage() {
             onPageChange={setCurrentPage}
             startIndex={(currentPage - 1) * ITEMS_PER_PAGE}
           />
-        </>
+        </div>
+      )}
+
+      {/* KGS CODE 비교 (법령 검색과 독립) */}
+      {query && !loading && (
+        <div className="max-w-6xl mx-auto mt-8">
+          <KGSComparison searchQuery={query} />
+        </div>
       )}
     </div>
   );
