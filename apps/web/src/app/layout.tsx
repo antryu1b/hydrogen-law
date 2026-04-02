@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export const metadata: Metadata = {
-  title: '⚡ 수소법률 지능형 검색',
+  title: '⚖️ 수소법률 지능형 검색',
   description: 'AI 기반 법령 검색 시스템 · 국가법령정보센터',
 };
 
@@ -28,7 +28,7 @@ export default function RootLayout({
             <div style={{ maxWidth: '72rem', margin: '0 auto', padding: '0 1.5rem' }}>
               <div className="flex h-16 items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity">
-                  <span className="text-2xl">⚡</span>
+                  <span className="text-2xl">⚖️</span>
                   <span>수소법률 지능형 검색</span>
                 </Link>
                 <div className="flex items-center gap-4">
