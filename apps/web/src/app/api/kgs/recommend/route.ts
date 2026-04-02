@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import kgsCodesData from '@/data/kgs-codes-full.json';
+import { kgsCodesData } from '@/data/kgs-codes-data';
 
 interface KGSCode {
   code: string;
