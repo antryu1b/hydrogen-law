@@ -3,6 +3,9 @@
  * 웹, 모바일, 데스크톱에서 공통으로 사용
  */
 
+// Domain types (H1 foundation for H2~H6)
+export * as Domain from './domain';
+
 // 법령 기본 정보
 export interface LawInfo {
   law_id: string;
