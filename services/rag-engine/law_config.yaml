@@ -154,8 +154,178 @@ search:
 
 # 컴플라이언스 규칙
 compliance_rules:
-  # 사업 유형별 필수 법령 매핑
+  # 사업 유형별 필수 법령 매핑 (H2 완성본)
   business_types:
+    hydrogen_station:
+      description: "수소충전소 설치 및 운영"
+      match_keywords: ["충전소", "수소충전", "hydrogen station", "충전설비", "충전"]
+      applicable_laws: ["hydrogen-law", "high-pressure-gas-safety"]
+      key_articles:
+        - rule_id: "hydrogen-law-§18"
+          law_id: "hydrogen-law"
+          article: "제18조"
+          condition_keywords: ["충전소", "운영", "허가", "수소충전소"]
+          requirement: "수소경제 육성 및 수소 안전관리에 관한 법률 제18조에 따른 수소충전소 설치·운영 허가 필요"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§19"
+          law_id: "hydrogen-law"
+          article: "제19조"
+          condition_keywords: ["충전소", "완성검사", "검사"]
+          requirement: "제19조에 따른 완성검사 합격 후 운영 가능"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§20"
+          law_id: "hydrogen-law"
+          article: "제20조"
+          condition_keywords: ["충전소", "정기검사", "안전관리"]
+          requirement: "제20조에 따른 정기검사 수검 의무 (1년 1회 이상)"
+          severity: mandatory
+        - rule_id: "high-pressure-§3"
+          law_id: "high-pressure-gas-safety"
+          article: "제3조"
+          condition_keywords: ["고압가스", "충전소", "허가"]
+          requirement: "고압가스 안전관리법 제3조에 따른 고압가스 제조·충전 허가"
+          severity: mandatory
+        - rule_id: "high-pressure-§5"
+          law_id: "high-pressure-gas-safety"
+          article: "제5조"
+          condition_keywords: ["안전관리자", "선임", "충전"]
+          requirement: "제5조에 따른 안전관리자 선임 및 신고 의무"
+          severity: mandatory
+
+    hydrogen_production:
+      description: "수소 생산 시설 설치 및 운영"
+      match_keywords: ["수소생산", "생산시설", "추출", "수전해", "개질", "hydrogen production"]
+      applicable_laws: ["hydrogen-law", "high-pressure-gas-safety"]
+      key_articles:
+        - rule_id: "hydrogen-law-§10"
+          law_id: "hydrogen-law"
+          article: "제10조"
+          condition_keywords: ["수소생산", "생산", "허가", "시설"]
+          requirement: "제10조에 따른 수소생산시설 설치 허가 또는 신고 의무"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§11"
+          law_id: "hydrogen-law"
+          article: "제11조"
+          condition_keywords: ["생산", "완성검사", "검사"]
+          requirement: "제11조에 따른 완성검사 실시 후 운영"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§12"
+          law_id: "hydrogen-law"
+          article: "제12조"
+          condition_keywords: ["생산", "정기검사", "안전관리"]
+          requirement: "제12조에 따른 정기검사 의무"
+          severity: mandatory
+        - rule_id: "high-pressure-§12"
+          law_id: "high-pressure-gas-safety"
+          article: "제12조"
+          condition_keywords: ["고압가스", "제조", "생산"]
+          requirement: "고압가스 안전관리법 제12조에 따른 고압가스 제조 시설 기준 준수"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§34"
+          law_id: "hydrogen-law"
+          article: "제34조"
+          condition_keywords: ["생산", "안전관리자", "선임"]
+          requirement: "제34조에 따른 수소 안전관리 전문기관 등록 또는 안전관리자 선임"
+          severity: recommended
+
+    hydrogen_storage:
+      description: "수소 저장 시설 설치 및 운영"
+      match_keywords: ["수소저장", "저장시설", "저장탱크", "hydrogen storage", "저장소", "탱크"]
+      applicable_laws: ["hydrogen-law", "high-pressure-gas-safety"]
+      key_articles:
+        - rule_id: "hydrogen-law-§14"
+          law_id: "hydrogen-law"
+          article: "제14조"
+          condition_keywords: ["저장시설", "저장", "허가", "수소저장"]
+          requirement: "제14조에 따른 수소저장시설 설치 허가 의무"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§15"
+          law_id: "hydrogen-law"
+          article: "제15조"
+          condition_keywords: ["저장", "완성검사"]
+          requirement: "제15조에 따른 완성검사 합격 요건"
+          severity: mandatory
+        - rule_id: "high-pressure-§4"
+          law_id: "high-pressure-gas-safety"
+          article: "제4조"
+          condition_keywords: ["고압가스", "저장", "저장소", "허가"]
+          requirement: "고압가스 안전관리법 제4조에 따른 고압가스 저장소 허가"
+          severity: mandatory
+        - rule_id: "high-pressure-§16"
+          law_id: "high-pressure-gas-safety"
+          article: "제16조"
+          condition_keywords: ["저장", "정기검사", "안전검사"]
+          requirement: "제16조에 따른 고압가스 저장 시설 정기 안전검사"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§35"
+          law_id: "hydrogen-law"
+          article: "제35조"
+          condition_keywords: ["저장", "비상계획", "사고대응"]
+          requirement: "제35조에 따른 사고 대응 비상계획 수립 권고"
+          severity: informational
+
+    hydrogen_transport:
+      description: "수소 운반 및 이송 사업"
+      match_keywords: ["수소운반", "운반", "이송", "튜브트레일러", "배관", "수소배관", "hydrogen transport"]
+      applicable_laws: ["hydrogen-law", "high-pressure-gas-safety"]
+      key_articles:
+        - rule_id: "hydrogen-law-§22"
+          law_id: "hydrogen-law"
+          article: "제22조"
+          condition_keywords: ["운반", "수소운반", "이송", "허가"]
+          requirement: "제22조에 따른 수소 운반 사업 등록 의무"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§23"
+          law_id: "hydrogen-law"
+          article: "제23조"
+          condition_keywords: ["운반", "용기검사", "운반용기"]
+          requirement: "제23조에 따른 운반 용기 검사 합격 필요"
+          severity: mandatory
+        - rule_id: "high-pressure-§20"
+          law_id: "high-pressure-gas-safety"
+          article: "제20조"
+          condition_keywords: ["고압가스", "운반", "이송"]
+          requirement: "고압가스 안전관리법 제20조에 따른 고압가스 운반 기준 준수"
+          severity: mandatory
+        - rule_id: "high-pressure-§21"
+          law_id: "high-pressure-gas-safety"
+          article: "제21조"
+          condition_keywords: ["운반", "안전관리자"]
+          requirement: "제21조에 따른 운반 안전관리자 동반 또는 교육 이수"
+          severity: mandatory
+
+    hydrogen_fuel_cell:
+      description: "수소연료전지 설치 및 운영"
+      match_keywords: ["연료전지", "fuel cell", "수소연료전지", "발전", "연료전지발전"]
+      applicable_laws: ["hydrogen-law"]
+      key_articles:
+        - rule_id: "hydrogen-law-§26"
+          law_id: "hydrogen-law"
+          article: "제26조"
+          condition_keywords: ["연료전지", "설치", "허가"]
+          requirement: "제26조에 따른 수소연료전지 설비 설치 허가"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§27"
+          law_id: "hydrogen-law"
+          article: "제27조"
+          condition_keywords: ["연료전지", "완성검사"]
+          requirement: "제27조에 따른 연료전지 완성검사 실시"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§28"
+          law_id: "hydrogen-law"
+          article: "제28조"
+          condition_keywords: ["연료전지", "정기검사"]
+          requirement: "제28조에 따른 연료전지 정기검사 (2년 1회)"
+          severity: mandatory
+        - rule_id: "hydrogen-law-§36"
+          law_id: "hydrogen-law"
+          article: "제36조"
+          condition_keywords: ["연료전지", "보험", "배상"]
+          requirement: "제36조에 따른 수소 사고 배상책임 보험 가입 권고"
+          severity: recommended
+
+  # H1 compat (기존 형식 유지)
+  business_types_legacy:
     - type: "수소충전소_설치_운영"
       required_laws:
         - law: "수소법"
