@@ -1,0 +1,47 @@
+{
+  "sample-1-hydrogen-station": {
+    "expected_business_type": "hydrogen_station",
+    "expected_mandatory_min": 3,
+    "expected_rule_ids": [
+      "hydrogen-law-§18",
+      "hydrogen-law-§19",
+      "hydrogen-law-§20",
+      "high-pressure-§3",
+      "high-pressure-§5"
+    ]
+  },
+  "sample-2-hydrogen-transport": {
+    "expected_business_type": "hydrogen_transport",
+    "expected_mandatory_min": 2,
+    "expected_rule_ids": [
+      "hydrogen-law-§22",
+      "hydrogen-law-§23",
+      "high-pressure-§20",
+      "high-pressure-§21"
+    ]
+  },
+  "sample-3-edge-case": {
+    "expected_business_type": "unknown",
+    "expected_mandatory_min": 0,
+    "expected_rule_ids": []
+  },
+  "sample-4-hydrogen-storage": {
+    "expected_business_type": "hydrogen_storage",
+    "expected_mandatory_min": 2,
+    "expected_rule_ids": [
+      "hydrogen-law-§14",
+      "hydrogen-law-§15",
+      "high-pressure-§4",
+      "high-pressure-§16"
+    ]
+  },
+  "sample-5-fuel-cell": {
+    "expected_business_type": "hydrogen_fuel_cell",
+    "expected_mandatory_min": 2,
+    "expected_rule_ids": [
+      "hydrogen-law-§26",
+      "hydrogen-law-§27",
+      "hydrogen-law-§28"
+    ]
+  }
+}
