@@ -1,5 +1,22 @@
 # 수소법률 RAG 시스템 - 법령 수집 설정
 
+# H1 법령 목록 (D prep — H3에서 2303개로 확장)
+# 이 섹션만 수정하면 새 법령 추가/삭제 가능.
+# TypeScript kgs-codes-data.ts는 유지 (KGS CODE 전용).
+laws:
+  - id: "013670"
+    name: "수소경제 육성 및 수소 안전관리에 관한 법률"
+    short_name: "수소법"
+    source: "pdf"
+    pdf_path: "data/hydrogen/수소경제육성및수소안전관리에관한법률(법률)(제21065호)(20251001).pdf"
+    category: "hydrogen"
+  - id: "020219"
+    name: "고압가스 안전관리에 관한 법률"
+    short_name: "고압가스법"
+    source: "pdf"
+    pdf_path: "data/hydrogen/고압가스 안전관리법(법률)(제21065호)(20260102).pdf"
+    category: "hydrogen"
+
 # 필수 수집 법령 (우선순위 순)
 target_laws:
   # 1. 고압가스 안전관리법
