@@ -1,3 +1,7 @@
-// H2 target — compliance check feature (empty shell)
-// Implements: Rule-based compliance checking against law articles
-// Entry point for Phase H2 implementation
+// Compliance check feature — H2 implementation
+export { runComplianceCheck } from './api/compliance-handler';
+export { useComplianceCheck } from './hooks/useComplianceCheck';
+export { UploadZone } from './components/UploadZone';
+export { ComplianceResults } from './components/ComplianceResults';
+export { ViolationCard } from './components/ViolationCard';
+export type { ComplianceReport, ComplianceCheck, Violation, Severity } from './types';
