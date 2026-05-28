@@ -88,6 +88,7 @@ export default function HomePage() {
   const [selectedLaw, setSelectedLaw] = useState<typeof TOP_LAWS[0] | null>(null);
   const [selectedLawFilter, setSelectedLawFilter] = useState<string | null>(null); // 최상위 법령 필터
   const [searchStack, setSearchStack] = useState<string[]>([]); // cross-ref drill-down back stack
+  const [scopeLaw, setScopeLaw] = useState<string | null>(null); // 법령 한정 chip (수소법/고압가스법/etc)
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -185,12 +186,15 @@ export default function HomePage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) {
+    const keyword = query.trim();
+    if (!keyword && !scopeLaw) {
       setError('검색어를 입력해주세요.');
       return;
     }
     setShowSuggestions(false);
-    await doSearch(query.trim());
+    // If a law-scope chip is active, prepend it: 수소법 AND <keyword>.
+    const fullQuery = scopeLaw && keyword ? `${scopeLaw} ${keyword}` : (scopeLaw || keyword);
+    await doSearch(fullQuery);
   };
 
   const handleSelectSuggestion = (term: string) => {
@@ -345,6 +349,23 @@ export default function HomePage() {
 
         {/* 검색창 */}
         <div className="w-full max-w-2xl fadeIn">
+          {/* 법령 한정 chip — appears when a 주요 법령 button is clicked */}
+          {scopeLaw && (
+            <div className="mb-3 flex justify-center fadeIn">
+              <div className="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 bg-primary/10 border border-primary/30 rounded-full text-sm">
+                <span className="font-semibold text-primary">{scopeLaw}</span>
+                <span className="text-muted-foreground text-xs">으로 한정 검색</span>
+                <button
+                  type="button"
+                  onClick={() => setScopeLaw(null)}
+                  className="ml-1 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-background/60 transition-colors"
+                  aria-label="법령 한정 해제"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSearch} className="relative">
             <div className="relative">
               <Input
@@ -360,7 +381,7 @@ export default function HomePage() {
                 onKeyDown={(e) => {
                   if (e.key === 'Escape') setShowSuggestions(false);
                 }}
-                placeholder="법령명, 조문, 키워드로 검색..."
+                placeholder={scopeLaw ? `${scopeLaw} 안에서 키워드 검색...` : "법령명, 조문, 키워드로 검색..."}
                 className={`h-14 text-base pl-5 pr-32 rounded-full border-2 shadow-sm focus:shadow-md transition-shadow ${query ? 'ring-primary/30 ring-2' : ''}`}
                 autoComplete="off"
               />
@@ -456,12 +477,17 @@ export default function HomePage() {
                   key={law}
                   type="button"
                   onClick={() => {
-                    setQuery(law + ' ');
+                    setScopeLaw(law);
+                    setQuery('');           // chip carries the scope; input cleared for keyword
                     inputRef.current?.focus();
-                    doSearch(law);
+                    doSearch(law);          // immediate search shows law family
                   }}
                   disabled={loading}
-                  className="h-10 rounded-md border border-input bg-background text-sm font-medium text-foreground/85 transition-colors hover:bg-accent hover:text-foreground hover:border-foreground/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`h-10 rounded-md border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    scopeLaw === law
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input bg-background text-foreground/85 hover:bg-accent hover:text-foreground hover:border-foreground/30'
+                  }`}
                 >
                   {law}
                 </button>

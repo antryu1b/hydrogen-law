@@ -400,15 +400,11 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
       const { data: andData } = await q.limit(topK * 2);
       if (andData && andData.length > 0) {
         data = andData as SupabaseRow[];
-      } else {
-        const lawNameTokens = keywords.filter(isLawNameToken);
-        if (lawNameTokens.length > 0) {
-          let q2 = supabase.from('law_articles').select('*');
-          for (const k of lawNameTokens) q2 = q2.ilike('law_name', `%${resolveLawAlias(k)}%`);
-          const { data: lnData } = await q2.limit(topK * 2);
-          if (lnData && lnData.length > 0) data = lnData as SupabaseRow[];
-        }
       }
+      // No safety fallback here: if the AND of law + keyword returns 0, the honest
+      // answer is "no matches" (empty 200 → frontend shows law.go.kr fallback card).
+      // The previous fallback (drop keyword tokens, show all law-only rows) silently
+      // hid the keyword refinement, making '수소법 안전기준' look like '수소법' (의장 catch).
     }
 
     if (!data || data.length === 0) {
