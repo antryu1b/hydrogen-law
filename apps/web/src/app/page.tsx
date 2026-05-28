@@ -448,6 +448,24 @@ export default function HomePage() {
             )}
           </form>
 
+          {/* 주요 법령 — 빠른 검색 (의장 요청 3법령) */}
+          <div className="mt-5 fadeIn">
+            <p className="text-xs text-muted-foreground text-center mb-3">주요 법령 바로가기</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {['수소법', '고압가스법', '산업안전보건법'].map((law) => (
+                <button
+                  key={law}
+                  type="button"
+                  onClick={() => doSearch(law)}
+                  disabled={loading}
+                  className="px-4 py-2 text-sm font-semibold border-2 rounded-full transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {law}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {error && (
             <p className="text-sm text-destructive text-center mt-3 fadeIn">{error}</p>
           )}
