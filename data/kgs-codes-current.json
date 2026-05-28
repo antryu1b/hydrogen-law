@@ -1,0 +1,185 @@
+{
+  "codes": [
+    {
+      "code": "FP217",
+      "name": "저장식 수소연료 충전의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/FP217_260211.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/FP217-260508.pdf",
+      "date_current": "2026-05-08",
+      "is_stale": true,
+      "not_found_on_server": false
+    },
+    {
+      "code": "FP216",
+      "name": "제조식 수소연료 충전의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/FP216_260211.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/FP216-260508.pdf",
+      "date_current": "2026-05-08",
+      "is_stale": true,
+      "not_found_on_server": false
+    },
+    {
+      "code": "FP211",
+      "name": "고압가스 용기 및 차량에 고정된 탱크 충전의 시설·기술·검사·안전성평가 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/FP211_260211.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/FP211-260508.pdf",
+      "date_current": "2026-05-08",
+      "is_stale": true,
+      "not_found_on_server": false
+    },
+    {
+      "code": "FU671",
+      "name": "수소연료사용시설의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/FU671_260213(0).pdf",
+      "pdfUrl_current": null,
+      "date_current": null,
+      "is_stale": false,
+      "not_found_on_server": true
+    },
+    {
+      "code": "AH271",
+      "name": "수전해설비 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2025/AH271_251209.pdf",
+      "pdfUrl_current": "kgscode_pdf/2025/AH271_251209.pdf",
+      "date_current": "2025-12-09",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AH371",
+      "name": "고정형 연료전지 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2025/AH371_251209.pdf",
+      "pdfUrl_current": "kgscode_pdf/2025/AH371_251209.pdf",
+      "date_current": "2025-12-09",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AH377",
+      "name": "이동형 연료전지(선박용) 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2025/AH377_251209.pdf",
+      "pdfUrl_current": "kgscode_pdf/2025/AH377_251209.pdf",
+      "date_current": "2025-12-09",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AH373",
+      "name": "이동형 연료전지(드론용) 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2025/AH373_251209.pdf",
+      "pdfUrl_current": "kgscode_pdf/2025/AH373_251209.pdf",
+      "date_current": "2025-12-09",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AH374",
+      "name": "이동형 연료전지(건설기계용) 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2025/AH374_251209.pdf",
+      "pdfUrl_current": "kgscode_pdf/2025/AH374_251209.pdf",
+      "date_current": "2025-12-09",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AH375",
+      "name": "이동형 연료전지(노면전차용) 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2025/AH375_251209.pdf",
+      "pdfUrl_current": "kgscode_pdf/2025/AH375_251209.pdf",
+      "date_current": "2025-12-09",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AH376",
+      "name": "이동형 연료전지(항공기용) 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2025/AH376_251209.pdf",
+      "pdfUrl_current": "kgscode_pdf/2025/AH376_251209.pdf",
+      "date_current": "2025-12-09",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AH171",
+      "name": "수소추출설비 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2025/AH171_251209.pdf",
+      "pdfUrl_current": "kgscode_pdf/2025/AH171_251209.pdf",
+      "date_current": "2025-12-09",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AH372",
+      "name": "이동형 연료전지(지게차용) 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2025/AH372_251209.pdf",
+      "pdfUrl_current": "kgscode_pdf/2025/AH372_251209.pdf",
+      "date_current": "2025-12-09",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AC421",
+      "name": "이동수단용 압축수소 복합재료용기 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/AC421_260211.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/AC421-260508.pdf",
+      "date_current": "2026-05-08",
+      "is_stale": true,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AC411",
+      "name": "고압가스용 알루미늄합금라이너 복합재료용기 제조의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/AC411_260211.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/AC411-260508.pdf",
+      "date_current": "2026-05-08",
+      "is_stale": true,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AC414",
+      "name": "고압가스용 복합재료용기 재검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/AC414_260211.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/AC414_260211.pdf",
+      "date_current": "2026-02-11",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "FU111",
+      "name": "고압가스 저장의 시설·기술·검사·안전성평가 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/FU111_260203.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/FU111-260508.pdf",
+      "date_current": "2026-05-08",
+      "is_stale": true,
+      "not_found_on_server": false
+    },
+    {
+      "code": "FU212",
+      "name": "특수고압가스 사용의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/FU212_260203.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/FU212_260203.pdf",
+      "date_current": "2026-02-03",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "FU211",
+      "name": "특정고압가스 사용의 시설·기술·검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/FU211_260203.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/FU211_260203.pdf",
+      "date_current": "2026-02-03",
+      "is_stale": false,
+      "not_found_on_server": false
+    },
+    {
+      "code": "AC116",
+      "name": "고압가스용 저장탱크 및 압력용기 재검사 기준",
+      "pdfUrl_old": "kgscode_pdf/2026/AC116_260211.pdf",
+      "pdfUrl_current": "kgscode_pdf/2026/AC116_260211.pdf",
+      "date_current": "2026-02-11",
+      "is_stale": false,
+      "not_found_on_server": false
+    }
+  ],
+  "scraped_total": 184
+}

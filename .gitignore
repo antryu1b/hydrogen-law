@@ -66,3 +66,9 @@ htmlcov/
 .claude/settings.local.json
 .ralph-active
 .env*.local
+
+# KGS source PDFs and parsed sections — too large for repo
+data/kgs_pdfs/
+data/kgs_sections/
+services/kgs-parser/.venv/
+services/kgs-parser/__pycache__/

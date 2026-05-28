@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { BookOpen, ExternalLink, Loader2, Wrench } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { CODE_TO_FAMILY, KGS_FAMILIES } from '@/data/kgs-families-display';
 
 interface KGSCode {
   code: string;
@@ -151,6 +153,21 @@ export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                     {rec.category} › {rec.subcategory}
                   </Badge>
+                  {(() => {
+                    const familyId = CODE_TO_FAMILY[rec.code];
+                    const family = KGS_FAMILIES.find(f => f.id === familyId);
+                    if (!family) return null;
+                    return (
+                      <Link
+                        href={`/kgs-family#family-${family.id}`}
+                        title={family.description}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-[10px] bg-[#0d9488]/10 hover:bg-[#0d9488]/20 text-[#0d9488] px-1.5 py-0.5 rounded-full transition-colors inline-flex items-center gap-0.5"
+                      >
+                        🏷 {family.shortLabel}
+                      </Link>
+                    );
+                  })()}
                   <span className="text-xs text-muted-foreground">
                     매칭도 {(rec.score * 100).toFixed(0)}%
                   </span>

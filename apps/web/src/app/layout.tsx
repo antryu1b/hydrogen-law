@@ -39,6 +39,9 @@ export default function RootLayout({
               <div className="flex h-16 items-center justify-between">
                 <BrandLink />
                 <div className="flex items-center gap-4">
+                  <Link href="/kgs-family" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+                    기술기준 분류
+                  </Link>
                   <Link href="/compliance-check" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
                     컴플라이언스 체크
                   </Link>
