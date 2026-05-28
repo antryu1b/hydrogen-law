@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, Zap, Database, ChevronLeft, AlertCircle, Pin } from 'lucide-react';
+import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, Zap, Database, ChevronLeft, AlertCircle, Pin, ArrowLeft } from 'lucide-react';
 import type { SearchResponse } from '@/types/search';
 import { SearchResults } from '@/components/SearchResults';
 import KGSComparison from '@/components/KGSComparison';
@@ -87,6 +87,7 @@ export default function HomePage() {
   const [viewState, setViewState] = useState<ViewState>('home');
   const [selectedLaw, setSelectedLaw] = useState<typeof TOP_LAWS[0] | null>(null);
   const [selectedLawFilter, setSelectedLawFilter] = useState<string | null>(null); // 최상위 법령 필터
+  const [searchStack, setSearchStack] = useState<string[]>([]); // cross-ref drill-down back stack
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -121,7 +122,7 @@ export default function HomePage() {
     return { history: matchingHistory, terms: matchingTerms };
   }, [query, history]);
 
-  const doSearch = async (searchQuery: string) => {
+  const doSearch = async (searchQuery: string, fromCrossRef = false) => {
     if (!searchQuery.trim()) return;
 
     setLoading(true);
@@ -131,6 +132,11 @@ export default function HomePage() {
     setSubmittedQuery(searchQuery.trim());
     setViewState('results');
     setSelectedLaw(null);
+
+    if (!fromCrossRef) {
+      // Fresh top-level search — reset the drill-down stack
+      setSearchStack([]);
+    }
 
     try {
       // 법령 검색
@@ -231,6 +237,26 @@ export default function HomePage() {
       setLoading(false);
     }
   };
+
+  // Cross-ref handler: push current query onto the back stack before drilling down
+  const handleCrossRefSearch = useCallback(
+    (newQuery: string) => {
+      setSearchStack((prev) => (submittedQuery ? [...prev, submittedQuery] : prev));
+      doSearch(newQuery, true);
+    },
+    [submittedQuery] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  // Back navigation: pop the stack and re-run the previous query (no re-push)
+  const handleBack = useCallback(() => {
+    setSearchStack((prev) => {
+      if (prev.length === 0) return prev;
+      const next = [...prev];
+      const previousQuery = next.pop()!;
+      doSearch(previousQuery, true);
+      return next;
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const suggestions = getSuggestions();
   const hasSuggestions = suggestions.history.length > 0 || suggestions.terms.length > 0;
@@ -565,6 +591,24 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* 이전 검색결과로 돌아가기 */}
+      {searchStack.length > 0 && (
+        <div className="mb-3 fadeIn">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="gap-1.5 text-sm text-muted-foreground hover:text-foreground px-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>
+              &ldquo;{searchStack[searchStack.length - 1]}&rdquo; 결과로 돌아가기
+            </span>
+          </Button>
+        </div>
+      )}
+
       {/* 탭 */}
       <div className="flex flex-col md:flex-row md:space-x-8 space-y-4 md:space-y-0 border-b fadeIn mb-2">
         <button
@@ -694,7 +738,7 @@ export default function HomePage() {
                     onPageChange={setCurrentPage}
                     startIndex={(currentPage - 1) * ITEMS_PER_PAGE}
                     hideRelevantLaws={true}
-                    onSearch={doSearch}
+                    onSearch={handleCrossRefSearch}
                   />
                 </>
               ) : (
