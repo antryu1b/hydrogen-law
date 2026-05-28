@@ -212,6 +212,29 @@ function splitKoreanCompound(word: string): string[] {
   return [...tokens];
 }
 
+// 약칭 → 정식명칭 substring map (used by the multi-keyword AND path's law_name ilike).
+// Substring chosen so a single `%${aliased}%` ilike matches the law + 시행령 + 시행규칙
+// together — e.g. "수소법" → "수소경제" matches "수소경제 육성 및 수소 안전관리에 관한 법률"
+// AND its 시행령/시행규칙. Domain-focused (수소·안전법규); extend as needed.
+const KR_LAW_ALIASES: Record<string, string> = {
+  '수소법': '수소경제',
+  '가스법': '고압가스 안전관리',
+  '고압가스법': '고압가스 안전관리',
+  '액화석유가스법': '액화석유가스',
+  '도시가스법': '도시가스사업',
+  '위험물법': '위험물안전관리',
+  '산업안전법': '산업안전보건',
+  '산안법': '산업안전보건',
+  '화관법': '화학물질관리',
+  '화평법': '화학물질의 등록',
+  '항공법': '항공안전법',
+  '철도법': '철도안전법',
+  '건설기계법': '건설기계관리법',
+};
+function resolveLawAlias(k: string): string {
+  return KR_LAW_ALIASES[k] || k;
+}
+
 // Check whether a row actually contains the exact keyword (or each of its meaningful sub-parts together).
 // Used to demote / exclude pure-fragment-only matches when exact results exist.
 function rowContainsKeyword(row: SupabaseRow, keyword: string): boolean {
@@ -340,7 +363,7 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
         if (/^제\d+조(?:의\d+)?$/.test(k)) {
           q = q.eq('article_no', k);
         } else if (isLawNameToken(k)) {
-          q = q.ilike('law_name', `%${k}%`);
+          q = q.ilike('law_name', `%${resolveLawAlias(k)}%`);
         } else {
           q = q.or(`content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`);
         }
@@ -352,7 +375,7 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
         const lawNameTokens = keywords.filter(isLawNameToken);
         if (lawNameTokens.length > 0) {
           let q2 = supabase.from('law_articles').select('*');
-          for (const k of lawNameTokens) q2 = q2.ilike('law_name', `%${k}%`);
+          for (const k of lawNameTokens) q2 = q2.ilike('law_name', `%${resolveLawAlias(k)}%`);
           const { data: lnData } = await q2.limit(topK * 2);
           if (lnData && lnData.length > 0) data = lnData as SupabaseRow[];
         }

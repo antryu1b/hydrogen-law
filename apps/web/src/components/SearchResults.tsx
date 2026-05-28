@@ -432,6 +432,31 @@ export function SearchResults({ results, currentPage = 1, totalPages = 1, onPage
         </CardContent>
       </Card>
 
+      {/* Empty-state fallback — when we have no rows, offer external 법제처 search */}
+      {results.total_found === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-foreground mb-1">
+                이 검색어는 우리 DB에 없습니다
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                현재 DB는 수소·고압가스·안전법규 도메인 위주입니다. 다른 법령은 법제처에서 직접 검색하실 수 있습니다.
+              </p>
+            </div>
+            <a
+              href={`https://www.law.go.kr/lsSc.do?query=${encodeURIComponent(results.query || '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm px-3 py-2 rounded-md border border-input bg-background hover:bg-accent transition-colors whitespace-nowrap"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              law.go.kr에서 검색
+            </a>
+          </CardContent>
+        </Card>
+      )}
+
       {/* 조항 목록 */}
       <div className="space-y-4">
       {results.articles.map((article, i) => (
