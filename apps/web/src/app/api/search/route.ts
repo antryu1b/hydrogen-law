@@ -149,9 +149,27 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
         });
       }
     }
-    
+
+    // Relevance filter: Beopmang matches at the LAW level, so it can return
+    // articles whose body contains none of the search keywords (no highlight,
+    // e.g. "등록신고" surfacing 가축분뇨 규칙 제7조). Keep only articles where at
+    // least one keyword actually appears — same keywords that drive highlighting,
+    // so "no highlight" == "filtered out". Fall back to raw results if the filter
+    // would empty an otherwise non-empty response (never show nothing).
+    const kwLower = keywords.map((k) => k.toLowerCase());
+    const relevantArticles =
+      kwLower.length === 0
+        ? articles
+        : (() => {
+            const matched = articles.filter((a) => {
+              const hay = `${a.content || ''} ${a.title || ''} ${a.law_name || ''} ${a.article_number || ''}`.toLowerCase();
+              return kwLower.some((k) => hay.includes(k));
+            });
+            return matched.length > 0 ? matched : articles;
+          })();
+
     // Limit results
-    const limitedArticles = articles.slice(0, topK);
+    const limitedArticles = relevantArticles.slice(0, topK);
     
     const elapsed = Date.now() - startTime;
     
