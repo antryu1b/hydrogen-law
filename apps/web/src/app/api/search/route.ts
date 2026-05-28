@@ -321,29 +321,42 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
     } else {
       // Multi-keyword AND path: each keyword must match somewhere.
       // Routing per token type to avoid cross-ref leakage:
-      //   • Article number "제N조[의M][제K항][제L호]" → eq on article_no (extract 조 part).
+      //   • Clean article number "제N조[의M]" → eq on article_no.
       //   • Special law-form words (시행령/시행규칙/법률/별표/부칙) → law_name ilike.
-      //   • Law-name token (ends in 법/령/규칙/지침/고시/규정/etc) → law_name ilike ONLY
-      //     (NOT content) — otherwise "선박법 제1조의2제1항" leaks into 수소경제법 etc whose
-      //     content body merely references 선박법.
-      //   • Anything else → broad content/law_name/title OR (general keyword).
+      //   • Law-name token (ends in 법/령/규칙/etc) → law_name ilike ONLY (not content) —
+      //     otherwise "선박법 제1조의2제1항" leaks into 수소경제법 etc whose body merely
+      //     references 선박법 by name.
+      //   • Anything else (incl. compound "제1조의2제1항") → broad content/law_name/title OR.
+      //
+      // Safety: if the strict AND returns 0 rows but at least one token IS a law name,
+      // retry with law-name tokens only (never 503 when the law itself exists).
       const SPECIAL_LAW_WORDS = ['시행령', '시행규칙', '법률', '별표', '부칙'];
       const LAW_NAME_SUFFIX = /^[가-힣A-Z0-9·]+(?:특례법|기본법|법|령|규칙|지침|고시|규정|준칙|훈령|예규)$/;
+      const isLawNameToken = (k: string) =>
+        SPECIAL_LAW_WORDS.includes(k) || (k.length >= 2 && LAW_NAME_SUFFIX.test(k));
+
       let q = supabase.from('law_articles').select('*');
       for (const k of keywords) {
-        const artMatch = k.match(/^(제\d+조(?:의\d+)?)(제\d+항)?(제\d+호)?$/);
-        if (artMatch) {
-          q = q.eq('article_no', artMatch[1]);
-        } else if (SPECIAL_LAW_WORDS.includes(k)) {
-          q = q.ilike('law_name', `%${k}%`);
-        } else if (k.length >= 2 && LAW_NAME_SUFFIX.test(k)) {
+        if (/^제\d+조(?:의\d+)?$/.test(k)) {
+          q = q.eq('article_no', k);
+        } else if (isLawNameToken(k)) {
           q = q.ilike('law_name', `%${k}%`);
         } else {
           q = q.or(`content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`);
         }
       }
       const { data: andData } = await q.limit(topK * 2);
-      if (andData && andData.length > 0) data = andData as SupabaseRow[];
+      if (andData && andData.length > 0) {
+        data = andData as SupabaseRow[];
+      } else {
+        const lawNameTokens = keywords.filter(isLawNameToken);
+        if (lawNameTokens.length > 0) {
+          let q2 = supabase.from('law_articles').select('*');
+          for (const k of lawNameTokens) q2 = q2.ilike('law_name', `%${k}%`);
+          const { data: lnData } = await q2.limit(topK * 2);
+          if (lnData && lnData.length > 0) data = lnData as SupabaseRow[];
+        }
+      }
     }
 
     if (!data || data.length === 0) return null;
