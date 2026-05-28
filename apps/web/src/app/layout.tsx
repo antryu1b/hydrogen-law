@@ -36,7 +36,7 @@ export default function RootLayout({
           <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1.5rem' }}>
               <div className="flex h-16 items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 font-semibold text-base hover:opacity-75 transition-opacity">
+                <Link href="/" className="flex items-center gap-2 font-semibold text-lg hover:opacity-75 transition-opacity">
                   <Scale className="w-5 h-5 text-foreground/70" strokeWidth={1.75} />
                   <span className="tracking-tight">어플리케이션개발2팀 법령 검색</span>
                 </Link>

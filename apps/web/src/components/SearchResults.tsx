@@ -53,6 +53,13 @@ function cleanMarkdown(text: string): string {
   // Stray asterisks
   cleaned = cleaned.replace(/\*+/g, '');
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  // Bold bare article sub-headings that appear at the start of a line:
+  // e.g. "제1조 (목적)" or "제12조의2 (정의)" — these are the article's own structure.
+  // Only matches when 제N조 is the FIRST non-whitespace token on a line (not mid-sentence cross-refs).
+  cleaned = cleaned.replace(
+    /^(\s*)(제\d+조(?:의\d+)?(?:\s*\([^)]+\))?)/gm,
+    '$1<strong>$2</strong>'
+  );
   return cleaned.trim();
 }
 
@@ -185,7 +192,7 @@ function ArticleCard({ article, index, keywords = [], onSearch }: { article: Sea
   const highlightedSnippet = highlightKeywords(cleanContent, keywords);
   const linkedSnippet = onSearch ? linkifyLegalCitations(highlightedSnippet, onSearch) : highlightedSnippet;
   const rawSanitized = DOMPurify.sanitize(linkedSnippet, {
-    ALLOWED_TAGS: ['mark', 'br', 'a'],
+    ALLOWED_TAGS: ['mark', 'br', 'a', 'strong'],
     ALLOWED_ATTR: ['class', 'data-cite-query', 'href'],
   });
   const sanitized = appendix ? formatLegalContent(rawSanitized) : rawSanitized;
@@ -216,7 +223,7 @@ function ArticleCard({ article, index, keywords = [], onSearch }: { article: Sea
           </div>
           <div className="space-y-1 flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <CardTitle className="text-sm sm:text-xl leading-tight">
+              <CardTitle className="text-sm sm:text-lg leading-tight">
                 <a
                   href={lawInfoUrl}
                   target="_blank"
@@ -233,7 +240,7 @@ function ArticleCard({ article, index, keywords = [], onSearch }: { article: Sea
                 </Badge>
               )}
             </div>
-            <CardDescription className="text-xs sm:text-base font-semibold text-foreground/80">
+            <CardDescription className="text-xs sm:text-sm font-semibold text-foreground/80">
               {article.title}
             </CardDescription>
             {/* Appendix: show summary when collapsed */}
