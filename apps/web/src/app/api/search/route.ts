@@ -219,6 +219,18 @@ function rowContainsKeyword(row: SupabaseRow, keyword: string): boolean {
   return haystack.includes(keyword.toLowerCase());
 }
 
+// Decompose a no-space Korean compound into meaningful parts for AND-matching + highlight.
+// "등록신고" -> ["등록","신고"], "안전관리" -> ["안전","관리"]. Used only when the literal
+// compound has zero exact matches, so we require ALL parts (AND) instead of OR-flooding
+// 2-char fragments (which let "신고"-only rows like 가축분뇨 규칙 leak in with no highlight).
+function decomposeCompound(k: string): string[] {
+  if (!/[가-힣]/.test(k)) return [k];
+  if (k.length === 4) return [k.slice(0, 2), k.slice(2, 4)];
+  if (k.length === 6) return [k.slice(0, 2), k.slice(2, 4), k.slice(4, 6)];
+  if (k.length === 5) return [k.slice(0, 2), k.slice(2)];
+  return [k];
+}
+
 async function searchViaSupabase(query: string, topK: number): Promise<NextResponse | null> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -226,7 +238,7 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
 
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const keywords = query.split(/[\s,]+/).filter((k: string) => k.length > 0).slice(0, 20);
+    let keywords = query.split(/[\s,]+/).filter((k: string) => k.length > 0).slice(0, 20);
 
     // Strategy:
     // 1. Single keyword: try RPC first, then exact ilike match on full keyword.
@@ -255,6 +267,32 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
           .or(exactQuery)
           .limit(topK * 2);
         if (exactData && exactData.length > 0) data = exactData as SupabaseRow[];
+      }
+
+      // Step 1b-2: compound AND — when the literal compound has no exact match,
+      // require ALL meaningful parts (e.g. "등록신고" -> 등록 AND 신고) instead of
+      // OR-flooding 2-char fragments. This keeps 가축분뇨 규칙("신고" only) out and,
+      // by reassigning `keywords` to the parts, makes the matched words highlight.
+      if (!data || data.length === 0) {
+        const parts = decomposeCompound(k);
+        if (parts.length > 1) {
+          let q = supabase.from('law_articles').select('*');
+          for (const p of parts) {
+            q = q.or(`content.ilike.%${p}%,law_name.ilike.%${p}%,title.ilike.%${p}%`);
+          }
+          const { data: andData } = await q.limit(topK * 3);
+          if (andData && andData.length > 0) {
+            const lower = parts.map((p) => p.toLowerCase());
+            const strict = (andData as SupabaseRow[]).filter((r) => {
+              const hay = `${r.content || ''} ${r.law_name || ''} ${r.title || ''}`.toLowerCase();
+              return lower.every((p) => hay.includes(p));
+            });
+            if (strict.length > 0) {
+              data = strict;
+              keywords = parts; // highlight the parts the user actually matched on
+            }
+          }
+        }
       }
 
       // Step 1c: fuzzy fallback — 2-char compound expansion, only when exact returns 0.
