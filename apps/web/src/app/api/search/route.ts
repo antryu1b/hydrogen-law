@@ -359,7 +359,21 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
       }
     }
 
-    if (!data || data.length === 0) return null;
+    if (!data || data.length === 0) {
+      // 0 results is a CORRECT empty answer (e.g. cross-ref to 선박법 when our DB only
+      // indexes 수소/고압가스 domain laws). Return 200 empty — don't cascade to the POST
+      // handler's NO_DATA_SOURCE 503 which falsely implies a server problem.
+      // null is reserved for true unavailability (missing creds / exception).
+      return NextResponse.json({
+        query,
+        total_found: 0,
+        keywords,
+        relevant_laws: [],
+        law_groups: [],
+        articles: [],
+        metadata: { search_time_ms: 0, llm_used: false, search_method: 'supabase-fallback-empty' },
+      });
+    }
 
     const lawGroupMap = new Map<string, { law_name: string; law_type: string; count: number }>();
     const articles = (data as SupabaseRow[]).slice(0, topK).map((row, i) => {
