@@ -349,25 +349,22 @@ export default function HomePage() {
 
         {/* 검색창 */}
         <div className="w-full max-w-2xl fadeIn">
-          {/* 법령 한정 chip — appears when a 주요 법령 button is clicked */}
-          {scopeLaw && (
-            <div className="mb-3 flex justify-center fadeIn">
-              <div className="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 bg-primary/10 border border-primary/30 rounded-full text-sm">
-                <span className="font-semibold text-primary">{scopeLaw}</span>
-                <span className="text-muted-foreground text-xs">으로 한정 검색</span>
-                <button
-                  type="button"
-                  onClick={() => setScopeLaw(null)}
-                  className="ml-1 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-background/60 transition-colors"
-                  aria-label="법령 한정 해제"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
           <form onSubmit={handleSearch} className="relative">
             <div className="relative">
+              {/* 법령 한정 badge — absolute at input's left edge, inside the search bar */}
+              {scopeLaw && (
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 pl-3 pr-1.5 py-1.5 bg-primary/15 border border-primary/40 rounded-full text-sm font-bold text-primary fadeIn">
+                  <span>{scopeLaw}</span>
+                  <button
+                    type="button"
+                    onClick={() => setScopeLaw(null)}
+                    className="p-0.5 rounded-full hover:bg-primary/20 transition-colors"
+                    aria-label="법령 한정 해제"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
               <Input
                 ref={inputRef}
                 type="text"
@@ -382,7 +379,7 @@ export default function HomePage() {
                   if (e.key === 'Escape') setShowSuggestions(false);
                 }}
                 placeholder={scopeLaw ? `${scopeLaw} 안에서 키워드 검색...` : "법령명, 조문, 키워드로 검색..."}
-                className={`h-14 text-base pl-5 pr-32 rounded-full border-2 shadow-sm focus:shadow-md transition-shadow ${query ? 'ring-primary/30 ring-2' : ''}`}
+                className={`h-14 text-base pr-32 rounded-full border-2 shadow-sm focus:shadow-md transition-shadow ${query ? 'ring-primary/30 ring-2' : ''} ${scopeLaw ? 'pl-36' : 'pl-5'}`}
                 autoComplete="off"
               />
               <Button
