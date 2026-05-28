@@ -93,3 +93,32 @@
   background: radial-gradient(ellipse at 50% 0%, hsl(var(--primary) / 0.04) 0%, transparent 70%);
 }
 
+/* Keyword highlight mark — adapts to dark mode */
+mark.kw-highlight {
+  background-color: hsl(48 96% 89%);
+  color: hsl(var(--foreground));
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.dark mark.kw-highlight {
+  background-color: hsl(48 60% 30%);
+  color: hsl(var(--foreground));
+}
+
+/* Legal citation cross-reference links */
+a.cite-link {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-decoration-color: hsl(var(--primary) / 0.4);
+  text-underline-offset: 2px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: text-decoration-color 0.15s;
+}
+
+a.cite-link:hover {
+  text-decoration-color: hsl(var(--primary));
+}
+

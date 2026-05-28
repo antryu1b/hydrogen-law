@@ -185,12 +185,20 @@ interface SupabaseRow {
   content: string;
 }
 
-// Split a Korean compound query into 2-char sliding windows for fuzzy matching
+// Split a Korean compound query into 2-char sliding windows for fuzzy matching.
+// Used ONLY as a fallback when exact full-keyword search returns 0 results.
 function splitKoreanCompound(word: string): string[] {
   if (word.length <= 2) return [word];
   const tokens = new Set<string>([word]);
   for (let i = 0; i <= word.length - 2; i++) tokens.add(word.slice(i, i + 2));
   return [...tokens];
+}
+
+// Check whether a row actually contains the exact keyword (or each of its meaningful sub-parts together).
+// Used to demote / exclude pure-fragment-only matches when exact results exist.
+function rowContainsKeyword(row: SupabaseRow, keyword: string): boolean {
+  const haystack = `${row.content || ''} ${row.law_name || ''} ${row.title || ''}`.toLowerCase();
+  return haystack.includes(keyword.toLowerCase());
 }
 
 async function searchViaSupabase(query: string, topK: number): Promise<NextResponse | null> {
@@ -202,22 +210,38 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
     const supabase = createClient(supabaseUrl, supabaseKey);
     const keywords = query.split(/[\s,]+/).filter((k: string) => k.length > 0).slice(0, 20);
 
-    // Strategy: each keyword in query must match (AND), but allow Korean compound splitting per keyword (OR within keyword)
-    // 1. Multi-keyword (AND): query each token via ilike, then intersect results
-    // 2. Single keyword: try RPC, fall back to compound split
+    // Strategy:
+    // 1. Single keyword: try RPC first, then exact ilike match on full keyword.
+    //    Only fall back to 2-char fuzzy expansion when exact search returns 0 results.
+    //    Fuzzy results are filtered to still contain the full keyword where possible.
+    // 2. Multi-keyword AND: each keyword must match (existing behaviour, already correct).
 
     let data: SupabaseRow[] | null = null;
 
     if (keywords.length === 1) {
-      // Single keyword path: RPC + compound fallback
+      const k = keywords[0];
+
+      // Step 1a: RPC (full-text search, exact by design)
       const { data: rpcData, error: rpcError } = await supabase.rpc('search_law_articles', {
         search_query: query,
         max_results: topK,
       });
       if (!rpcError && rpcData && rpcData.length > 0) data = rpcData;
 
+      // Step 1b: exact ilike on the full keyword (no fragments)
       if (!data || data.length === 0) {
-        const k = keywords[0];
+        const exactQuery = `content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`;
+        const { data: exactData } = await supabase
+          .from('law_articles')
+          .select('*')
+          .or(exactQuery)
+          .limit(topK * 2);
+        if (exactData && exactData.length > 0) data = exactData as SupabaseRow[];
+      }
+
+      // Step 1c: fuzzy fallback — 2-char compound expansion, only when exact returns 0.
+      // After fetching, prioritise rows that still contain the full keyword.
+      if (!data || data.length === 0) {
         const expansions = new Set<string>([k]);
         if (/[가-힣]/.test(k) && k.length >= 3) {
           splitKoreanCompound(k).forEach(t => expansions.add(t));
@@ -231,8 +255,12 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
           .from('law_articles')
           .select('*')
           .or(orQuery)
-          .limit(topK * 2);
-        if (ilikeData && ilikeData.length > 0) data = ilikeData as SupabaseRow[];
+          .limit(topK * 4); // fetch more so we can re-sort
+        if (ilikeData && ilikeData.length > 0) {
+          // Prefer rows that contain the full keyword; demote pure-fragment-only rows
+          const exact = (ilikeData as SupabaseRow[]).filter(r => rowContainsKeyword(r, k));
+          data = exact.length > 0 ? exact : ilikeData as SupabaseRow[];
+        }
       }
     } else {
       // Multi-keyword AND path: each keyword must match somewhere

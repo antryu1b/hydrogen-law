@@ -694,6 +694,7 @@ export default function HomePage() {
                     onPageChange={setCurrentPage}
                     startIndex={(currentPage - 1) * ITEMS_PER_PAGE}
                     hideRelevantLaws={true}
+                    onSearch={doSearch}
                   />
                 </>
               ) : (

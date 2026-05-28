@@ -18,6 +18,7 @@ interface SearchResultsProps {
   onPageChange?: (page: number) => void;
   startIndex?: number;
   hideRelevantLaws?: boolean; // 관련 법령 섹션 숨김 (page.tsx에서 필터로 대체할 때)
+  onSearch?: (q: string) => void; // cross-reference citation clicks
 }
 
 /** Format legal content: add line breaks before numbered items for readability */
@@ -59,12 +60,88 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/** Add <mark> highlight for any keyword found in text */
+/** Add <mark class="kw-highlight"> for matched keywords.
+ *  Styled via globals.css so it respects dark mode. */
 function highlightKeywords(text: string, keywords: string[]): string {
   const valid = keywords.filter(k => k && k.length > 0).map(escapeRegex);
   if (!valid.length) return text;
+  // Sort longest first so multi-char keywords take priority over sub-fragments
+  valid.sort((a, b) => b.length - a.length);
   const re = new RegExp(`(${valid.join('|')})`, 'g');
-  return text.replace(re, '<mark style="background-color:#fef08a;padding:1px 3px;border-radius:2px;">$1</mark>');
+  return text.replace(re, '<mark class="kw-highlight">$1</mark>');
+}
+
+/**
+ * Detect Korean legal citation patterns and wrap them in anchor tags
+ * that trigger a search via ?q=... navigation.
+ *
+ * Matched patterns (conservative — only clear citations):
+ *  - 「법령명」 제N조 (optional 제N항/호)
+ *  - 법령명 제N조 (where name ends in 법/령/규칙/지침/고시/규정)
+ *  - 같은 법 제N조 / 이 법 제N조
+ *  - 제N조제N항 / 제N조의N
+ *
+ * onSearch: called with the query string when user clicks the link.
+ */
+function linkifyLegalCitations(html: string, onSearch: (q: string) => void): string {
+  // We work on the raw HTML string but are careful not to break existing tags.
+  // Strategy: replace patterns that appear OUTSIDE existing HTML tags.
+  // Since the input may already have <mark> and <br/> tags, we do a split-around-tags approach.
+
+  // Pattern A: 「법령명」제N조 (with optional 제N항/호 suffix)
+  const patternA = /「([^」]+)」\s*(제\d+조(?:의\d+)?(?:제\d+항)?(?:제\d+호)?)/g;
+  // Pattern B: (법|령|규칙|규정|지침|고시)으로 끝나는 법령명 + 공백 + 제N조
+  const patternB = /([가-힣A-Za-z\s]{2,20}(?:법|령|규칙|규정|지침|고시))\s+(제\d+조(?:의\d+)?(?:제\d+항)?(?:제\d+호)?)/g;
+  // Pattern C: "같은 법" / "이 법" / "해당 법" + 제N조
+  const patternC = /(같은\s*법|이\s*법|해당\s*법)\s+(제\d+조(?:의\d+)?(?:제\d+항)?(?:제\d+호)?)/g;
+
+  // We need a placeholder mechanism to avoid double-linking
+  // Use a unique marker that won't appear in legal text
+  const PLACEHOLDER = '\x00LINK\x00';
+  const links: { query: string; label: string }[] = [];
+
+  function makeAnchor(label: string, query: string): string {
+    links.push({ query, label });
+    return `${PLACEHOLDER}${links.length - 1}${PLACEHOLDER}`;
+  }
+
+  // Split around existing HTML tags so we only replace in text nodes
+  const parts = html.split(/(<[^>]+>)/);
+  const processed = parts.map(part => {
+    if (part.startsWith('<')) return part; // skip existing tags
+    let out = part;
+    out = out.replace(patternA, (_, lawName, articleRef) => {
+      const label = `「${lawName}」 ${articleRef}`;
+      const q = `${lawName} ${articleRef}`;
+      return makeAnchor(label, q);
+    });
+    out = out.replace(patternB, (_, lawName, articleRef) => {
+      const trimmed = lawName.trim();
+      const label = `${trimmed} ${articleRef}`;
+      const q = `${trimmed} ${articleRef}`;
+      return makeAnchor(label, q);
+    });
+    out = out.replace(patternC, (_, lawRef, articleRef) => {
+      const label = `${lawRef} ${articleRef}`;
+      // For "같은 법 / 이 법" we only link the article reference; query is article only
+      return makeAnchor(label, articleRef);
+    });
+    return out;
+  });
+
+  let result = processed.join('');
+  // Replace placeholders with actual anchor elements
+  result = result.replace(/\x00LINK\x00(\d+)\x00LINK\x00/g, (_, idx) => {
+    const { label, query } = links[parseInt(idx, 10)];
+    // Use data-cite-query so the React onClick handler (added via event delegation) can intercept
+    return `<a class="cite-link" data-cite-query="${escapeHtmlAttr(query)}" href="#">${label}</a>`;
+  });
+
+  return result;
+}
+
+function escapeHtmlAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function isAppendix(article: SearchResponse['articles'][number]): boolean {
@@ -73,7 +150,7 @@ function isAppendix(article: SearchResponse['articles'][number]): boolean {
     || article.title.includes('별표');
 }
 
-function ArticleCard({ article, index, keywords = [] }: { article: SearchResponse['articles'][number]; index: number; keywords?: string[] }) {
+function ArticleCard({ article, index, keywords = [], onSearch }: { article: SearchResponse['articles'][number]; index: number; keywords?: string[]; onSearch?: (q: string) => void }) {
   const appendix = isAppendix(article);
   const [expanded, setExpanded] = useState(false);
   const [fullContent, setFullContent] = useState<string | null>(null);
@@ -103,17 +180,19 @@ function ArticleCard({ article, index, keywords = [] }: { article: SearchRespons
     }
   };
 
-  // Clean markdown from content, then highlight keywords
+  // Clean markdown from content, then highlight keywords, then linkify legal citations
   const cleanContent = cleanMarkdown(article.content);
-  const snippetHtml = highlightKeywords(cleanContent, keywords);
-  const rawSanitized = DOMPurify.sanitize(snippetHtml, {
-    ALLOWED_TAGS: ['mark', 'br'],
-    ALLOWED_ATTR: ['style'],
+  const highlightedSnippet = highlightKeywords(cleanContent, keywords);
+  const linkedSnippet = onSearch ? linkifyLegalCitations(highlightedSnippet, onSearch) : highlightedSnippet;
+  const rawSanitized = DOMPurify.sanitize(linkedSnippet, {
+    ALLOWED_TAGS: ['mark', 'br', 'a'],
+    ALLOWED_ATTR: ['class', 'data-cite-query', 'href'],
   });
   const sanitized = appendix ? formatLegalContent(rawSanitized) : rawSanitized;
   // Cleaned full text for "전문 보기"
   const cleanFullContent = fullContent ? cleanMarkdown(fullContent) : null;
-  const fullHtml = cleanFullContent ? highlightKeywords(cleanFullContent, keywords) : null;
+  const highlightedFull = cleanFullContent ? highlightKeywords(cleanFullContent, keywords) : null;
+  const fullHtml = highlightedFull && onSearch ? linkifyLegalCitations(highlightedFull, onSearch) : highlightedFull;
 
   const isLong = article.content.length > CONTENT_PREVIEW_LENGTH;
 
@@ -174,6 +253,15 @@ function ArticleCard({ article, index, keywords = [] }: { article: SearchRespons
             <div
               className={`text-xs sm:text-sm leading-relaxed text-muted-foreground bg-muted/30 p-3 sm:p-4 rounded-lg ${!expanded && isLong && !fullHtml ? 'max-h-48 overflow-hidden' : ''} ${appendix || fullHtml ? 'max-h-[70vh] overflow-y-auto whitespace-pre-wrap' : ''}`}
               dangerouslySetInnerHTML={{ __html: fullHtml ? fullHtml.replace(/\n/g, '<br/>') : sanitized }}
+              onClick={(e) => {
+                const target = e.target as HTMLElement;
+                const anchor = target.closest('a.cite-link') as HTMLAnchorElement | null;
+                if (anchor && onSearch) {
+                  e.preventDefault();
+                  const q = anchor.getAttribute('data-cite-query');
+                  if (q) onSearch(q);
+                }
+              }}
             />
             {!expanded && isLong && !appendix && !fullContent && (
               <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent rounded-b-lg" />
@@ -258,7 +346,7 @@ function ArticleCard({ article, index, keywords = [] }: { article: SearchRespons
   );
 }
 
-export function SearchResults({ results, currentPage = 1, totalPages = 1, onPageChange, startIndex = 0, hideRelevantLaws = false }: SearchResultsProps) {
+export function SearchResults({ results, currentPage = 1, totalPages = 1, onPageChange, startIndex = 0, hideRelevantLaws = false, onSearch }: SearchResultsProps) {
   // 페이지 번호 생성 (현재 페이지 주변 표시)
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = [];
@@ -345,6 +433,7 @@ export function SearchResults({ results, currentPage = 1, totalPages = 1, onPage
           article={article}
           index={startIndex + i}
           keywords={results.keywords || []}
+          onSearch={onSearch}
         />
       ))}
       </div>
