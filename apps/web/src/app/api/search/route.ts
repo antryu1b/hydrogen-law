@@ -285,19 +285,22 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
 
       if (isLawNameToken(k)) {
         // Law-name token (e.g. "수소법", "고압가스법", "산업안전보건법"):
-        // Skip RPC + fuzzy entirely — both can leak (RPC's text-search returns content
-        // cross-refs; fuzzy 2-char floods on '수소'/'소법' fragments). Resolve alias
-        // and search law_name ONLY. If 0 → return clean empty (UX card shows external
-        // law.go.kr link). Surface the resolved alias in `keywords` for highlighting.
+        // Skip RPC + fuzzy entirely — both can leak. Resolve alias and search
+        // law_name ONLY. Return ALL family articles (limit 500) so per-law
+        // counts in the UI badge match real DB totals — was showing 법률 11건
+        // (= top_k slice) when DB had 69건.
         const aliased = resolveLawAlias(k);
         const { data: lnData } = await supabase
           .from('law_articles')
           .select('*')
           .ilike('law_name', `%${aliased}%`)
-          .limit(topK * 2);
+          .limit(500);
         if (lnData && lnData.length > 0) {
           data = lnData as SupabaseRow[];
           if (aliased !== k) keywords = [k, aliased];
+          // Override slice cap so all family articles are included in the response —
+          // frontend pagination handles display, lawFamilies badge counts are honest.
+          topK = data.length;
         }
       } else {
         // Non-law-name keyword cascade (e.g. "안전기준", "등록신고"):
