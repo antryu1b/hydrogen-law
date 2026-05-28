@@ -546,6 +546,20 @@ export default function HomePage() {
       <div className="mb-6 fadeIn">
         <form onSubmit={handleSearch} className="flex gap-2 max-w-3xl w-full md:w-auto">
           <div className="relative flex-1">
+            {/* 법령 한정 badge (same as landing form, 결과 페이지에도 노출) */}
+            {scopeLaw && (
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 pl-2.5 pr-1 py-1 bg-primary/15 border border-primary/40 rounded-full text-xs font-bold text-primary fadeIn">
+                <span>{scopeLaw}</span>
+                <button
+                  type="button"
+                  onClick={() => setScopeLaw(null)}
+                  className="p-0.5 rounded-full hover:bg-primary/20 transition-colors"
+                  aria-label="법령 한정 해제"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
             <Input
               ref={inputRef}
               type="text"
@@ -558,8 +572,8 @@ export default function HomePage() {
               onKeyDown={(e) => {
                 if (e.key === 'Escape') setShowSuggestions(false);
               }}
-              placeholder="검색어 입력..."
-              className={`h-11 pl-4 pr-4 ${query ? 'ring-primary/30 ring-2' : ''}`}
+              placeholder={scopeLaw ? `${scopeLaw} 안에서 키워드...` : "검색어 입력..."}
+              className={`h-11 pr-4 ${query ? 'ring-primary/30 ring-2' : ''} ${scopeLaw ? 'pl-32' : 'pl-4'}`}
               autoComplete="off"
             />
             {showSuggestions && hasSuggestions && (
