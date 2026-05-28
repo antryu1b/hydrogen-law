@@ -3,6 +3,7 @@ import Link from 'next/link';
 import './globals.css';
 import { Scale } from 'lucide-react';
 import { Noto_Serif_KR } from 'next/font/google';
+import { BrandLink } from '@/components/BrandLink';
 
 const notoSerifKR = Noto_Serif_KR({
   weight: ['700'],
@@ -36,18 +37,7 @@ export default function RootLayout({
           <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1.5rem' }}>
               <div className="flex h-16 items-center justify-between">
-                <Link
-                  href="/"
-                  className="flex items-center gap-2 font-semibold text-lg hover:opacity-75 transition-opacity"
-                  onClick={() => {
-                    // Bridge: Link href="/" is a no-op when already at /, but the SPA
-                    // state on page.tsx must reset (results view → home view).
-                    if (typeof window !== 'undefined') window.dispatchEvent(new Event('hl-go-home'));
-                  }}
-                >
-                  <Scale className="w-5 h-5 text-foreground/70" strokeWidth={1.75} />
-                  <span className="tracking-tight">어플리케이션개발2팀 법령 검색</span>
-                </Link>
+                <BrandLink />
                 <div className="flex items-center gap-4">
                   <Link href="/compliance-check" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
                     컴플라이언스 체크
