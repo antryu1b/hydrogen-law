@@ -319,13 +319,24 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
         }
       }
     } else {
-      // Multi-keyword AND path: each keyword must match somewhere
-      // Special handling: "시행령" / "시행규칙" / "법률" → match law_name; "제N조" → match article_no
+      // Multi-keyword AND path: each keyword must match somewhere.
+      // Routing per token type to avoid cross-ref leakage:
+      //   • Article number "제N조[의M][제K항][제L호]" → eq on article_no (extract 조 part).
+      //   • Special law-form words (시행령/시행규칙/법률/별표/부칙) → law_name ilike.
+      //   • Law-name token (ends in 법/령/규칙/지침/고시/규정/etc) → law_name ilike ONLY
+      //     (NOT content) — otherwise "선박법 제1조의2제1항" leaks into 수소경제법 etc whose
+      //     content body merely references 선박법.
+      //   • Anything else → broad content/law_name/title OR (general keyword).
+      const SPECIAL_LAW_WORDS = ['시행령', '시행규칙', '법률', '별표', '부칙'];
+      const LAW_NAME_SUFFIX = /^[가-힣A-Z0-9·]+(?:특례법|기본법|법|령|규칙|지침|고시|규정|준칙|훈령|예규)$/;
       let q = supabase.from('law_articles').select('*');
       for (const k of keywords) {
-        if (/^제\d+조(?:의\d+)?$/.test(k)) {
-          q = q.eq('article_no', k);
-        } else if (k === '시행령' || k === '시행규칙' || k === '법률' || k === '별표' || k === '부칙') {
+        const artMatch = k.match(/^(제\d+조(?:의\d+)?)(제\d+항)?(제\d+호)?$/);
+        if (artMatch) {
+          q = q.eq('article_no', artMatch[1]);
+        } else if (SPECIAL_LAW_WORDS.includes(k)) {
+          q = q.ilike('law_name', `%${k}%`);
+        } else if (k.length >= 2 && LAW_NAME_SUFFIX.test(k)) {
           q = q.ilike('law_name', `%${k}%`);
         } else {
           q = q.or(`content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`);
