@@ -99,7 +99,7 @@ mark.kw-highlight {
   color: hsl(var(--foreground));
   padding: 1px 3px;
   border-radius: 3px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .dark mark.kw-highlight {
