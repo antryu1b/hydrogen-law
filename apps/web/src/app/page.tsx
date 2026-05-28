@@ -123,6 +123,22 @@ export default function HomePage() {
     return { history: matchingHistory, terms: matchingTerms };
   }, [query, history]);
 
+  // Header brand ("어플리케이션개발2팀 법령 검색") sends hl-go-home event when clicked.
+  // Reset SPA state so user returns to landing instead of staying on results view.
+  useEffect(() => {
+    const handler = () => {
+      setViewState('home');
+      setResults(null);
+      setError(null);
+      setSelectedLawFilter(null);
+      setQuery('');
+      setScopeLaw(null);
+      setSearchStack([]);
+    };
+    window.addEventListener('hl-go-home', handler);
+    return () => window.removeEventListener('hl-go-home', handler);
+  }, []);
+
   const doSearch = async (searchQuery: string, fromCrossRef = false) => {
     if (!searchQuery.trim()) return;
 
