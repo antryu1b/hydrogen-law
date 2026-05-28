@@ -1,31 +1,199 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import {
-  searchViaBeopmang,
-  transformBeopmangResults,
-  highlightText,
-} from '@/features/search/api/search-handler';
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_RESULTS = 100;
+const BEOPMANG_API_URL = 'https://api.beopmang.org/api/v4';
 
+interface BeopmangArticle {
+  label: string;
+  snippet: string;
+}
+
+interface BeopmangResult {
+  law_id: string;
+  law_name: string;
+  law_name_short?: string;
+  law_type: string;
+  matched_articles?: BeopmangArticle[];
+  score: number;
+}
+
+interface BeopmangResponse {
+  data: {
+    total: number;
+    results: BeopmangResult[];
+    mode: string;
+  };
+  meta: {
+    elapsed_ms: number;
+    api_version: string;
+  };
+}
+
+// Error helper
 function errorResponse(code: string, message: string, status: number) {
-  return NextResponse.json({ error: { code, message } }, { status });
+  return NextResponse.json(
+    { error: { code, message } },
+    { status }
+  );
+}
+
+// Escape regex special chars
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Highlight keywords in text
+function highlightText(text: string, keywords: string[]): string {
+  if (!keywords.length) return text;
+  
+  const keywordRegex = new RegExp(`(${keywords.map(escapeRegex).join('|')})`, 'gi');
+  let highlighted = text.replace(
+    keywordRegex,
+    '<mark style="background-color: #fef08a; padding: 2px 4px; border-radius: 2px;">$1</mark>'
+  );
+  
+  // Format newlines for display
+  highlighted = highlighted.replace(/\n\n+/g, '<br><br>');
+  highlighted = highlighted.replace(/\n/g, ' ');
+  
+  return highlighted;
+}
+
+async function searchViaBeopmang(query: string, topK: number): Promise<NextResponse> {
+  const startTime = Date.now();
+  
+  try {
+    // Extract keywords for highlighting
+    const keywords = query
+      .split(/[\s,]+/)
+      .filter((k: string) => k.length > 0);
+    
+    // Call Beopmang API
+    const url = new URL(`${BEOPMANG_API_URL}/law`);
+    url.searchParams.set('action', 'search');
+    url.searchParams.set('q', query);
+    url.searchParams.set('mode', 'keyword');
+    
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      console.error('Beopmang API error:', response.status);
+      throw new Error(`Beopmang API ${response.status}`);
+    }
+
+    const beopmangData: BeopmangResponse = await response.json();
+    if (!beopmangData.data?.results) throw new Error('Invalid Beopmang response');
+    
+    // Transform Beopmang response to frontend format
+    const articles = [];
+    const lawNames = new Set<string>();
+    const lawGroups: { law_id: string; law_name: string; law_type: string; article_count: number; score: number }[] = [];
+
+    for (const result of beopmangData.data.results) {
+      const lawName = result.law_name_short || result.law_name;
+      lawNames.add(lawName);
+
+      lawGroups.push({
+        law_id: result.law_id,
+        law_name: result.law_name,
+        law_type: result.law_type || '법률',
+        article_count: result.matched_articles?.length || 0,
+        score: result.score,
+      });
+
+      if (!result.matched_articles || result.matched_articles.length === 0) {
+        articles.push({
+          article_id: result.law_id,
+          law_name: lawName,
+          law_id: result.law_id,
+          law_type: result.law_type || '법률',
+          article_number: '',
+          title: result.law_name,
+          content: `[${result.law_type}]`,
+          highlighted_content: `[${result.law_type}]`,
+          relevance_score: result.score * 100,
+          article_type: 'article' as const,
+          related_articles: [],
+        });
+        continue;
+      }
+
+      const articleMap = new Map<string, string[]>();
+      for (const article of result.matched_articles) {
+        const key = article.label;
+        if (!articleMap.has(key)) articleMap.set(key, []);
+        if (article.snippet) articleMap.get(key)!.push(article.snippet);
+      }
+
+      for (const [label, snippets] of articleMap) {
+        const uniqueSnippets = Array.from(new Set(snippets));
+        const content = uniqueSnippets.join(' ... ');
+
+        articles.push({
+          article_id: `${result.law_id}_${label}`,
+          law_name: lawName,
+          law_id: result.law_id,
+          law_type: result.law_type || '법률',
+          article_number: label,
+          title: `${lawName} ${label}`,
+          content,
+          highlighted_content: highlightText(content, keywords),
+          relevance_score: result.score * 100,
+          article_type: 'article' as const,
+          related_articles: [],
+        });
+      }
+    }
+    
+    // Limit results
+    const limitedArticles = articles.slice(0, topK);
+    
+    const elapsed = Date.now() - startTime;
+    
+    return NextResponse.json({
+      query,
+      total_found: limitedArticles.length,
+      keywords,
+      relevant_laws: Array.from(lawNames),
+      law_groups: lawGroups,
+      articles: limitedArticles,
+      metadata: {
+        search_time_ms: elapsed,
+        llm_used: false,
+        search_method: beopmangData.data.mode || 'keyword',
+      },
+    });
+
+  } catch (error) {
+    console.error('Beopmang search error:', error);
+    throw error;
+  }
 }
 
 interface SupabaseRow {
   id: string;
+  law_name: string;
+  law_id?: string | null;
+  law_type?: string | null;
+  article_no?: string | null;
+  title?: string | null;
   content: string;
-  relevance_score?: number;
-  metadata?: {
-    law_name?: string;
-    article_number?: string;
-    title?: string;
-    article_type?: 'article' | 'appendix';
-  };
 }
 
-async function searchViaSupabase(query: string, topK: number) {
+// Split a Korean compound query into 2-char sliding windows for fuzzy matching
+function splitKoreanCompound(word: string): string[] {
+  if (word.length <= 2) return [word];
+  const tokens = new Set<string>([word]);
+  for (let i = 0; i <= word.length - 2; i++) tokens.add(word.slice(i, i + 2));
+  return [...tokens];
+}
+
+async function searchViaSupabase(query: string, topK: number): Promise<NextResponse | null> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !supabaseKey) return null;
@@ -34,123 +202,99 @@ async function searchViaSupabase(query: string, topK: number) {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const keywords = query.split(/[\s,]+/).filter((k: string) => k.length > 0).slice(0, 20);
 
+    // Strategy: each keyword in query must match (AND), but allow Korean compound splitting per keyword (OR within keyword)
+    // 1. Multi-keyword (AND): query each token via ilike, then intersect results
+    // 2. Single keyword: try RPC, fall back to compound split
+
     let data: SupabaseRow[] | null = null;
 
-    if (keywords.length <= 1) {
-      const { data: result, error } = await supabase.rpc('search_law_documents', {
+    if (keywords.length === 1) {
+      // Single keyword path: RPC + compound fallback
+      const { data: rpcData, error: rpcError } = await supabase.rpc('search_law_articles', {
         search_query: query,
         max_results: topK,
       });
-      if (!error) data = result;
+      if (!rpcError && rpcData && rpcData.length > 0) data = rpcData;
+
+      if (!data || data.length === 0) {
+        const k = keywords[0];
+        const expansions = new Set<string>([k]);
+        if (/[가-힣]/.test(k) && k.length >= 3) {
+          splitKoreanCompound(k).forEach(t => expansions.add(t));
+          if (k.length === 4) { expansions.add(k.slice(0, 2)); expansions.add(k.slice(2, 4)); }
+          if (k.length === 5) { expansions.add(k.slice(0, 2)); expansions.add(k.slice(2)); }
+          if (k.length === 6) { expansions.add(k.slice(0, 3)); expansions.add(k.slice(3)); }
+        }
+        const tokens = [...expansions].filter(t => t.length >= 2).slice(0, 20);
+        const orQuery = tokens.map(t => `content.ilike.%${t}%,law_name.ilike.%${t}%,title.ilike.%${t}%`).join(',');
+        const { data: ilikeData } = await supabase
+          .from('law_articles')
+          .select('*')
+          .or(orQuery)
+          .limit(topK * 2);
+        if (ilikeData && ilikeData.length > 0) data = ilikeData as SupabaseRow[];
+      }
     } else {
-      const searchPromises = keywords.map(keyword =>
-        supabase.rpc('search_law_documents', { search_query: keyword, max_results: topK })
-      );
-      const searchResults = await Promise.all(searchPromises);
-      const mergedMap = new Map<string, SupabaseRow & { matchCount: number }>();
-      for (const result of searchResults) {
-        if (result.error || !result.data) continue;
-        for (const row of result.data as SupabaseRow[]) {
-          const existing = mergedMap.get(row.id);
-          if (existing) {
-            existing.relevance_score = (existing.relevance_score || 0) + (row.relevance_score || 0);
-            existing.matchCount += 1;
-          } else {
-            mergedMap.set(row.id, { ...row, matchCount: 1 });
-          }
+      // Multi-keyword AND path: each keyword must match somewhere
+      // Special handling: "시행령" / "시행규칙" / "법률" → match law_name; "제N조" → match article_no
+      let q = supabase.from('law_articles').select('*');
+      for (const k of keywords) {
+        if (/^제\d+조(?:의\d+)?$/.test(k)) {
+          q = q.eq('article_no', k);
+        } else if (k === '시행령' || k === '시행규칙' || k === '법률' || k === '별표' || k === '부칙') {
+          q = q.ilike('law_name', `%${k}%`);
+        } else {
+          q = q.or(`content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`);
         }
       }
-      for (const entry of mergedMap.values()) {
-        entry.relevance_score = (entry.relevance_score || 0) * (1 + (entry.matchCount - 1) * 0.5);
-      }
-      data = [...mergedMap.values()]
-        .sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0))
-        .slice(0, topK);
+      const { data: andData } = await q.limit(topK * 2);
+      if (andData && andData.length > 0) data = andData as SupabaseRow[];
     }
 
-    if (!data || data.length === 0) {
-      const { data: articleData, error: articleError } = await supabase
-        .from('law_articles')
-        .select('*')
-        .or(keywords.map(k => `content.ilike.%${k}%`).join(','))
-        .limit(topK);
+    if (!data || data.length === 0) return null;
 
-      if (!articleError && articleData && articleData.length > 0) {
-        const lawGroupMap = new Map<string, { law_name: string; law_type: string; count: number }>();
-        const articles = articleData.map((row, i) => {
-          const lawKey = row.law_name;
-          const existing = lawGroupMap.get(lawKey);
-          if (existing) { existing.count++; }
-          else { lawGroupMap.set(lawKey, { law_name: row.law_name, law_type: row.law_type || '법률', count: 1 }); }
+    const lawGroupMap = new Map<string, { law_name: string; law_type: string; count: number }>();
+    const articles = (data as SupabaseRow[]).slice(0, topK).map((row, i) => {
+      const lawKey = row.law_name;
+      const existing = lawGroupMap.get(lawKey);
+      if (existing) existing.count++;
+      else lawGroupMap.set(lawKey, { law_name: row.law_name, law_type: row.law_type || '법률', count: 1 });
 
-          const content = (row.content || '').slice(0, 300);
-          return {
-            article_id: row.id,
-            law_name: row.law_name,
-            law_id: row.law_id || '',
-            law_type: row.law_type || '법률',
-            article_number: row.article_no || '',
-            title: row.title || '',
-            content,
-            highlighted_content: highlightText(content, keywords),
-            relevance_score: 50 - i,
-            article_type: 'article' as const,
-            related_articles: [],
-          };
-        });
-
-        const lawGroups = [...lawGroupMap.entries()].map(([, v]) => ({
-          law_id: '',
-          law_name: v.law_name,
-          law_type: v.law_type,
-          article_count: v.count,
-          score: v.count,
-        }));
-
-        return { articles, lawGroups, lawNames: [...lawGroupMap.keys()], keywords };
-      }
-
-      return null;
-    }
-
-    const maxScore = Math.max(...data.map(r => r.relevance_score || 0), 0.0001);
-    const lawGroupMap = new Map<string, { law_name: string; count: number }>();
-
-    const articles = data.map((row: SupabaseRow) => {
-      const content = row.content || '';
-      const metadata = row.metadata || {};
-      const lawName = metadata.law_name || '(법령명 없음)';
-
-      const existing = lawGroupMap.get(lawName);
-      if (existing) { existing.count++; }
-      else { lawGroupMap.set(lawName, { law_name: lawName, count: 1 }); }
-
+      const content = (row.content || '').slice(0, 400);
       return {
         article_id: row.id,
-        law_name: lawName,
-        law_id: '',
-        law_type: '법률',
-        article_number: metadata.article_number || '',
-        title: metadata.title || '',
+        law_name: row.law_name,
+        law_id: row.law_id || '',
+        law_type: row.law_type || '법률',
+        article_number: row.article_no || '',
+        title: row.title || '',
         content,
         highlighted_content: highlightText(content, keywords),
-        relevance_score: ((row.relevance_score || 0) / maxScore) * 100,
-        article_type: metadata.article_type || ('article' as const),
+        relevance_score: 100 - i,
+        article_type: 'article' as const,
         related_articles: [],
       };
     });
 
-    const lawGroups = [...lawGroupMap.entries()].map(([name, v]) => ({
+    const lawGroups = [...lawGroupMap.entries()].map(([, v]) => ({
       law_id: '',
-      law_name: name,
-      law_type: '법률',
+      law_name: v.law_name,
+      law_type: v.law_type,
       article_count: v.count,
       score: v.count,
     }));
 
-    return { articles, lawGroups, lawNames: [...lawGroupMap.keys()], keywords };
+    return NextResponse.json({
+      query,
+      total_found: articles.length,
+      keywords,
+      relevant_laws: [...lawGroupMap.keys()],
+      law_groups: lawGroups,
+      articles,
+      metadata: { search_time_ms: 0, llm_used: false, search_method: 'supabase-fallback' },
+    });
   } catch (e) {
-    console.error('Supabase search error:', e);
+    console.error('Supabase fallback error:', e);
     return null;
   }
 }
@@ -158,62 +302,33 @@ async function searchViaSupabase(query: string, topK: number) {
 export async function POST(request: Request) {
   try {
     let body;
-    try { body = await request.json(); }
-    catch { return errorResponse('INVALID_JSON', '올바른 JSON 형식이 아닙니다', 400); }
+    try {
+      body = await request.json();
+    } catch {
+      return errorResponse('INVALID_JSON', '올바른 JSON 형식이 아닙니다', 400);
+    }
 
     const { query, top_k = 10 } = body;
+
     if (!query || typeof query !== 'string' || !query.trim()) {
       return errorResponse('EMPTY_QUERY', '검색어를 입력해주세요', 400);
     }
 
     const sanitizedQuery = query.trim().slice(0, MAX_QUERY_LENGTH);
     const validatedTopK = Math.min(Math.max(1, Number(top_k) || 10), MAX_RESULTS);
-    const startTime = Date.now();
 
-    // 1. Try Beopmang API
+    // 1. Beopmang API
     try {
-      const beopmangData = await searchViaBeopmang(sanitizedQuery, validatedTopK);
-      const result = transformBeopmangResults(beopmangData, sanitizedQuery, validatedTopK);
-      const elapsed = Date.now() - startTime;
-
-      return NextResponse.json({
-        query: sanitizedQuery,
-        total_found: result.articles.length,
-        keywords: result.keywords,
-        relevant_laws: result.lawNames,
-        law_groups: result.lawGroups,
-        articles: result.articles,
-        metadata: { search_time_ms: elapsed, llm_used: false, search_method: result.mode },
-      });
+      return await searchViaBeopmang(sanitizedQuery, validatedTopK);
     } catch (beopmangError) {
-      console.log('Beopmang search failed, falling back to Supabase:', beopmangError);
+      console.log('Beopmang failed, trying Supabase fallback:', beopmangError);
     }
 
-    // 2. Fallback to Supabase
-    const supabaseResult = await searchViaSupabase(sanitizedQuery, validatedTopK);
-    if (supabaseResult) {
-      const elapsed = Date.now() - startTime;
-      return NextResponse.json({
-        query: sanitizedQuery,
-        total_found: supabaseResult.articles.length,
-        keywords: supabaseResult.keywords,
-        relevant_laws: supabaseResult.lawNames,
-        law_groups: supabaseResult.lawGroups,
-        articles: supabaseResult.articles,
-        metadata: { search_time_ms: elapsed, llm_used: false, search_method: 'supabase' },
-      });
-    }
+    // 2. Supabase fallback
+    const supabaseRes = await searchViaSupabase(sanitizedQuery, validatedTopK);
+    if (supabaseRes) return supabaseRes;
 
-    // 3. No results
-    return NextResponse.json({
-      query: sanitizedQuery,
-      total_found: 0,
-      keywords: sanitizedQuery.split(/[\s,]+/).filter(Boolean),
-      relevant_laws: [],
-      law_groups: [],
-      articles: [],
-      metadata: { search_time_ms: Date.now() - startTime, llm_used: false, search_method: 'none' },
-    });
+    return errorResponse('NO_DATA_SOURCE', '검색 서버에 일시적 문제가 있습니다', 503);
 
   } catch (error) {
     console.error('API error:', error);

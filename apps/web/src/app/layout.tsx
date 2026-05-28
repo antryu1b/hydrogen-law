@@ -1,6 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
+import { Scale } from 'lucide-react';
+import { Noto_Serif_KR } from 'next/font/google';
+
+const notoSerifKR = Noto_Serif_KR({
+  weight: ['700'],
+  subsets: ['latin'],
+  variable: '--font-noto-serif-kr',
+  display: 'swap',
+});
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -15,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning className={notoSerifKR.variable}>
       <body className="antialiased bg-background">
         <ThemeProvider
           attribute="class"
@@ -27,9 +36,9 @@ export default function RootLayout({
           <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1.5rem' }}>
               <div className="flex h-16 items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity">
-                  <span className="text-2xl">⚖️</span>
-                  <span>어플리케이션개발2팀 법령 검색</span>
+                <Link href="/" className="flex items-center gap-2 font-semibold text-base hover:opacity-75 transition-opacity">
+                  <Scale className="w-5 h-5 text-foreground/70" strokeWidth={1.75} />
+                  <span className="tracking-tight">어플리케이션개발2팀 법령 검색</span>
                 </Link>
                 <div className="flex items-center gap-4">
                   <Link href="/compliance-check" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">

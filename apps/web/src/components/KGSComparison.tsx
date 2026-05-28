@@ -1,6 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { BookOpen, ExternalLink, Loader2, Wrench } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 interface KGSCode {
   code: string;
@@ -54,7 +58,7 @@ export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
         if (res.ok) {
           const data = await res.json();
           setRecommendations(data.recommended || []);
-          
+
           // 상위 3개 자동 선택
           const topCodes = data.recommended.slice(0, 3).map((r: { code: string }) => r.code);
           setSelectedCodes(topCodes);
@@ -107,24 +111,28 @@ export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
     );
   };
 
-  if (recommendations.length === 0) {
+  if (recommendations.length === 0 && !loading) {
     return null;
   }
 
   return (
-    <div className="mt-8 border-t pt-6">
-      <h2 className="text-xl font-bold mb-4">🔧 관련 KGS CODE</h2>
+    <div className="mt-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <Wrench className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
+        <h2 className="text-sm font-semibold text-foreground">관련 KGS CODE</h2>
+        {loading && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+      </div>
 
       {/* 추천 목록 */}
-      <div className="mb-6">
-        <p className="text-sm text-gray-600 mb-3">
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground">
           검색어와 관련된 기술기준을 선택하세요 (최대 5개)
         </p>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {recommendations.map((rec) => (
             <label
               key={rec.code}
-              className="flex items-start gap-3 p-3 border rounded hover:bg-gray-50 cursor-pointer"
+              className="flex items-start gap-3 p-3 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors group"
             >
               <input
                 type="checkbox"
@@ -133,27 +141,27 @@ export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
                 disabled={
                   !selectedCodes.includes(rec.code) && selectedCodes.length >= 5
                 }
-                className="mt-1"
+                className="mt-0.5 accent-foreground"
               />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-semibold text-blue-600">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono font-semibold text-[#0d9488] text-sm">
                     {rec.code}
                   </span>
-                  <span className="text-xs bg-gray-200 px-2 py-0.5 rounded">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                     {rec.category} › {rec.subcategory}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    매칭도: {(rec.score * 100).toFixed(0)}%
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    매칭도 {(rec.score * 100).toFixed(0)}%
                   </span>
                 </div>
-                <p className="text-sm text-gray-700 mt-1">{rec.name}</p>
+                <p className="text-sm text-foreground/80 mt-1 truncate">{rec.name}</p>
                 {rec.matchedKeywords.length > 0 && (
-                  <div className="flex gap-1 mt-2">
+                  <div className="flex gap-1 mt-1.5 flex-wrap">
                     {rec.matchedKeywords.map((kw: string) => (
                       <span
                         key={kw}
-                        className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded"
+                        className="text-[10px] bg-[#0d9488]/10 text-[#0d9488] px-1.5 py-0.5 rounded-full"
                       >
                         {kw}
                       </span>
@@ -168,70 +176,75 @@ export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
 
       {/* 비교표 */}
       {comparison && comparison.codes.length > 0 && (
-        <div className="border rounded-lg overflow-hidden">
-          <div className="bg-blue-50 p-4 border-b">
-            <h3 className="font-bold text-lg">비교표</h3>
-            <p className="text-sm text-gray-600 mt-1">
+        <Card className="overflow-hidden">
+          <CardHeader className="py-3 px-4 bg-muted/50">
+            <CardTitle className="text-sm font-semibold">비교표</CardTitle>
+            <CardDescription className="text-xs">
               선택한 {comparison.codes.length}개 CODE의 주요 기준 비교
-            </p>
-          </div>
-
-          {/* CODE 헤더 */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="p-3 text-left font-semibold border-r sticky left-0 bg-gray-100 min-w-[120px]">
-                    항목
-                  </th>
-                  {comparison.codes.map((code) => (
-                    <th key={code.code} className="p-3 text-left min-w-[200px]">
-                      <div className="font-mono font-bold text-blue-600">
-                        {code.code}
-                      </div>
-                      <div className="text-xs font-normal text-gray-600 mt-1">
-                        {code.name}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {code.category} › {code.subcategory}
-                      </div>
-                      <a
-                        href={code.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-500 hover:underline mt-2 inline-block"
-                      >
-                        📄 PDF 원문
-                      </a>
+            </CardDescription>
+          </CardHeader>
+          <Separator />
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    <th className="p-3 text-left font-medium text-muted-foreground border-r sticky left-0 bg-muted/30 min-w-[120px] text-xs">
+                      항목
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {comparison.comparison.map((row, idx) => (
-                  <tr
-                    key={row.criterion}
-                    className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-                  >
-                    <td className="p-3 font-semibold border-r sticky left-0 bg-inherit">
-                      {row.criterion}
-                    </td>
                     {comparison.codes.map((code) => (
-                      <td key={code.code} className="p-3">
-                        {row[code.code] || '해당없음'}
-                      </td>
+                      <th key={code.code} className="p-3 text-left min-w-[200px] align-top">
+                        <div className="font-mono font-bold text-[#0d9488] text-sm">
+                          {code.code}
+                        </div>
+                        <div className="text-xs font-normal text-muted-foreground mt-0.5">
+                          {code.name}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground/70 mt-0.5">
+                          {code.category} › {code.subcategory}
+                        </div>
+                        <a
+                          href={code.pdfUrl || 'https://cyber.kgs.or.kr/kgscode.codeNew.list.ex.do'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-[#0d9488] hover:underline mt-1.5 inline-flex items-center gap-0.5"
+                        >
+                          <ExternalLink className="w-2.5 h-2.5" />
+                          사이트 연결
+                        </a>
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                </thead>
+                <tbody>
+                  {comparison.comparison.map((row, idx) => (
+                    <tr
+                      key={row.criterion}
+                      className={`border-b last:border-0 ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
+                    >
+                      <td className="p-3 font-medium border-r sticky left-0 bg-inherit text-xs text-muted-foreground">
+                        {row.criterion}
+                      </td>
+                      {comparison.codes.map((code) => (
+                        <td key={code.code} className="p-3 text-sm">
+                          {row[code.code] || (
+                            <span className="text-muted-foreground/50 text-xs">해당없음</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {loading && (
-        <div className="text-center py-8 text-gray-500">
-          로딩 중...
+      {loading && recommendations.length === 0 && (
+        <div className="flex items-center justify-center py-8 text-muted-foreground gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm">불러오는 중...</span>
         </div>
       )}
     </div>

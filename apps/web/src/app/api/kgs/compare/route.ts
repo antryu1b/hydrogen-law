@@ -65,7 +65,9 @@ export async function POST(request: NextRequest) {
         subcategory: code.subcategory,
         updated: code.updated,
         pages: code.pages,
-        pdfUrl: `https://cyber.kgs.or.kr/cmm/fms/kgsFileDown.ex.do?file_nm=${code.pdfUrl}&file_folder=codeLink`,
+        pdfUrl: code.pdfUrl
+          ? `https://cyber.kgs.or.kr/kgscode.codeNew.view.ex.do?pblcCd=${code.pdfUrl.replace(/^.*\//, '').replace(/\.pdf$/, '')}`
+          : `https://cyber.kgs.or.kr/kgscode.codeNew.list.ex.do`,
       })),
       comparison,
       criteria: comparisonCriteria,

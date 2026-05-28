@@ -65,3 +65,4 @@ htmlcov/
 # Claude Code
 .claude/settings.local.json
 .ralph-active
+.env*.local

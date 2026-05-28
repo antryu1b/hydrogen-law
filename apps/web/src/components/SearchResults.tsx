@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import DOMPurify from 'dompurify';
-import { Clock, FileText, Hash, Scale, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, TableProperties, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { Clock, FileText, Hash, Scale, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, TableProperties, ExternalLink, AlertTriangle } from 'lucide-react';
 import type { SearchResponse } from '@/types/search';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +17,7 @@ interface SearchResultsProps {
   totalPages?: number;
   onPageChange?: (page: number) => void;
   startIndex?: number;
+  hideRelevantLaws?: boolean; // 관련 법령 섹션 숨김 (page.tsx에서 필터로 대체할 때)
 }
 
 /** Format legal content: add line breaks before numbered items for readability */
@@ -36,24 +36,86 @@ function formatLegalContent(html: string): string {
   return formatted;
 }
 
+/** Strip markdown syntax from legalize-kr content */
+function cleanMarkdown(text: string): string {
+  if (!text) return '';
+  let cleaned = text;
+  // Strip next-chapter/section headers that bleed into this article
+  cleaned = cleaned.replace(/\n+#{1,3}\s+제\d+장[\s\S]*$/m, '');
+  cleaned = cleaned.replace(/\n+#{1,3}\s+제\d+절[\s\S]*$/m, '');
+  // Headers: remove ##### prefix
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
+  // Bold: **text** → text
+  cleaned = cleaned.replace(/\*\*([^*\n]+)\*\*/g, '$1');
+  // Italic: *text* → text
+  cleaned = cleaned.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1$2');
+  // Stray asterisks
+  cleaned = cleaned.replace(/\*+/g, '');
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  return cleaned.trim();
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Add <mark> highlight for any keyword found in text */
+function highlightKeywords(text: string, keywords: string[]): string {
+  const valid = keywords.filter(k => k && k.length > 0).map(escapeRegex);
+  if (!valid.length) return text;
+  const re = new RegExp(`(${valid.join('|')})`, 'g');
+  return text.replace(re, '<mark style="background-color:#fef08a;padding:1px 3px;border-radius:2px;">$1</mark>');
+}
+
 function isAppendix(article: SearchResponse['articles'][number]): boolean {
   return article.article_type === 'appendix'
     || article.article_number.includes('별표')
     || article.title.includes('별표');
 }
 
-function ArticleCard({ article, index }: { article: SearchResponse['articles'][number]; index: number }) {
+function ArticleCard({ article, index, keywords = [] }: { article: SearchResponse['articles'][number]; index: number; keywords?: string[] }) {
   const appendix = isAppendix(article);
   const [expanded, setExpanded] = useState(false);
+  const [fullContent, setFullContent] = useState<string | null>(null);
+  const [loadingFull, setLoadingFull] = useState(false);
+  const [fullError, setFullError] = useState<string | null>(null);
 
-  const rawSanitized = DOMPurify.sanitize(article.highlighted_content, {
+  const loadFullContent = async () => {
+    if (fullContent || loadingFull) return;
+    setLoadingFull(true);
+    setFullError(null);
+    try {
+      const res = await fetch('/api/law-detail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ law_name: article.law_name, article_number: article.article_number }),
+      });
+      const data = await res.json();
+      if (data.content) {
+        setFullContent(data.content);
+      } else {
+        setFullError(data.error || '전문을 가져오지 못했습니다');
+      }
+    } catch (e) {
+      setFullError('서버 연결 실패');
+    } finally {
+      setLoadingFull(false);
+    }
+  };
+
+  // Clean markdown from content, then highlight keywords
+  const cleanContent = cleanMarkdown(article.content);
+  const snippetHtml = highlightKeywords(cleanContent, keywords);
+  const rawSanitized = DOMPurify.sanitize(snippetHtml, {
     ALLOWED_TAGS: ['mark', 'br'],
     ALLOWED_ATTR: ['style'],
   });
   const sanitized = appendix ? formatLegalContent(rawSanitized) : rawSanitized;
+  // Cleaned full text for "전문 보기"
+  const cleanFullContent = fullContent ? cleanMarkdown(fullContent) : null;
+  const fullHtml = cleanFullContent ? highlightKeywords(cleanFullContent, keywords) : null;
 
   const isLong = article.content.length > CONTENT_PREVIEW_LENGTH;
-  const collapsible = appendix || isLong;
 
   // For appendix: extract a short summary
   const summaryText = (() => {
@@ -63,7 +125,8 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
     return firstSentence ? firstSentence[0].trim() : plain.slice(0, 120) + '…';
   })();
 
-  const articleLink = `/laws/${encodeURIComponent(article.article_id || `${article.law_name}_${article.article_number}`)}`;
+  // 국가법령정보센터 검색 URL
+  const lawInfoUrl = `https://www.law.go.kr/lsSc.do?section=&menuId=1&subMenuId=15&tabMenuId=81&eventGubun=060101&query=${encodeURIComponent(article.law_name)}`;
 
   return (
     <Card className={`border-2 hover:border-primary/50 transition-all hover:shadow-lg ${appendix ? 'border-amber-200 dark:border-amber-800' : ''}`}>
@@ -75,13 +138,15 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
           <div className="space-y-1 flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <CardTitle className="text-sm sm:text-xl leading-tight">
-                <Link
-                  href={articleLink}
+                <a
+                  href={lawInfoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="hover:text-primary hover:underline inline-flex items-center gap-1"
                 >
                   {article.law_name} {article.article_number}
                   <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 opacity-50" />
-                </Link>
+                </a>
               </CardTitle>
               {appendix && (
                 <Badge variant="secondary" className="text-[10px] sm:text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
@@ -89,7 +154,7 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
                 </Badge>
               )}
             </div>
-            <CardDescription className="text-xs sm:text-base truncate">
+            <CardDescription className="text-xs sm:text-base">
               {article.title}
             </CardDescription>
             {/* Appendix: show summary when collapsed */}
@@ -107,12 +172,33 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
         <CardContent className="space-y-4">
           <div className="relative">
             <div
-              className={`text-xs sm:text-sm leading-relaxed text-muted-foreground bg-muted/30 p-3 sm:p-4 rounded-lg ${!expanded && isLong ? 'max-h-40 overflow-hidden' : ''} ${appendix ? 'max-h-[60vh] overflow-y-auto' : ''}`}
-              dangerouslySetInnerHTML={{ __html: sanitized }}
+              className={`text-xs sm:text-sm leading-relaxed text-muted-foreground bg-muted/30 p-3 sm:p-4 rounded-lg ${!expanded && isLong && !fullHtml ? 'max-h-48 overflow-hidden' : ''} ${appendix || fullHtml ? 'max-h-[70vh] overflow-y-auto whitespace-pre-wrap' : ''}`}
+              dangerouslySetInnerHTML={{ __html: fullHtml ? fullHtml.replace(/\n/g, '<br/>') : sanitized }}
             />
-            {!expanded && isLong && !appendix && (
+            {!expanded && isLong && !appendix && !fullContent && (
               <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent rounded-b-lg" />
             )}
+            {loadingFull && (
+              <div className="text-xs text-center text-muted-foreground py-2">조문 전문 불러오는 중...</div>
+            )}
+            {fullError && (
+              <div className="text-xs text-destructive py-2 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                {fullError}
+              </div>
+            )}
+          </div>
+          {/* 전문 보기 링크 */}
+          <div className="flex justify-end">
+            <a
+              href={lawInfoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
+            >
+              <ExternalLink className="w-3 h-3" />
+              국가법령정보센터에서 전문 보기
+            </a>
           </div>
 
           {article.related_articles && article.related_articles.length > 0 && (
@@ -124,14 +210,13 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
                 </p>
                 <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {article.related_articles.map((ref) => (
-                    <Link key={ref.id} href={`/laws/${encodeURIComponent(ref.id)}`}>
-                      <Badge
-                        variant="secondary"
-                        className="cursor-pointer hover:bg-secondary/80 text-xs"
-                      >
-                        {ref.article_number}
-                      </Badge>
-                    </Link>
+                    <Badge
+                      key={ref.id}
+                      variant="secondary"
+                      className="text-xs"
+                    >
+                      {ref.article_number}
+                    </Badge>
                   ))}
                 </div>
               </div>
@@ -140,34 +225,40 @@ function ArticleCard({ article, index }: { article: SearchResponse['articles'][n
         </CardContent>
       )}
 
-      {/* Expand/collapse button */}
-      {collapsible && (
-        <div className="px-4 sm:px-6 pb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full"
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded ? (
-              <>
-                <ChevronUp className="w-4 h-4 mr-1" />
-                접기
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-4 h-4 mr-1" />
-                {appendix ? '별표 내용 보기' : '상세보기'}
-              </>
-            )}
-          </Button>
-        </div>
-      )}
+      {/* 통일된 전문 보기 / 접기 버튼 */}
+      <div className="px-4 sm:px-6 pb-4">
+        <Button
+          variant={expanded ? 'ghost' : 'outline'}
+          size="sm"
+          className="w-full text-xs"
+          onClick={() => {
+            if (!expanded && !fullContent) {
+              loadFullContent();
+            }
+            setExpanded(!expanded);
+          }}
+          disabled={loadingFull}
+        >
+          {loadingFull ? (
+            <>로딩 중...</>
+          ) : expanded ? (
+            <>
+              <ChevronUp className="w-4 h-4 mr-1" />
+              접기
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4 mr-1" />
+              {appendix ? '별표 내용 보기' : '전문 보기'}
+            </>
+          )}
+        </Button>
+      </div>
     </Card>
   );
 }
 
-export function SearchResults({ results, currentPage = 1, totalPages = 1, onPageChange, startIndex = 0 }: SearchResultsProps) {
+export function SearchResults({ results, currentPage = 1, totalPages = 1, onPageChange, startIndex = 0, hideRelevantLaws = false }: SearchResultsProps) {
   // 페이지 번호 생성 (현재 페이지 주변 표시)
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = [];
@@ -209,22 +300,25 @@ export function SearchResults({ results, currentPage = 1, totalPages = 1, onPage
           </div>
         </CardHeader>
         <CardContent className="space-y-3 sm:space-y-4 p-4 pt-0 sm:p-6 sm:pt-0">
-          {/* 관련 법령 */}
-          <div className="space-y-1.5 sm:space-y-2">
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
-              <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              관련 법령
-            </div>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {results.relevant_laws.map((law) => (
-                <Badge key={law} variant="default" className="text-xs sm:text-sm py-1 sm:py-1.5 px-2 sm:px-3">
-                  {law}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
+          {/* 관련 법령 - hideRelevantLaws prop으로 숨길 수 있음 */}
+          {!hideRelevantLaws && (
+            <>
+              <div className="space-y-1.5 sm:space-y-2">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
+                  <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  관련 법령
+                </div>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                  {results.relevant_laws.map((law) => (
+                    <Badge key={law} variant="default" className="text-xs sm:text-sm py-1 sm:py-1.5 px-2 sm:px-3">
+                      {law}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <Separator />
+            </>
+          )}
 
           {/* 키워드 */}
           <div className="space-y-1.5 sm:space-y-2">
@@ -244,13 +338,16 @@ export function SearchResults({ results, currentPage = 1, totalPages = 1, onPage
       </Card>
 
       {/* 조항 목록 */}
+      <div className="space-y-4">
       {results.articles.map((article, i) => (
         <ArticleCard
           key={`${article.law_name}-${article.article_number}-${startIndex + i}`}
           article={article}
           index={startIndex + i}
+          keywords={results.keywords || []}
         />
       ))}
+      </div>
 
       {/* 페이지네이션 */}
       {totalPages > 1 && onPageChange && (

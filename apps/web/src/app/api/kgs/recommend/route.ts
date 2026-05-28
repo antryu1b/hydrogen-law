@@ -9,6 +9,7 @@ interface KGSCode {
   keywords: string[];
   updated: string;
   pages: number;
+  pdfUrl?: string;
 }
 
 interface RecommendationResult {
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
         subcategory: code.subcategory,
         score,
         matchedKeywords,
+        pdfUrl: code.pdfUrl || null,
       };
     });
 

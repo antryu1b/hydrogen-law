@@ -8,6 +8,8 @@ export interface ApiError {
 export interface Article {
   article_id: string;
   law_name: string;
+  law_id?: string; // 법망 API law_id (국가법령정보센터 링크용)
+  law_type?: string; // 법률/시행령/시행규칙/별표 등
   article_number: string;
   title: string;
   content: string;
