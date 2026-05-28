@@ -491,9 +491,11 @@ export default function HomePage() {
                   type="button"
                   onClick={() => {
                     setScopeLaw(law);
-                    setQuery('');           // chip carries the scope; input cleared for keyword
-                    inputRef.current?.focus();
-                    doSearch(law);          // immediate search shows law family
+                    setQuery('');                // chip carries the scope; input cleared for keyword
+                    setShowSuggestions(false);   // close any open autocomplete
+                    // intentionally NOT focusing input — focus → onFocus → reopens dropdown
+                    // → covers results on next page. User clicks input themselves to refine.
+                    doSearch(law);               // immediate search shows law family
                   }}
                   disabled={loading}
                   className={`h-10 rounded-md border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
