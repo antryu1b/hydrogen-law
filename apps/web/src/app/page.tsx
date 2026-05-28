@@ -448,17 +448,20 @@ export default function HomePage() {
             )}
           </form>
 
-          {/* 주요 법령 — 빠른 검색 (의장 요청 3법령) */}
-          <div className="mt-5 fadeIn">
-            <p className="text-xs text-muted-foreground text-center mb-3">주요 법령 바로가기</p>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {/* 주요 법령 — 빠른 검색 (subtle, doesn't compete with 예시 chips) */}
+          <div className="mt-4 fadeIn">
+            <div className="grid grid-cols-3 gap-2">
               {['수소법', '고압가스법', '산업안전보건법'].map((law) => (
                 <button
                   key={law}
                   type="button"
-                  onClick={() => doSearch(law)}
+                  onClick={() => {
+                    setQuery(law + ' ');
+                    inputRef.current?.focus();
+                    doSearch(law);
+                  }}
                   disabled={loading}
-                  className="h-12 sm:h-14 rounded-lg border-2 border-primary/40 bg-secondary text-secondary-foreground text-sm sm:text-base font-bold transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-10 rounded-md border border-input bg-background text-sm font-medium text-foreground/85 transition-colors hover:bg-accent hover:text-foreground hover:border-foreground/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {law}
                 </button>
