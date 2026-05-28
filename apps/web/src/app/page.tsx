@@ -730,56 +730,11 @@ export default function HomePage() {
             <KGSComparison searchQuery={selectedLawFilter || submittedQuery} />
           )}
 
-          {kgsResults.length > 0 ? (
-            <div className="space-y-3 fadeIn">
-              {kgsResults.map((rec) => (
-                <div key={rec.code} className="p-4 border rounded-xl hover:bg-accent/50 transition-colors hover:-translate-y-1 hover:shadow-lg">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono font-bold text-[#0d9488] text-sm">{rec.code}</span>
-                        <span className="text-xs bg-muted px-2 py-0.5 rounded-full fadeIn">
-                          {rec.category} › {rec.subcategory}
-                        </span>
-                        <span className="text-xs text-muted-foreground fadeIn">
-                          매칭도 {(rec.score * 100).toFixed(0)}%
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium fadeIn">{rec.name}</p>
-                      {rec.matchedKeywords.length > 0 && (
-                        <div className="flex gap-1 mt-2 flex-wrap fadeIn">
-                          {rec.matchedKeywords.map((kw) => (
-                            <span key={kw} className="text-xs bg-[#0d9488]/10 text-[#0d9488] px-2 py-0.5 rounded-full fadeIn">
-                              {kw}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <a
-                      href={
-                        rec.pdfUrl
-                          ? `https://cyber.kgs.or.kr/kgscode.codeNew.view.ex.do?pblcCd=${rec.pdfUrl.replace(/^.*\//, '').replace(/\.pdf$/, '')}`
-                          : `https://cyber.kgs.or.kr/kgscode.codeNew.list.ex.do`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-[#0d9488] hover:underline flex-shrink-0 flex items-center gap-1 fadeIn"
-                    >
-                      <BookOpen className="w-3.5 h-3.5" />
-                      사이트 연결
-                    </a>
-                  </div>
-                </div>
-              ))}
+          {!loading && !(selectedLawFilter || submittedQuery) && (
+            <div className="text-center py-16 text-muted-foreground fadeIn">
+              <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p>관련 KGS CODE가 없습니다.</p>
             </div>
-          ) : (
-            !loading && (
-              <div className="text-center py-16 text-muted-foreground fadeIn">
-                <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p>관련 KGS CODE가 없습니다.</p>
-              </div>
-            )
           )}
         </div>
       )}

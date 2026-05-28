@@ -233,7 +233,7 @@ function ArticleCard({ article, index, keywords = [], onSearch }: { article: Sea
                 </Badge>
               )}
             </div>
-            <CardDescription className="text-xs sm:text-base">
+            <CardDescription className="text-xs sm:text-base font-semibold text-foreground/80">
               {article.title}
             </CardDescription>
             {/* Appendix: show summary when collapsed */}
