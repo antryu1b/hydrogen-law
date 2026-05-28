@@ -235,6 +235,15 @@ function resolveLawAlias(k: string): string {
   return KR_LAW_ALIASES[k] || k;
 }
 
+// Law-name token detection (hoisted module-level so both single-keyword and
+// multi-keyword paths share). Matches tokens ending in 법/령/규칙 etc. Excluded
+// from this match are the SPECIAL_LAW_WORDS which are law-form modifiers, not names.
+const SPECIAL_LAW_WORDS = ['시행령', '시행규칙', '법률', '별표', '부칙'];
+const LAW_NAME_SUFFIX = /^[가-힣A-Z0-9·]+(?:특례법|기본법|법|령|규칙|지침|고시|규정|준칙|훈령|예규)$/;
+function isLawNameToken(k: string): boolean {
+  return SPECIAL_LAW_WORDS.includes(k) || (k.length >= 2 && LAW_NAME_SUFFIX.test(k));
+}
+
 // Check whether a row actually contains the exact keyword (or each of its meaningful sub-parts together).
 // Used to demote / exclude pure-fragment-only matches when exact results exist.
 function rowContainsKeyword(row: SupabaseRow, keyword: string): boolean {
@@ -274,23 +283,42 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
     if (keywords.length === 1) {
       const k = keywords[0];
 
-      // Step 1a: RPC (full-text search, exact by design)
-      const { data: rpcData, error: rpcError } = await supabase.rpc('search_law_articles', {
-        search_query: query,
-        max_results: topK,
-      });
-      if (!rpcError && rpcData && rpcData.length > 0) data = rpcData;
-
-      // Step 1b: exact ilike on the full keyword (no fragments)
-      if (!data || data.length === 0) {
-        const exactQuery = `content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`;
-        const { data: exactData } = await supabase
+      if (isLawNameToken(k)) {
+        // Law-name token (e.g. "수소법", "고압가스법", "산업안전보건법"):
+        // Skip RPC + fuzzy entirely — both can leak (RPC's text-search returns content
+        // cross-refs; fuzzy 2-char floods on '수소'/'소법' fragments). Resolve alias
+        // and search law_name ONLY. If 0 → return clean empty (UX card shows external
+        // law.go.kr link). Surface the resolved alias in `keywords` for highlighting.
+        const aliased = resolveLawAlias(k);
+        const { data: lnData } = await supabase
           .from('law_articles')
           .select('*')
-          .or(exactQuery)
+          .ilike('law_name', `%${aliased}%`)
           .limit(topK * 2);
-        if (exactData && exactData.length > 0) data = exactData as SupabaseRow[];
-      }
+        if (lnData && lnData.length > 0) {
+          data = lnData as SupabaseRow[];
+          if (aliased !== k) keywords = [k, aliased];
+        }
+      } else {
+        // Non-law-name keyword cascade (e.g. "안전기준", "등록신고"):
+
+        // Step 1a: RPC (full-text search, exact by design)
+        const { data: rpcData, error: rpcError } = await supabase.rpc('search_law_articles', {
+          search_query: query,
+          max_results: topK,
+        });
+        if (!rpcError && rpcData && rpcData.length > 0) data = rpcData;
+
+        // Step 1b: exact ilike on the full keyword (no fragments)
+        if (!data || data.length === 0) {
+          const exactQuery = `content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`;
+          const { data: exactData } = await supabase
+            .from('law_articles')
+            .select('*')
+            .or(exactQuery)
+            .limit(topK * 2);
+          if (exactData && exactData.length > 0) data = exactData as SupabaseRow[];
+        }
 
       // Step 1b-2: compound AND — when the literal compound has no exact match,
       // require ALL meaningful parts (e.g. "등록신고" -> 등록 AND 신고) instead of
@@ -341,6 +369,7 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
           data = exact.length > 0 ? exact : ilikeData as SupabaseRow[];
         }
       }
+      } // end non-law-name cascade (else of isLawNameToken)
     } else {
       // Multi-keyword AND path: each keyword must match somewhere.
       // Routing per token type to avoid cross-ref leakage:
