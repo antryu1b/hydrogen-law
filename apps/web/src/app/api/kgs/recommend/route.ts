@@ -62,11 +62,10 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // 점수 내림차순 정렬, Top 5
+    // 점수 내림차순 정렬, 모든 매칭 코드 반환 (의장 결재 2026-05-28: 5개 cap 제거)
     const recommended = scored
       .filter((item) => item.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+      .sort((a, b) => b.score - a.score);
 
     return NextResponse.json({
       query,
