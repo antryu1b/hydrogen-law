@@ -127,9 +127,20 @@ export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
 
       {/* 추천 목록 */}
       <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">
-          검색어와 관련된 기술기준을 선택하세요 (최대 5개)
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            검색어와 관련된 기술기준을 선택하세요 (최대 5개)
+          </p>
+          {selectedCodes.length > 0 && (
+            <Link
+              href={`/kgs-compare?codes=${selectedCodes.join(',')}`}
+              className="text-xs font-medium text-[#0d9488] hover:underline inline-flex items-center gap-1 flex-shrink-0"
+            >
+              <BookOpen className="w-3 h-3" />
+              본문 비교하기 →
+            </Link>
+          )}
+        </div>
         <div className="space-y-1.5">
           {recommendations.map((rec) => (
             <label

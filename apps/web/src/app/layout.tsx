@@ -42,6 +42,9 @@ export default function RootLayout({
                   <Link href="/kgs-family" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
                     기술기준 분류
                   </Link>
+                  <Link href="/kgs-compare" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+                    본문 비교
+                  </Link>
                   <Link href="/compliance-check" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
                     컴플라이언스 체크
                   </Link>

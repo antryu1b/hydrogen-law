@@ -1,0 +1,5148 @@
+{
+  "version": "2026-05-28-phase2",
+  "families": [
+    {
+      "id": "A",
+      "label": "제조기준 패턴 (제조설비/재료/성능/검사종류)",
+      "members": [
+        "AC411",
+        "AC421",
+        "AH171",
+        "AH271",
+        "AH371",
+        "AH372",
+        "AH373",
+        "AH374",
+        "AH375",
+        "AH376",
+        "AH377"
+      ],
+      "canonical_toc": [
+        {
+          "sec_no": "1.5",
+          "title": "기준의 준용",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 124,
+              "is_umbrella": false
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 124,
+              "is_umbrella": false
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 67,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 168,
+              "is_umbrella": false
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 77,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 77,
+              "is_umbrella": false
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 80,
+              "is_umbrella": false
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 80,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 80,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 80,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "1.6",
+          "title": "경과조치",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 201,
+              "is_umbrella": false
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 444,
+              "is_umbrella": false
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 90,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 251,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 161,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 161,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 161,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "2",
+          "title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "level": 1,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "제조시설기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "제조시설기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "2.1",
+          "title": "제조설비",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 515,
+              "is_umbrella": false
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 549,
+              "is_umbrella": false
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 399,
+              "is_umbrella": false
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 401,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 428,
+              "is_umbrella": false
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 405,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 423,
+              "is_umbrella": false
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 409,
+              "is_umbrella": false
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 393,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 393,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "제조설비",
+              "body_chars": 393,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "2.2",
+          "title": "검사설비",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 265,
+              "is_umbrella": false
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 553,
+              "is_umbrella": false
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "검사설비",
+              "body_chars": 15,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3",
+          "title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "level": 1,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 생산공정검사 및 종합공정검사의 공통기준",
+              "body_chars": 805,
+              "is_umbrella": false
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 생산공정검사 및 종합공정검사의 공통기준",
+              "body_chars": 805,
+              "is_umbrella": false
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+              "body_chars": 10906,
+              "is_umbrella": false
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+              "body_chars": 4710,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+              "body_chars": 14581,
+              "is_umbrella": false
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+              "body_chars": 7171,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+              "body_chars": 6768,
+              "is_umbrella": false
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+              "body_chars": 6572,
+              "is_umbrella": false
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+              "body_chars": 2606,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+              "body_chars": 5565,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+              "body_chars": 6125,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.1",
+          "title": "재료",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "설계(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "설계",
+              "body_chars": 251,
+              "is_umbrella": false
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "재료",
+              "body_chars": 51,
+              "is_umbrella": false
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "재료",
+              "body_chars": 40,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "재료",
+              "body_chars": 165,
+              "is_umbrella": false
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "재료",
+              "body_chars": 39,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "재료",
+              "body_chars": 39,
+              "is_umbrella": false
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "재료",
+              "body_chars": 47,
+              "is_umbrella": false
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "재료",
+              "body_chars": 47,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "재료",
+              "body_chars": 47,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "재료",
+              "body_chars": 47,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.2",
+          "title": "구조 및 치수",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "재료",
+              "body_chars": 794,
+              "is_umbrella": false
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "재료",
+              "body_chars": 46,
+              "is_umbrella": false
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "구조 및 치수",
+              "body_chars": 71,
+              "is_umbrella": false
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "구조 및 치수",
+              "body_chars": 60,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "구조 및 치수",
+              "body_chars": 67,
+              "is_umbrella": false
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "구조 및 치수",
+              "body_chars": 59,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "구조 및 치수",
+              "body_chars": 59,
+              "is_umbrella": false
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "구조 및 치수",
+              "body_chars": 66,
+              "is_umbrella": false
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "구조 및 치수",
+              "body_chars": 66,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "구조 및 치수",
+              "body_chars": 66,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "구조 및 치수",
+              "body_chars": 66,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.3",
+          "title": "장치",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "두께",
+              "body_chars": 885,
+              "is_umbrella": false
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "두께(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "장치",
+              "body_chars": 97,
+              "is_umbrella": false
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "장치",
+              "body_chars": 87,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "장치",
+              "body_chars": 94,
+              "is_umbrella": false
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "장치",
+              "body_chars": 85,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "장치",
+              "body_chars": 105,
+              "is_umbrella": false
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "장치",
+              "body_chars": 94,
+              "is_umbrella": false
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "장치",
+              "body_chars": 94,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "장치",
+              "body_chars": 94,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "장치",
+              "body_chars": 94,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.4",
+          "title": "성능",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "구조 및 치수",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "구조 및 치수",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "성능",
+              "body_chars": 63,
+              "is_umbrella": false
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "성능",
+              "body_chars": 51,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "성능",
+              "body_chars": 58,
+              "is_umbrella": false
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "성능",
+              "body_chars": 50,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "성능",
+              "body_chars": 50,
+              "is_umbrella": false
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "성능",
+              "body_chars": 58,
+              "is_umbrella": false
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "성능",
+              "body_chars": 58,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "성능",
+              "body_chars": 58,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "성능",
+              "body_chars": 58,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.5",
+          "title": "열처리(내용 없음)",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "가공(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "가공",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "열처리(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "열처리(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "열처리(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "열처리(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "열처리(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "열처리(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "열처리(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "열처리(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "열처리(내용 없음)",
+              "body_chars": 16,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.6",
+          "title": "표시",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "용접(해당 없음)",
+              "body_chars": 16,
+              "is_umbrella": false
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "용접(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "표시",
+              "body_chars": 58,
+              "is_umbrella": false
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "표시",
+              "body_chars": 57,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "표시",
+              "body_chars": 54,
+              "is_umbrella": false
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "표시",
+              "body_chars": 56,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "표시",
+              "body_chars": 38,
+              "is_umbrella": false
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "표시",
+              "body_chars": 38,
+              "is_umbrella": false
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "표시",
+              "body_chars": 38,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "표시",
+              "body_chars": 38,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "표시",
+              "body_chars": 38,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "4.1",
+          "title": "검사종류",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 36,
+              "is_umbrella": false
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 36,
+              "is_umbrella": false
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 41,
+              "is_umbrella": false
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 40,
+              "is_umbrella": false
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 39,
+              "is_umbrella": false
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 39,
+              "is_umbrella": false
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 39,
+              "is_umbrella": false
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 39,
+              "is_umbrella": false
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 39,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 39,
+              "is_umbrella": false
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사종류",
+              "body_chars": 39,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "4.2",
+          "title": "공정검사 대상 심사",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "공정검사 대상 심사",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "4.3",
+          "title": "검사항목",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 17,
+              "is_umbrella": false
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "4.3",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "4.4",
+          "title": "검사방법",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 16,
+              "is_umbrella": false
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "4.4",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "4.5",
+          "title": "그 밖의 검사기준",
+          "level": 2,
+          "codes": {
+            "AC411": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC421": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH171": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH271": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH371": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH372": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH373": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH374": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH375": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH376": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AH377": {
+              "present": true,
+              "matched_sec_no": "4.5",
+              "matched_title": "그 밖의 검사기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "label": "시설기준 패턴 (배치/기초/저장/가스설비/배관)",
+      "members": [
+        "FP211",
+        "FP216",
+        "FP217",
+        "FU111",
+        "FU211",
+        "FU212",
+        "FU671"
+      ],
+      "canonical_toc": [
+        {
+          "sec_no": "1",
+          "title": "안전관리자가 상주하는 사업 1) 구내전화 사무소가 동일한 위치에 있는 경우에",
+          "level": 1,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "1",
+              "matched_title": "특정부위에 계속하여 장기간 사용하지 말 것",
+              "body_chars": 63,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "1",
+              "matched_title": "안전관리자가 상주하는 사업 1) 구내전화 사무소가 동일한 위치에 있는 경우에",
+              "body_chars": 60,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "1",
+              "matched_title": "안전관리자가 상주하는 사업 1) 구내전화 사무소가 동일한 위치에 있는 경우에",
+              "body_chars": 60,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "1",
+              "matched_title": "안전관리자가 상주하는 사업소 1) 구내전화 사무소가 동일한 위치에 있는 경",
+              "body_chars": 61,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "1",
+              "matched_title": "노출(bare)된 압력용기등 1",
+              "body_chars": 176,
+              "is_umbrella": false
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "1",
+              "matched_title": "노출(bare)된 압력용기등 1",
+              "body_chars": 190,
+              "is_umbrella": false
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "1",
+              "matched_title": "철도(화물 수송용으로만 쓰이는 것을 제외한다) 30",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "1.1",
+          "title": "A는 용접선의 전 길이에 대하여 방사선검사를 하여 다음 2의 합격기준에 적합한 것으로서 이 때 투과사진의",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "1.1",
+              "matched_title": "A는 용접선의 전 길이에 대하여 방사선검사를 하여 다음 2의 합격기준에 적합한 것으로서 이때 투과사진의",
+              "body_chars": 13,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "1.1",
+              "matched_title": "A는 용접선의 전 길이에 대하여 방사선검사를 하여 다음 2의 합격기준에 적합한 것으로서 이 때 투과사진의",
+              "body_chars": 13,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "1.1",
+              "matched_title": "A는 용접선의 전 길이에 대하여 방사선검사를 하여 다음 2의 합격기준에 적합한 것으로서 이 때 투과사진의",
+              "body_chars": 13,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "1.1",
+              "matched_title": "A는 용접선의 전 길이에 대해서 방사선검사를 하여 다음 2의 합격기준에 적합한 것으로서 이때 투과사진의",
+              "body_chars": 13,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "1.1",
+              "matched_title": "A는 용접선의 전 길이에 대해서 방사선검사를 해 2의 합격기준에 적합한 것으로서 이때 투과사진의 상질은",
+              "body_chars": 9,
+              "is_umbrella": false
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "1.1",
+              "matched_title": "A는 용접선의 전 길이에 대해서 방사선검사를 해 2의 합격기준에 적합한 것으로서 이때 투과사진의 상질은",
+              "body_chars": 9,
+              "is_umbrella": false
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "1.1",
+              "matched_title": "A는 용접선의 전 길이에 대하여 방사선검사를 하여 2의 합격기준에 적합한 것으로서 이때 투과사진의 상질은",
+              "body_chars": 9,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "1.2",
+          "title": "B는 길이이음매 및 원주이음매에서 각각 임의로 채취하되 그중 적어도 1개소 이상은 길이이음매와 원주이음매의",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "1.2",
+              "matched_title": "B는 길이이음매 및 원주이음매에서 각각 임의로 채취하되 그중 적어도 1개소 이상은 길이이음매와",
+              "body_chars": 116,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "1.2",
+              "matched_title": "B는 길이이음매 및 원주이음매에서 각각 임의로 채취하되 그중 적어도 1개소 이상은 길이이음매와 원주이음매의",
+              "body_chars": 117,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "1.2",
+              "matched_title": "B는 길이이음매 및 원주이음매에서 각각 임의로 채취하되 그중 적어도 1개소 이상은 길이이음매와",
+              "body_chars": 124,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "1.2",
+              "matched_title": "B는 길이이음매 및 원주이음매에서 각각 임의로 채취하되 그중 적어도 1개소 이상은 길이이음매와 원주이음매의",
+              "body_chars": 105,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "1.2",
+              "matched_title": "B는 길이이음매 및 원주이음매에서 각각 임의로 채취하되 그중 적어도 1개소 이상은 길이이음매와 원주이음매의",
+              "body_chars": 81,
+              "is_umbrella": false
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "1.2",
+              "matched_title": "B는 길이이음매 및 원주이음매에서 각각 임의로 채취하되 그중 적어도 1개소 이상은 길이이음매와 원주이음매의",
+              "body_chars": 81,
+              "is_umbrella": false
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "1.2",
+              "matched_title": "B는 길이이음매 및 원주이음매에서 각각 임의로 채취하되 그 중 적어도 1개소 이상은 길이이음매와 원주이음매의",
+              "body_chars": 112,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "1.3",
+          "title": "용어 정의",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "1.3",
+              "matched_title": "용어 정의",
+              "body_chars": 2323,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "1.3",
+              "matched_title": "용어정의",
+              "body_chars": 1655,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "1.3",
+              "matched_title": "용어 정의",
+              "body_chars": 1506,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "1.3",
+              "matched_title": "용어 정의",
+              "body_chars": 2391,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "1.3",
+              "matched_title": "C는 방사선검사를 하지 않은 것",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "1.3",
+              "matched_title": "C는 방사선검사를 하지 아니한 것",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "1.3",
+              "matched_title": "용어 정의",
+              "body_chars": 746,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "1.4",
+          "title": "기준의 준용",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "1.4",
+              "matched_title": "기준의 준용",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "1.4",
+              "matched_title": "기준의 준용",
+              "body_chars": 195,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "1.4",
+              "matched_title": "기준의 준용",
+              "body_chars": 194,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "1.4",
+              "matched_title": "기준의 준용",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "1.4",
+              "matched_title": "기준의 준용",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "1.4",
+              "matched_title": "기준의 준용",
+              "body_chars": 106,
+              "is_umbrella": false
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "1.4",
+              "matched_title": "기준의 준용(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "1.5",
+          "title": "경과조치",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "경과조치",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "경과조치",
+              "body_chars": 2880,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "경과조치",
+              "body_chars": 3053,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "경과조치",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "경과조치",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "경과조치",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "경과조치",
+              "body_chars": 77,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "1.6",
+          "title": "용품사용제한",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "용품사용제한",
+              "body_chars": 130,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "용품사용제한",
+              "body_chars": 180,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "용품사용제한",
+              "body_chars": 196,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "용품의 사용제한",
+              "body_chars": 146,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "용품의 사용제한",
+              "body_chars": 144,
+              "is_umbrella": false
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "용품의 사용제한",
+              "body_chars": 82,
+              "is_umbrella": false
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "용품사용제한",
+              "body_chars": 108,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "2",
+          "title": "사업소안 전체 1) 구내방송설비",
+          "level": 1,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "사업소안 전체 1) 구내방송설비",
+              "body_chars": 33,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "사업소 안 전체 1) 구내방송설비",
+              "body_chars": 33,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "사업소 안 전체 1) 구내방송설비",
+              "body_chars": 33,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "사업소안 전체 1) 구내방송설비",
+              "body_chars": 33,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "방사선검사의 합격기준",
+              "body_chars": 333,
+              "is_umbrella": false
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "방사선검사의 합격기준",
+              "body_chars": 333,
+              "is_umbrella": false
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "도로(전용공업지역 안에 있는 도로를 제외한다) 30",
+              "body_chars": 72,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "2.1",
+          "title": "배치기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "배치기준",
+              "body_chars": 528,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "배치기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "배치기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "배치기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "배치기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "배치기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2.1",
+              "matched_title": "배치기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "2.2",
+          "title": "기초기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "기초기준",
+              "body_chars": 157,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "기초기준",
+              "body_chars": 72,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "기초기준",
+              "body_chars": 72,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "기초기준",
+              "body_chars": 103,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "기초기준(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "기초기준(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2.2",
+              "matched_title": "기초기준",
+              "body_chars": 225,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "2.3",
+          "title": "저장설비기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2.3",
+              "matched_title": "저장설비 기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2.3",
+              "matched_title": "저장설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2.3",
+              "matched_title": "저장설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2.3",
+              "matched_title": "저장설비 기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2.3",
+              "matched_title": "저장설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2.3",
+              "matched_title": "저장설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2.3",
+              "matched_title": "수소제조설비 및 수소저장설비 기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "2.4",
+          "title": "가스설비기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2.4",
+              "matched_title": "가스설비 기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2.4",
+              "matched_title": "가스설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2.4",
+              "matched_title": "가스설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2.4",
+              "matched_title": "가스설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2.4",
+              "matched_title": "가스설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2.4",
+              "matched_title": "가스설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2.4",
+              "matched_title": "수소가스설비 기준",
+              "body_chars": 70,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "2.5",
+          "title": "배관설비기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2.5",
+              "matched_title": "배관설비 기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2.5",
+              "matched_title": "배관설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2.5",
+              "matched_title": "배관설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2.5",
+              "matched_title": "배관설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2.5",
+              "matched_title": "배관설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2.5",
+              "matched_title": "배관설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2.5",
+              "matched_title": "배관설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "2.6",
+          "title": "사고예방설비기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2.6",
+              "matched_title": "사고예방설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2.6",
+              "matched_title": "사고예방설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2.6",
+              "matched_title": "사고예방설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2.6",
+              "matched_title": "정압기(실)기준(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2.6",
+              "matched_title": "정압기(실) 기준(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2.6",
+              "matched_title": "정압기(실) 기준(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2.6",
+              "matched_title": "정압기 설치기준 (내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "2.7",
+          "title": "피해저감설비기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2.7",
+              "matched_title": "피해저감설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2.7",
+              "matched_title": "피해저감설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2.7",
+              "matched_title": "피해저감설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2.7",
+              "matched_title": "연소기 기준(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2.7",
+              "matched_title": "연소기 기준(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2.7",
+              "matched_title": "연소기 기준(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2.7",
+              "matched_title": "연료전지 설치기준",
+              "body_chars": 113,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "2.8",
+          "title": "부대설비기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2.8",
+              "matched_title": "부대설비기준",
+              "body_chars": 78,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2.8",
+              "matched_title": "부대설비기준",
+              "body_chars": 76,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2.8",
+              "matched_title": "부대설비기준",
+              "body_chars": 76,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2.8",
+              "matched_title": "사고예방설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2.8",
+              "matched_title": "사고예방 설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2.8",
+              "matched_title": "사고예방 설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2.8",
+              "matched_title": "사고예방설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "2.9",
+          "title": "피해저감설비기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "2.9",
+              "matched_title": "표시기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "2.9",
+              "matched_title": "표시기준",
+              "body_chars": 17,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "2.9",
+              "matched_title": "표시기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "2.9",
+              "matched_title": "피해저감설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "2.9",
+              "matched_title": "피해저감설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "2.9",
+              "matched_title": "피해저감설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "2.9",
+              "matched_title": "피해저감설비기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "3",
+          "title": "종업원 상호간(사업소안 임의의 1) 페이징설비 사무소가 동일한 위치에 있는 경",
+          "level": 1,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "종업원 상호간(사업소안 임의의 1) 페이징설비 사무소가 동일한 위치에 있는 경",
+              "body_chars": 159,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "종업원 상호간(사업소 안 임의 1) 페이징설비 사무소가 동일한 위치에 있는 경우에",
+              "body_chars": 186,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "종업원 상호간(사업소 안 임의 1) 페이징설비 사무소가 동일한 위치에 있는 경우에",
+              "body_chars": 168,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "종업원 상호간(사업소안 임의의 1) 페이징설비 사무소가 동일한 위치에 있는 경",
+              "body_chars": 299,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "물분무장치가 설치된 경우 1",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "물분무장치가 설치된 경우 1",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "결함부의 보수 및 재시험방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "3.1",
+          "title": "안전유지기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "안전유지기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "안전유지기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "안전유지기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "안전유지기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "안전유지 기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "안전유지 기준",
+              "body_chars": 17,
+              "is_umbrella": false
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "안전유지기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "3.2",
+          "title": "제조 및 충전기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "제조 및 충전기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "제조 및 충전기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "제조 및 충전기준",
+              "body_chars": 135,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "제조 및 충전기준(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "이입 및 충전기준(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "이입 및 충전기준(내용 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "제조 및 충전기준",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "3.3",
+          "title": "점검기준",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "점검기준",
+              "body_chars": 108,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "점검기준",
+              "body_chars": 103,
+              "is_umbrella": false
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "점검기준",
+              "body_chars": 103,
+              "is_umbrella": false
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "점검기준",
+              "body_chars": 111,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "점검기준",
+              "body_chars": 106,
+              "is_umbrella": false
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "점검기준",
+              "body_chars": 127,
+              "is_umbrella": false
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "점검기준",
+              "body_chars": 132,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "4.1",
+          "title": "검사항목",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사항목",
+              "body_chars": 368,
+              "is_umbrella": false
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사항목",
+              "body_chars": 361,
+              "is_umbrella": false
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "4.1",
+              "matched_title": "검사항목",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "4.2",
+          "title": "검사방법",
+          "level": 2,
+          "codes": {
+            "FP211": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP216": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FP217": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU111": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU211": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU212": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "FU671": {
+              "present": true,
+              "matched_sec_no": "4.2",
+              "matched_title": "검사방법",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "label": "재검사 그룹",
+      "members": [
+        "AC116",
+        "AC414"
+      ],
+      "canonical_toc": [
+        {
+          "sec_no": "1.5",
+          "title": "기준의 준용",
+          "level": 2,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "1.5",
+              "matched_title": "기준의 준용",
+              "body_chars": 62,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "1.6",
+          "title": "경과조치",
+          "level": 2,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "1.6",
+              "matched_title": "경과조치",
+              "body_chars": 110,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "2",
+          "title": "제조시설기준(해당 없음)",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "제조시설기준(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "2",
+              "matched_title": "추출 케이스",
+              "body_chars": 7,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3",
+          "title": "제조기술기준(해당 없음)",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "제조기술기준(해당 없음)",
+              "body_chars": 16,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3",
+              "matched_title": "용어의 정의",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "4",
+          "title": "검사기준(해당 없음)",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "4",
+              "matched_title": "검사기준(해당 없음)",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "4",
+              "matched_title": "재검사 주기",
+              "body_chars": 557,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "5",
+          "title": "재검사 기준",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "5",
+              "matched_title": "재검사 기준",
+              "body_chars": 84,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "5",
+              "matched_title": "재검사 및 시험 절차",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "5.2",
+          "title": "재검사방법",
+          "level": 2,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "5.2",
+              "matched_title": "재검사방법",
+              "body_chars": 56,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "5.2",
+              "matched_title": "열에 대한 노출",
+              "body_chars": 260,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "5.3",
+          "title": "합격표시",
+          "level": 2,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "5.3",
+              "matched_title": "합격표시",
+              "body_chars": 538,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "5.4",
+          "title": "불합격품 파기방법",
+          "level": 2,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "5.4",
+              "matched_title": "불합격품 파기방법",
+              "body_chars": 182,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "5.4",
+              "matched_title": "불합격 제품 파기 방법",
+              "body_chars": 171,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.6",
+          "title": "균열 등의 검사",
+          "level": 2,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "균열 등의 검사",
+              "body_chars": 28651,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.6",
+              "matched_title": "풀랩 용기",
+              "body_chars": 198,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "19",
+          "title": "년 월 일",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "19",
+              "matched_title": "년 월 일",
+              "body_chars": 272,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "1",
+          "title": "외 관 검 사 사용상 결함 또는 불량부위가 없을 것",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "1",
+              "matched_title": "외 관 검 사 사용상 결함 또는 불량부위가 없을 것",
+              "body_chars": 96,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "1",
+              "matched_title": "적용 범위",
+              "body_chars": 420,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "6",
+          "title": "이 없을 것",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "6",
+              "matched_title": "이 없을 것",
+              "body_chars": 151,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "6",
+              "matched_title": "용기의 확인 및 검사 준비",
+              "body_chars": 214,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "8",
+          "title": "내 압 시 험",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "8",
+              "matched_title": "내 압 시 험",
+              "body_chars": 115,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "8",
+              "matched_title": "내부 외관검사",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "10",
+          "title": "기 밀 시 험",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "10",
+              "matched_title": "기 밀 시 험",
+              "body_chars": 24,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "10",
+              "matched_title": "수압 라인 밸브",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "11",
+          "title": "안 전 밸 브 작동이 원활하고 사용상 지장이 없을 것",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "11",
+              "matched_title": "안 전 밸 브 작동이 원활하고 사용상 지장이 없을 것",
+              "body_chars": 0,
+              "is_umbrella": true
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "11",
+              "matched_title": "최종 마무리",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "12",
+          "title": "긴급차단밸브 작동이 원활하고 사용상 지장이 없을 것",
+          "level": 1,
+          "codes": {
+            "AC116": {
+              "present": true,
+              "matched_sec_no": "12",
+              "matched_title": "긴급차단밸브 작동이 원활하고 사용상 지장이 없을 것",
+              "body_chars": 5851,
+              "is_umbrella": false
+            },
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "12",
+              "matched_title": "불합격 용기의 처리",
+              "body_chars": 2133,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.1",
+          "title": "파열압력",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.1",
+              "matched_title": "파열압력",
+              "body_chars": 38,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.2",
+          "title": "복합재료 감기(composit overwrap)",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.2",
+              "matched_title": "복합재료 감기(composit overwrap)",
+              "body_chars": 54,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.3",
+          "title": "외부 코팅",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.3",
+              "matched_title": "외부 코팅",
+              "body_chars": 128,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.4",
+          "title": "섬 유",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.4",
+              "matched_title": "섬 유",
+              "body_chars": 64,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.5",
+          "title": "라이너 없는 풀랩 용기",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.5",
+              "matched_title": "라이너 없는 풀랩 용기",
+              "body_chars": 48,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.8",
+          "title": "식별 라벨",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.8",
+              "matched_title": "식별 라벨",
+              "body_chars": 61,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.9",
+          "title": "LC50",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.9",
+              "matched_title": "LC50",
+              "body_chars": 35,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.10",
+          "title": "사용 연한",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.10",
+              "matched_title": "사용 연한",
+              "body_chars": 57,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.11",
+          "title": "라이너",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.11",
+              "matched_title": "라이너",
+              "body_chars": 103,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.12",
+          "title": "비금속 라이너",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.12",
+              "matched_title": "비금속 라이너",
+              "body_chars": 41,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.13",
+          "title": "보호 케이스",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.13",
+              "matched_title": "보호 케이스",
+              "body_chars": 46,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.14",
+          "title": "수리",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.14",
+              "matched_title": "수리",
+              "body_chars": 60,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.15",
+          "title": "수지 매트릭스",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.15",
+              "matched_title": "수지 매트릭스",
+              "body_chars": 57,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.16",
+          "title": "부적합 용기",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.16",
+              "matched_title": "부적합 용기",
+              "body_chars": 39,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.17",
+          "title": "독성가스",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.17",
+              "matched_title": "독성가스",
+              "body_chars": 81,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.18",
+          "title": "맹독 가스",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.18",
+              "matched_title": "맹독 가스",
+              "body_chars": 62,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.19",
+          "title": "복합재료 적층부",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.19",
+              "matched_title": "복합재료 적층부",
+              "body_chars": 57,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "3.20",
+          "title": "로빙(roving)",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "3.20",
+              "matched_title": "로빙(roving)",
+              "body_chars": 90,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "5.1",
+          "title": "절차",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "5.1",
+              "matched_title": "절차",
+              "body_chars": 546,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "7",
+          "title": "외부 외관검사",
+          "level": 1,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "7",
+              "matched_title": "외부 외관검사",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "7.1",
+          "title": "준비사항",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "7.1",
+              "matched_title": "준비사항",
+              "body_chars": 500,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "7.2",
+          "title": "검사 절차",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "7.2",
+              "matched_title": "검사 절차",
+              "body_chars": 265,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "7.3",
+          "title": "손상 종류",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "7.3",
+              "matched_title": "손상 종류",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        },
+        {
+          "sec_no": "7.4",
+          "title": "수리",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "7.4",
+              "matched_title": "수리",
+              "body_chars": 386,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "8.1",
+          "title": "일반사항",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "8.1",
+              "matched_title": "일반사항",
+              "body_chars": 55,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "10.1",
+          "title": "일반사항",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "10.1",
+              "matched_title": "일반사항",
+              "body_chars": 184,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "10.2",
+          "title": "시험 방법",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "10.2",
+              "matched_title": "시험 방법",
+              "body_chars": 198,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "10.3",
+          "title": "판정기준",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "10.3",
+              "matched_title": "판정기준",
+              "body_chars": 55,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "11.1",
+          "title": "건조 및 세척",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "11.1",
+              "matched_title": "건조 및 세척",
+              "body_chars": 141,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "11.2",
+          "title": "도장",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "11.2",
+              "matched_title": "도장",
+              "body_chars": 506,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "11.4",
+          "title": "빈용기 무게의 측정",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "11.4",
+              "matched_title": "빈용기 무게의 측정",
+              "body_chars": 381,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "11.6",
+          "title": "차기 재검사 연월(충전 유효기간)",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "11.6",
+              "matched_title": "차기 재검사 연월(충전 유효기간)",
+              "body_chars": 59,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "11.7",
+          "title": "내용물 식별",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "11.7",
+              "matched_title": "내용물 식별",
+              "body_chars": 158,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "11.8",
+          "title": "기 록",
+          "level": 2,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "11.8",
+              "matched_title": "기 록",
+              "body_chars": 321,
+              "is_umbrella": false
+            }
+          }
+        },
+        {
+          "sec_no": "9",
+          "title": "시험 용기",
+          "level": 1,
+          "codes": {
+            "AC414": {
+              "present": true,
+              "matched_sec_no": "9",
+              "matched_title": "시험 용기",
+              "body_chars": 0,
+              "is_umbrella": true
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "universal": [
+    {
+      "sec_no": "1.5",
+      "title": "기준의 준용",
+      "level": 2,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 124,
+          "is_umbrella": false
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 124,
+          "is_umbrella": false
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 67,
+          "is_umbrella": false
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 168,
+          "is_umbrella": false
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 77,
+          "is_umbrella": false
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 77,
+          "is_umbrella": false
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 80,
+          "is_umbrella": false
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 80,
+          "is_umbrella": false
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 80,
+          "is_umbrella": false
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "기준의 준용",
+          "body_chars": 80,
+          "is_umbrella": false
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "경과조치",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "경과조치",
+          "body_chars": 2880,
+          "is_umbrella": false
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "경과조치",
+          "body_chars": 3053,
+          "is_umbrella": false
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "경과조치",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "경과조치",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "경과조치",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "1.5",
+          "matched_title": "경과조치",
+          "body_chars": 77,
+          "is_umbrella": false
+        }
+      },
+      "title_per_family": {
+        "A": "기준의 준용",
+        "B": "경과조치"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "1.6",
+      "title": "경과조치",
+      "level": 2,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치(해당 없음)",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 201,
+          "is_umbrella": false
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 444,
+          "is_umbrella": false
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 90,
+          "is_umbrella": false
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 251,
+          "is_umbrella": false
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 161,
+          "is_umbrella": false
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 161,
+          "is_umbrella": false
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "경과조치",
+          "body_chars": 161,
+          "is_umbrella": false
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "용품사용제한",
+          "body_chars": 130,
+          "is_umbrella": false
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "용품사용제한",
+          "body_chars": 180,
+          "is_umbrella": false
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "용품사용제한",
+          "body_chars": 196,
+          "is_umbrella": false
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "용품의 사용제한",
+          "body_chars": 146,
+          "is_umbrella": false
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "용품의 사용제한",
+          "body_chars": 144,
+          "is_umbrella": false
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "용품의 사용제한",
+          "body_chars": 82,
+          "is_umbrella": false
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "1.6",
+          "matched_title": "용품사용제한",
+          "body_chars": 108,
+          "is_umbrella": false
+        }
+      },
+      "title_per_family": {
+        "A": "경과조치",
+        "B": "용품사용제한"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "2",
+      "title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+      "level": 1,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "제조시설기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "제조시설기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "사업소안 전체 1) 구내방송설비",
+          "body_chars": 33,
+          "is_umbrella": false
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "사업소 안 전체 1) 구내방송설비",
+          "body_chars": 33,
+          "is_umbrella": false
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "사업소 안 전체 1) 구내방송설비",
+          "body_chars": 33,
+          "is_umbrella": false
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "사업소안 전체 1) 구내방송설비",
+          "body_chars": 33,
+          "is_umbrella": false
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "방사선검사의 합격기준",
+          "body_chars": 333,
+          "is_umbrella": false
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "방사선검사의 합격기준",
+          "body_chars": 333,
+          "is_umbrella": false
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "2",
+          "matched_title": "도로(전용공업지역 안에 있는 도로를 제외한다) 30",
+          "body_chars": 72,
+          "is_umbrella": false
+        }
+      },
+      "title_per_family": {
+        "A": "주요 환경 조건이 비전도성 오염이 일시적으로 누적될 수도 있는 곳",
+        "B": "사업소안 전체 1) 구내방송설비"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "2.1",
+      "title": "제조설비",
+      "level": 2,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 515,
+          "is_umbrella": false
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 549,
+          "is_umbrella": false
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 399,
+          "is_umbrella": false
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 401,
+          "is_umbrella": false
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 428,
+          "is_umbrella": false
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 405,
+          "is_umbrella": false
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 423,
+          "is_umbrella": false
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 409,
+          "is_umbrella": false
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 393,
+          "is_umbrella": false
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 393,
+          "is_umbrella": false
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "제조설비",
+          "body_chars": 393,
+          "is_umbrella": false
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "배치기준",
+          "body_chars": 528,
+          "is_umbrella": false
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "배치기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "배치기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "배치기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "배치기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "배치기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "2.1",
+          "matched_title": "배치기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        }
+      },
+      "title_per_family": {
+        "A": "제조설비",
+        "B": "배치기준"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "2.2",
+      "title": "검사설비",
+      "level": 2,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 265,
+          "is_umbrella": false
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 553,
+          "is_umbrella": false
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "검사설비",
+          "body_chars": 15,
+          "is_umbrella": false
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "기초기준",
+          "body_chars": 157,
+          "is_umbrella": false
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "기초기준",
+          "body_chars": 72,
+          "is_umbrella": false
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "기초기준",
+          "body_chars": 72,
+          "is_umbrella": false
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "기초기준",
+          "body_chars": 103,
+          "is_umbrella": false
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "기초기준(내용 없음)",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "기초기준(내용 없음)",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "2.2",
+          "matched_title": "기초기준",
+          "body_chars": 225,
+          "is_umbrella": false
+        }
+      },
+      "title_per_family": {
+        "A": "검사설비",
+        "B": "기초기준"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "3",
+      "title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+      "level": 1,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 생산공정검사 및 종합공정검사의 공통기준",
+          "body_chars": 805,
+          "is_umbrella": false
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 생산공정검사 및 종합공정검사의 공통기준",
+          "body_chars": 805,
+          "is_umbrella": false
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "body_chars": 10906,
+          "is_umbrella": false
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "body_chars": 4710,
+          "is_umbrella": false
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "body_chars": 14581,
+          "is_umbrella": false
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "body_chars": 7171,
+          "is_umbrella": false
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "body_chars": 6768,
+          "is_umbrella": false
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "body_chars": 6572,
+          "is_umbrella": false
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "body_chars": 2606,
+          "is_umbrella": false
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "body_chars": 5565,
+          "is_umbrella": false
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+          "body_chars": 6125,
+          "is_umbrella": false
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "종업원 상호간(사업소안 임의의 1) 페이징설비 사무소가 동일한 위치에 있는 경",
+          "body_chars": 159,
+          "is_umbrella": false
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "종업원 상호간(사업소 안 임의 1) 페이징설비 사무소가 동일한 위치에 있는 경우에",
+          "body_chars": 186,
+          "is_umbrella": false
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "종업원 상호간(사업소 안 임의 1) 페이징설비 사무소가 동일한 위치에 있는 경우에",
+          "body_chars": 168,
+          "is_umbrella": false
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "종업원 상호간(사업소안 임의의 1) 페이징설비 사무소가 동일한 위치에 있는 경",
+          "body_chars": 299,
+          "is_umbrella": false
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "물분무장치가 설치된 경우 1",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "물분무장치가 설치된 경우 1",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "3",
+          "matched_title": "결함부의 보수 및 재시험방법",
+          "body_chars": 0,
+          "is_umbrella": true
+        }
+      },
+      "title_per_family": {
+        "A": "표시가 없는 조항은 공정확인심사나 종합적품질관리체계심사의 공통 기준",
+        "B": "종업원 상호간(사업소안 임의의 1) 페이징설비 사무소가 동일한 위치에 있는 경"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "3.1",
+      "title": "재료",
+      "level": 2,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "설계(내용 없음)",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "설계",
+          "body_chars": 251,
+          "is_umbrella": false
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "재료",
+          "body_chars": 51,
+          "is_umbrella": false
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "재료",
+          "body_chars": 40,
+          "is_umbrella": false
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "재료",
+          "body_chars": 165,
+          "is_umbrella": false
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "재료",
+          "body_chars": 39,
+          "is_umbrella": false
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "재료",
+          "body_chars": 39,
+          "is_umbrella": false
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "재료",
+          "body_chars": 47,
+          "is_umbrella": false
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "재료",
+          "body_chars": 47,
+          "is_umbrella": false
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "재료",
+          "body_chars": 47,
+          "is_umbrella": false
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "재료",
+          "body_chars": 47,
+          "is_umbrella": false
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "안전유지기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "안전유지기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "안전유지기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "안전유지기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "안전유지 기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "안전유지 기준",
+          "body_chars": 17,
+          "is_umbrella": false
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "3.1",
+          "matched_title": "안전유지기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        }
+      },
+      "title_per_family": {
+        "A": "재료",
+        "B": "안전유지기준"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "3.2",
+      "title": "구조 및 치수",
+      "level": 2,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "재료",
+          "body_chars": 794,
+          "is_umbrella": false
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "재료",
+          "body_chars": 46,
+          "is_umbrella": false
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "구조 및 치수",
+          "body_chars": 71,
+          "is_umbrella": false
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "구조 및 치수",
+          "body_chars": 60,
+          "is_umbrella": false
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "구조 및 치수",
+          "body_chars": 67,
+          "is_umbrella": false
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "구조 및 치수",
+          "body_chars": 59,
+          "is_umbrella": false
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "구조 및 치수",
+          "body_chars": 59,
+          "is_umbrella": false
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "구조 및 치수",
+          "body_chars": 66,
+          "is_umbrella": false
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "구조 및 치수",
+          "body_chars": 66,
+          "is_umbrella": false
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "구조 및 치수",
+          "body_chars": 66,
+          "is_umbrella": false
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "구조 및 치수",
+          "body_chars": 66,
+          "is_umbrella": false
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "제조 및 충전기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "제조 및 충전기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "제조 및 충전기준",
+          "body_chars": 135,
+          "is_umbrella": false
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "제조 및 충전기준(해당 없음)",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "이입 및 충전기준(내용 없음)",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "이입 및 충전기준(내용 없음)",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "3.2",
+          "matched_title": "제조 및 충전기준",
+          "body_chars": 0,
+          "is_umbrella": true
+        }
+      },
+      "title_per_family": {
+        "A": "구조 및 치수",
+        "B": "제조 및 충전기준"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "3.3",
+      "title": "장치",
+      "level": 2,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "두께",
+          "body_chars": 885,
+          "is_umbrella": false
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "두께(내용 없음)",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "장치",
+          "body_chars": 97,
+          "is_umbrella": false
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "장치",
+          "body_chars": 87,
+          "is_umbrella": false
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "장치",
+          "body_chars": 94,
+          "is_umbrella": false
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "장치",
+          "body_chars": 85,
+          "is_umbrella": false
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "장치",
+          "body_chars": 105,
+          "is_umbrella": false
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "장치",
+          "body_chars": 94,
+          "is_umbrella": false
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "장치",
+          "body_chars": 94,
+          "is_umbrella": false
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "장치",
+          "body_chars": 94,
+          "is_umbrella": false
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "장치",
+          "body_chars": 94,
+          "is_umbrella": false
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "점검기준",
+          "body_chars": 108,
+          "is_umbrella": false
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "점검기준",
+          "body_chars": 103,
+          "is_umbrella": false
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "점검기준",
+          "body_chars": 103,
+          "is_umbrella": false
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "점검기준",
+          "body_chars": 111,
+          "is_umbrella": false
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "점검기준",
+          "body_chars": 106,
+          "is_umbrella": false
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "점검기준",
+          "body_chars": 127,
+          "is_umbrella": false
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "3.3",
+          "matched_title": "점검기준",
+          "body_chars": 132,
+          "is_umbrella": false
+        }
+      },
+      "title_per_family": {
+        "A": "장치",
+        "B": "점검기준"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "4.1",
+      "title": "검사종류",
+      "level": 2,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 36,
+          "is_umbrella": false
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 36,
+          "is_umbrella": false
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 41,
+          "is_umbrella": false
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 40,
+          "is_umbrella": false
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 39,
+          "is_umbrella": false
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 39,
+          "is_umbrella": false
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 39,
+          "is_umbrella": false
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 39,
+          "is_umbrella": false
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 39,
+          "is_umbrella": false
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 39,
+          "is_umbrella": false
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사종류",
+          "body_chars": 39,
+          "is_umbrella": false
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사항목",
+          "body_chars": 368,
+          "is_umbrella": false
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사항목",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사항목",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사항목",
+          "body_chars": 361,
+          "is_umbrella": false
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사항목",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사항목",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "4.1",
+          "matched_title": "검사항목",
+          "body_chars": 0,
+          "is_umbrella": true
+        }
+      },
+      "title_per_family": {
+        "A": "검사종류",
+        "B": "검사항목"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    },
+    {
+      "sec_no": "4.2",
+      "title": "공정검사 대상 심사",
+      "level": 2,
+      "applies_to_families": [
+        "A",
+        "B"
+      ],
+      "codes": {
+        "AC411": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AC421": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH171": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH271": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH371": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH372": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH373": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH374": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH375": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH376": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "AH377": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "공정검사 대상 심사",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP211": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "검사방법",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP216": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "검사방법",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FP217": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "검사방법",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU111": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "검사방법",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU211": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "검사방법",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU212": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "검사방법",
+          "body_chars": 0,
+          "is_umbrella": true
+        },
+        "FU671": {
+          "present": true,
+          "matched_sec_no": "4.2",
+          "matched_title": "검사방법",
+          "body_chars": 0,
+          "is_umbrella": true
+        }
+      },
+      "title_per_family": {
+        "A": "공정검사 대상 심사",
+        "B": "검사방법"
+      },
+      "title_variant_note": "same sec_no, different title by family — UX must use title_per_family per code"
+    }
+  ]
+}

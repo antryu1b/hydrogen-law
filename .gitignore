@@ -67,8 +67,8 @@ htmlcov/
 .ralph-active
 .env*.local
 
-# KGS source PDFs and parsed sections — too large for repo
+# KGS source PDFs — too large for repo
 data/kgs_pdfs/
-data/kgs_sections/
+# data/kgs_sections/ — kept in repo for Vercel serverless runtime access
 services/kgs-parser/.venv/
 services/kgs-parser/__pycache__/
