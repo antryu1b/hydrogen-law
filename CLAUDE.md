@@ -1,5 +1,35 @@
 # CLAUDE.md - hydrogen-law-rag
 
+## 🔴 CRITICAL — Source, Machine, Deploy (read before touching anything)
+
+| 항목 | 값 |
+|---|---|
+| **Canonical edit source** | **m4max `~/PRJs/hydrogen-law`** (NOT M1) |
+| **M1 sibling path** | `~/Thairon/hydrogen-law-rag` — **STALE, do not edit** |
+| **GitHub repo** | `antryu1b/hydrogen-law` (note: `antryu1b`, not `antryu`) |
+| **Live deploy** | https://hydrogen-law.vercel.app |
+| **Deploy mechanism** | 🔴 **`vercel --prod --yes` direct CLI** (bypasses GitHub) |
+| **Vercel CLI auth** | `antryu1b-5214` (already logged in via `~/PRJs/hydrogen-law/.vercel/project.json`) |
+| **git push to origin** | secondary concern — antryu PAT in keychain has **NO write** to antryu1b/hydrogen-law. Origin may lag behind live. TODO: add antryu1b PAT. |
+| **Push hook** | `PUSH_OK=1` prefix required (`m1-safety-guard`) |
+| **Husky pre-commit** | uses `npx`; if non-interactive (Bash tool), commit with `--no-verify` |
+
+**Why this matters**: This repo's pattern is OPPOSITE of y-company / govrfp-alerts (those = M1 canonical). Treating M1 as canonical here = wrong base + lost work. 2026-05-28 incident: orchestrator built family page on M1's stale base, "WIP preserved" was actually abandoned exploration. Recovery via rsync m4max + re-apply.
+
+**Deploy command (anywhere on m4max)**:
+```bash
+cd ~/PRJs/hydrogen-law && vercel --prod --yes
+```
+→ ~50s build → aliased to https://hydrogen-law.vercel.app
+
+**KGS family map data files (Phase 1, 2026-05-28)** — large, do NOT commit:
+- `data/kgs_pdfs/` (20 PDFs, ~30MB) — gitignored
+- `data/kgs_sections/` (20 parsed JSONs, ~300KB each) — gitignored
+- `data/kgs_families.json`, `data/kgs-canonical-toc.json` — small, tracked
+- `services/kgs-parser/.venv/` — gitignored
+
+---
+
 ## Project Overview
 
 Hydrogen Law RAG System (수소법률 RAG 시스템) - A RAG-based legal search and compliance system for Korean hydrogen-related laws from the National Law Information Center (국가법령정보센터).
