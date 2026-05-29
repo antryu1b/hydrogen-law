@@ -72,9 +72,13 @@ function getParentSecNo(sec_no: string): string | null {
 /**
  * Build a hierarchical tree from a flat sections array.
  *
- * Handles duplicate sec_nos (which occur in KGS table rows) by:
- * - Using the FIRST occurrence of a given sec_no as the parent anchor
- * - Attaching subsequent duplicates as siblings at the parent level
+ * Dedup policy (applied 2026-05-29 per Andrew C+2 follow-up):
+ * Duplicate sec_nos in source data are PDF parser artifacts (table rows where
+ * cell content happens to match a section-number regex). We keep ONLY the
+ * first occurrence of each sec_no — first one is always the real section
+ * header (per Phase 1 parser ordering), subsequent ones are appendix/table
+ * row contamination. This prevents the tree from showing "1 일반사항"
+ * multiple times at the root level.
  */
 function buildTree(sections: RawSection[]): TreeNode[] {
   // Sort sections by sec_no numerically, preserving original order for equal sec_nos
@@ -84,8 +88,16 @@ function buildTree(sections: RawSection[]): TreeNode[] {
     return cmp !== 0 ? cmp : a._origIdx - b._origIdx;
   });
 
-  // Build nodes with unique _key
-  const nodes: (TreeNode & { _parentSecNo: string | null })[] = sorted.map((s, i) => ({
+  // Dedup: keep only first occurrence per sec_no (filter table-row artifacts)
+  const seen = new Set<string>();
+  const deduped = sorted.filter((s) => {
+    if (seen.has(s.sec_no)) return false;
+    seen.add(s.sec_no);
+    return true;
+  });
+
+  // Build nodes with unique _key (still useful for React even when sec_nos are now unique)
+  const nodes: (TreeNode & { _parentSecNo: string | null })[] = deduped.map((s, i) => ({
     _key: `${s.sec_no}__${i}`,
     sec_no: s.sec_no,
     title: s.title,
@@ -96,12 +108,10 @@ function buildTree(sections: RawSection[]): TreeNode[] {
     _parentSecNo: getParentSecNo(s.sec_no),
   }));
 
-  // Track the FIRST node for each sec_no (used as parent anchor)
-  const firstNodeBySecNo = new Map<string, TreeNode>();
+  // Each sec_no now maps to a single canonical node
+  const nodeBySecNo = new Map<string, TreeNode>();
   for (const node of nodes) {
-    if (!firstNodeBySecNo.has(node.sec_no)) {
-      firstNodeBySecNo.set(node.sec_no, node);
-    }
+    nodeBySecNo.set(node.sec_no, node);
   }
 
   const roots: TreeNode[] = [];
@@ -109,15 +119,15 @@ function buildTree(sections: RawSection[]): TreeNode[] {
   for (const node of nodes) {
     const parentSecNo = node._parentSecNo;
 
-    if (parentSecNo && firstNodeBySecNo.has(parentSecNo)) {
-      firstNodeBySecNo.get(parentSecNo)!.children.push(node);
+    if (parentSecNo && nodeBySecNo.has(parentSecNo)) {
+      nodeBySecNo.get(parentSecNo)!.children.push(node);
     } else if (parentSecNo) {
       // Direct parent not in data — walk up to find nearest ancestor
       let ancestor = getParentSecNo(parentSecNo);
       let found = false;
       while (ancestor !== null) {
-        if (firstNodeBySecNo.has(ancestor)) {
-          firstNodeBySecNo.get(ancestor)!.children.push(node);
+        if (nodeBySecNo.has(ancestor)) {
+          nodeBySecNo.get(ancestor)!.children.push(node);
           found = true;
           break;
         }

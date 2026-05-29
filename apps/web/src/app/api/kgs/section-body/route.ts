@@ -114,9 +114,17 @@ export async function GET(request: NextRequest) {
     }
 
     // --- Recursive path: return parent + all descendants as ordered blocks ---
-    const descendants = sections
+    // Dedup: source data has duplicate sec_nos from PDF table-row artifacts.
+    // Keep only first occurrence per sec_no (consistent with sections-tree route).
+    const matched = sections
       .filter((s) => s.sec_no === sec_no || isDescendant(s.sec_no, sec_no))
       .sort((a, b) => compareSecNo(a.sec_no, b.sec_no));
+    const seen = new Set<string>();
+    const descendants = matched.filter((s) => {
+      if (seen.has(s.sec_no)) return false;
+      seen.add(s.sec_no);
+      return true;
+    });
 
     const blocks: SectionBlock[] = descendants.map((s) => {
       const body = s.body ?? '';
