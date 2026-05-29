@@ -39,6 +39,12 @@ export interface SectionBody {
   body_chars: number;
 }
 
+export interface EquationRegion {
+  page: number;
+  bbox: [number, number, number, number];
+  id: string;
+}
+
 export interface SectionBlock {
   sec_no: string;
   title: string;
@@ -46,6 +52,9 @@ export interface SectionBlock {
   body: string;
   is_umbrella: boolean;
   body_chars: number;
+  equation_regions?: EquationRegion[];
+  page_start?: number;
+  page_end?: number;
 }
 
 export interface RecursiveSectionBodyResponse {

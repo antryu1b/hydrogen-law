@@ -10,6 +10,7 @@ import type {
   RecursiveSectionBodyResponse,
 } from './types';
 import { CODE_TO_FAMILY } from '@/data/kgs-families-display';
+import { EquationImages, PageViewButton } from './EquationImages';
 
 interface ViewAProps {
   selectedCodes: string[];
@@ -185,6 +186,14 @@ function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProp
           ) : !block.is_umbrella ? (
             <p className="text-xs text-muted-foreground italic mt-1">(본문 없음)</p>
           ) : null}
+          {block.equation_regions && block.equation_regions.length > 0 && (
+            <EquationImages code={code} equationRegions={block.equation_regions} />
+          )}
+          <PageViewButton
+            code={code}
+            pageStart={block.page_start ?? 0}
+            pageEnd={block.page_end ?? 0}
+          />
         </section>
       ))}
     </div>

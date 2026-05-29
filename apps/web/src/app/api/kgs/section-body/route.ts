@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+export interface EquationRegion {
+  page: number;
+  bbox: [number, number, number, number];
+  id: string;
+}
+
 interface RawSection {
   sec_no: string;
   title: string;
@@ -9,6 +15,9 @@ interface RawSection {
   body?: string;
   body_chars?: number;
   is_umbrella?: boolean;
+  page_start?: number;
+  page_end?: number;
+  equation_regions?: EquationRegion[];
 }
 
 interface SectionBodyResponse {
@@ -28,6 +37,9 @@ export interface SectionBlock {
   body: string;
   is_umbrella: boolean;
   body_chars: number;
+  equation_regions?: EquationRegion[];
+  page_start?: number;
+  page_end?: number;
 }
 
 interface RecursiveSectionBodyResponse {
@@ -128,7 +140,7 @@ export async function GET(request: NextRequest) {
 
     const blocks: SectionBlock[] = descendants.map((s) => {
       const body = s.body ?? '';
-      return {
+      const block: SectionBlock = {
         sec_no: s.sec_no,
         title: s.title,
         level: s.level,
@@ -136,6 +148,12 @@ export async function GET(request: NextRequest) {
         is_umbrella: s.is_umbrella ?? false,
         body_chars: body.length,
       };
+      if (s.equation_regions && s.equation_regions.length > 0) {
+        block.equation_regions = s.equation_regions;
+      }
+      if (s.page_start !== undefined) block.page_start = s.page_start;
+      if (s.page_end !== undefined) block.page_end = s.page_end;
+      return block;
     });
 
     const rootBody = section.body ?? '';

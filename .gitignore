@@ -67,8 +67,9 @@ htmlcov/
 .ralph-active
 .env*.local
 
-# KGS source PDFs — too large for repo
-data/kgs_pdfs/
+# KGS source PDFs — root level legacy path (ignored)
+/data/kgs_pdfs/
+# apps/web/data/kgs_pdfs/ is tracked (NOT ignored) for Vercel runtime access
 # data/kgs_sections/ — kept in repo for Vercel serverless runtime access
 services/kgs-parser/.venv/
 services/kgs-parser/__pycache__/
