@@ -88,7 +88,7 @@ function TreeNodeItem({
         <div>
           {node.children.map((child) => (
             <TreeNodeItem
-              key={child.sec_no}
+              key={child._key}
               node={child}
               depth={depth + 1}
               activeSecNo={activeSecNo}
@@ -287,7 +287,7 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
           {treeData && treeData.length > 0 ? (
             treeData.map((root) => (
               <TreeNodeItem
-                key={root.sec_no}
+                key={root._key}
                 node={root}
                 depth={0}
                 activeSecNo={activeSecNo}

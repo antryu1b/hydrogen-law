@@ -58,6 +58,8 @@ export interface RecursiveSectionBodyResponse {
 
 export interface TreeNode {
   sec_no: string;
+  /** Unique render key (sec_no may not be unique in KGS data due to table rows) */
+  _key: string;
   title: string;
   level: number;
   is_umbrella: boolean;

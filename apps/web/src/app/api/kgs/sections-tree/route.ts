@@ -13,6 +13,8 @@ interface RawSection {
 
 export interface TreeNode {
   sec_no: string;
+  /** Unique key for tree rendering when sec_no is not unique */
+  _key: string;
   title: string;
   level: number;
   is_umbrella: boolean;
@@ -46,7 +48,6 @@ function compareSecNo(a: string, b: string): number {
     const aNum = parseInt(aParts[i] ?? '0', 10);
     const bNum = parseInt(bParts[i] ?? '0', 10);
     if (isNaN(aNum) || isNaN(bNum)) {
-      // Fallback to string compare for non-numeric segments
       const aStr = aParts[i] ?? '';
       const bStr = bParts[i] ?? '';
       if (aStr < bStr) return -1;
@@ -60,9 +61,7 @@ function compareSecNo(a: string, b: string): number {
 
 /**
  * Given a sec_no string, return its parent sec_no or null.
- * "2.4.3" -> "2.4"
- * "2.4" -> "2"
- * "2" -> null
+ * "2.4.3" -> "2.4", "2.4" -> "2", "2" -> null
  */
 function getParentSecNo(sec_no: string): string | null {
   const idx = sec_no.lastIndexOf('.');
@@ -72,53 +71,60 @@ function getParentSecNo(sec_no: string): string | null {
 
 /**
  * Build a hierarchical tree from a flat sections array.
- * Returns root-level nodes only (tree is recursive via .children).
+ *
+ * Handles duplicate sec_nos (which occur in KGS table rows) by:
+ * - Using the FIRST occurrence of a given sec_no as the parent anchor
+ * - Attaching subsequent duplicates as siblings at the parent level
  */
 function buildTree(sections: RawSection[]): TreeNode[] {
-  // Sort sections by sec_no numerically
-  const sorted = [...sections].sort((a, b) => compareSecNo(a.sec_no, b.sec_no));
+  // Sort sections by sec_no numerically, preserving original order for equal sec_nos
+  const indexed = sections.map((s, i) => ({ ...s, _origIdx: i }));
+  const sorted = indexed.sort((a, b) => {
+    const cmp = compareSecNo(a.sec_no, b.sec_no);
+    return cmp !== 0 ? cmp : a._origIdx - b._origIdx;
+  });
 
-  // Create map for fast lookup
-  const nodeMap = new Map<string, TreeNode>();
-  for (const s of sorted) {
-    nodeMap.set(s.sec_no, {
-      sec_no: s.sec_no,
-      title: s.title,
-      level: s.level,
-      is_umbrella: s.is_umbrella ?? false,
-      body_chars: s.body_chars ?? (s.body ? s.body.length : 0),
-      children: [],
-    });
+  // Build nodes with unique _key
+  const nodes: (TreeNode & { _parentSecNo: string | null })[] = sorted.map((s, i) => ({
+    _key: `${s.sec_no}__${i}`,
+    sec_no: s.sec_no,
+    title: s.title,
+    level: s.level,
+    is_umbrella: s.is_umbrella ?? false,
+    body_chars: s.body_chars ?? (s.body ? s.body.length : 0),
+    children: [],
+    _parentSecNo: getParentSecNo(s.sec_no),
+  }));
+
+  // Track the FIRST node for each sec_no (used as parent anchor)
+  const firstNodeBySecNo = new Map<string, TreeNode>();
+  for (const node of nodes) {
+    if (!firstNodeBySecNo.has(node.sec_no)) {
+      firstNodeBySecNo.set(node.sec_no, node);
+    }
   }
 
   const roots: TreeNode[] = [];
 
-  for (const s of sorted) {
-    const node = nodeMap.get(s.sec_no)!;
-    const parentSecNo = getParentSecNo(s.sec_no);
+  for (const node of nodes) {
+    const parentSecNo = node._parentSecNo;
 
-    if (parentSecNo && nodeMap.has(parentSecNo)) {
-      // Attach to direct parent
-      nodeMap.get(parentSecNo)!.children.push(node);
+    if (parentSecNo && firstNodeBySecNo.has(parentSecNo)) {
+      firstNodeBySecNo.get(parentSecNo)!.children.push(node);
     } else if (parentSecNo) {
-      // Parent sec_no doesn't exist in data — try grandparent, etc.
-      // Walk up until we find an existing ancestor or reach root
+      // Direct parent not in data — walk up to find nearest ancestor
       let ancestor = getParentSecNo(parentSecNo);
       let found = false;
       while (ancestor !== null) {
-        if (nodeMap.has(ancestor)) {
-          nodeMap.get(ancestor)!.children.push(node);
+        if (firstNodeBySecNo.has(ancestor)) {
+          firstNodeBySecNo.get(ancestor)!.children.push(node);
           found = true;
           break;
         }
         ancestor = getParentSecNo(ancestor);
       }
-      if (!found) {
-        // No ancestor found, treat as root
-        roots.push(node);
-      }
+      if (!found) roots.push(node);
     } else {
-      // No parent possible (single-segment sec_no like "1", "2")
       roots.push(node);
     }
   }
