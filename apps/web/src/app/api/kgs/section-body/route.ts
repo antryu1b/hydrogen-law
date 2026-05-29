@@ -15,6 +15,9 @@ interface RawSection {
   body?: string;
   body_chars?: number;
   is_umbrella?: boolean;
+  is_appendix?: boolean;
+  appendix_kind?: string;
+  appendix_no?: string;
   page_start?: number;
   page_end?: number;
   equation_regions?: EquationRegion[];
@@ -27,6 +30,7 @@ interface SectionBodyResponse {
   body: string;
   level: number;
   is_umbrella: boolean;
+  is_appendix?: boolean;
   body_chars: number;
 }
 
@@ -36,6 +40,7 @@ export interface SectionBlock {
   level: number;
   body: string;
   is_umbrella: boolean;
+  is_appendix?: boolean;
   body_chars: number;
   equation_regions?: EquationRegion[];
   page_start?: number;
@@ -44,24 +49,32 @@ export interface SectionBlock {
 
 interface RecursiveSectionBodyResponse {
   code: string;
-  root: { sec_no: string; title: string; body: string; is_umbrella: boolean };
+  root: { sec_no: string; title: string; body: string; is_umbrella: boolean; is_appendix?: boolean };
   blocks: SectionBlock[];
   total_blocks: number;
   total_body_chars: number;
 }
 
-// Cache full file contents per code to avoid re-reading on repeated requests
-const fileCache = new Map<string, RawSection[]>();
+interface RawSectionFile {
+  sections: RawSection[];
+  appendix_sections?: RawSection[];
+}
 
-async function getSections(code: string): Promise<RawSection[]> {
+// Cache full file contents per code to avoid re-reading on repeated requests
+const fileCache = new Map<string, { sections: RawSection[]; appendix_sections: RawSection[] }>();
+
+async function getSections(code: string): Promise<{ sections: RawSection[]; appendix_sections: RawSection[] }> {
   if (fileCache.has(code)) return fileCache.get(code)!;
 
   const filePath = path.join(process.cwd(), 'data', 'kgs_sections', `${code}.json`);
   const raw = await fs.readFile(filePath, 'utf-8');
-  const data = JSON.parse(raw);
-  const sections = data.sections as RawSection[];
-  fileCache.set(code, sections);
-  return sections;
+  const data = JSON.parse(raw) as RawSectionFile;
+  const result = {
+    sections: data.sections as RawSection[],
+    appendix_sections: (data.appendix_sections ?? []) as RawSection[],
+  };
+  fileCache.set(code, result);
+  return result;
 }
 
 /** Compare two sec_no strings numerically segment by segment. */
@@ -103,8 +116,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const sections = await getSections(code);
-    const section = sections.find((s) => s.sec_no === sec_no);
+    const { sections, appendix_sections } = await getSections(code);
+
+    // Search in both sections and appendix_sections
+    const allSections = [...sections, ...appendix_sections];
+    const section = allSections.find((s) => s.sec_no === sec_no);
 
     if (!section) {
       return NextResponse.json({ error: `Section ${sec_no} not found in ${code}` }, { status: 404 });
@@ -122,10 +138,47 @@ export async function GET(request: NextRequest) {
         is_umbrella: section.is_umbrella ?? false,
         body_chars: body.length,
       };
+      if (section.is_appendix) response.is_appendix = true;
       return NextResponse.json(response);
     }
 
     // --- Recursive path: return parent + all descendants as ordered blocks ---
+    // For appendix sections: since appendix entries are top-level (not hierarchical),
+    // just return the single appendix entry as a block.
+    if (section.is_appendix) {
+      const body = section.body ?? '';
+      const block: SectionBlock = {
+        sec_no: section.sec_no,
+        title: section.title,
+        level: section.level,
+        body,
+        is_umbrella: false,
+        is_appendix: true,
+        body_chars: body.length,
+      };
+      if (section.equation_regions && section.equation_regions.length > 0) {
+        block.equation_regions = section.equation_regions;
+      }
+      if (section.page_start !== undefined) block.page_start = section.page_start;
+      if (section.page_end !== undefined) block.page_end = section.page_end;
+
+      const response: RecursiveSectionBodyResponse = {
+        code,
+        root: {
+          sec_no: section.sec_no,
+          title: section.title,
+          body,
+          is_umbrella: false,
+          is_appendix: true,
+        },
+        blocks: [block],
+        total_blocks: 1,
+        total_body_chars: body.length,
+      };
+      return NextResponse.json(response);
+    }
+
+    // --- Regular recursive path: return parent + all descendants as ordered blocks ---
     // Dedup: source data has duplicate sec_nos from PDF table-row artifacts.
     // Keep only first occurrence per sec_no (consistent with sections-tree route).
     const matched = sections

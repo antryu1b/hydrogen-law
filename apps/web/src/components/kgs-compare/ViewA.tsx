@@ -35,9 +35,12 @@ function TreeNodeItem({
   onSelect,
   defaultExpandDepth,
 }: TreeNodeItemProps) {
-  const [expanded, setExpanded] = useState(depth < defaultExpandDepth);
+  // Appendix group root: collapsed by default (secondary content)
+  const defaultExpanded = node._appendix_group ? false : depth < defaultExpandDepth;
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const hasChildren = node.children.length > 0;
   const isActive = activeSecNo === node.sec_no;
+  const isAppendixGroup = node._appendix_group === true;
 
   // When a descendant becomes active, ensure this node is expanded
   useEffect(() => {
@@ -45,6 +48,40 @@ function TreeNodeItem({
       setExpanded(true);
     }
   }, [activeSecNo, node.sec_no]);
+
+  // Synthetic appendix group root — special rendering
+  if (isAppendixGroup) {
+    return (
+      <div className="mt-1 border-t border-muted/40 pt-1">
+        <button
+          className="flex items-center gap-1 w-full text-left text-xs py-1 px-1 rounded transition-colors hover:bg-muted/30 text-muted-foreground"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          <span className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center text-[10px]">
+            {expanded ? '▼' : '▶'}
+          </span>
+          <span className="text-[11px] mr-0.5">📎</span>
+          <span className="truncate flex-1 text-muted-foreground">
+            {node.title}
+          </span>
+        </button>
+        {expanded && (
+          <div>
+            {node.children.map((child) => (
+              <TreeNodeItem
+                key={child._key}
+                node={child}
+                depth={1}
+                activeSecNo={activeSecNo}
+                onSelect={onSelect}
+                defaultExpandDepth={defaultExpandDepth}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -76,6 +113,7 @@ function TreeNodeItem({
           className={[
             'truncate flex-1',
             node.is_umbrella ? 'text-muted-foreground italic' : '',
+            node.is_appendix ? 'text-muted-foreground' : '',
           ].join(' ')}
           title={node.title}
         >
@@ -235,12 +273,13 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
       .finally(() => setTreeLoading(false));
   }, [codesKey, selectedCodes]);
 
-  // Auto-select first L2 node when tree loads
+  // Auto-select first L2 node when tree loads (skip synthetic __appendix__ group)
   useEffect(() => {
     if (!treeData || treeData.length === 0 || activeSecNo) return;
-    // Find first L2 node (child of a root node)
+    // Find first L2 node (child of a non-appendix root node)
     let firstL2: TreeNode | null = null;
     for (const root of treeData) {
+      if (root._appendix_group) continue;
       if (root.children.length > 0) {
         firstL2 = root.children[0];
         break;
@@ -252,8 +291,10 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
     }
     if (firstL2) {
       setActiveSecNo(firstL2.sec_no);
-    } else if (treeData.length > 0) {
-      setActiveSecNo(treeData[0].sec_no);
+    } else {
+      // Fallback to first non-appendix-group root
+      const firstReal = treeData.find((r) => !r._appendix_group);
+      if (firstReal) setActiveSecNo(firstReal.sec_no);
     }
   }, [treeData, activeSecNo]);
 
@@ -263,12 +304,15 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
   const primaryCode = selectedCodes[0];
 
   // Build a flat set of sec_nos from the tree for the primary code
+  // Skip the synthetic __appendix__ group root (it has no fetchable body)
   const primarySecNos = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!treeData) return;
     const collect = (nodes: TreeNode[]) => {
       for (const n of nodes) {
-        primarySecNos.current.add(n.sec_no);
+        if (!n._appendix_group) {
+          primarySecNos.current.add(n.sec_no);
+        }
         if (n.children.length > 0) collect(n.children);
       }
     };

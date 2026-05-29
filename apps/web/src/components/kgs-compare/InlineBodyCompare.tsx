@@ -33,15 +33,52 @@ function TreeNodeItem({
   onSelect,
   defaultExpandDepth,
 }: TreeNodeItemProps) {
-  const [expanded, setExpanded] = useState(depth < defaultExpandDepth);
+  // Appendix group root: collapsed by default (secondary content)
+  const defaultExpanded = node._appendix_group ? false : depth < defaultExpandDepth;
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const hasChildren = node.children.length > 0;
   const isActive = activeSecNo === node.sec_no;
+  const isAppendixGroup = node._appendix_group === true;
 
   useEffect(() => {
     if (activeSecNo && activeSecNo.startsWith(node.sec_no + '.')) {
       setExpanded(true);
     }
   }, [activeSecNo, node.sec_no]);
+
+  // Synthetic appendix group root — special rendering
+  if (isAppendixGroup) {
+    return (
+      <div className="mt-1 border-t border-muted/40 pt-1">
+        <button
+          className="flex items-center gap-0.5 w-full text-left text-[11px] py-0.5 px-0.5 rounded transition-colors hover:bg-muted/30 text-muted-foreground"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          <span className="flex-shrink-0 w-3 h-3 flex items-center justify-center text-[9px]">
+            {expanded ? '▼' : '▶'}
+          </span>
+          <span className="text-[10px] mr-0.5">📎</span>
+          <span className="truncate flex-1 leading-tight text-muted-foreground">
+            {node.title}
+          </span>
+        </button>
+        {expanded && (
+          <div>
+            {node.children.map((child) => (
+              <TreeNodeItem
+                key={child._key}
+                node={child}
+                depth={1}
+                activeSecNo={activeSecNo}
+                onSelect={onSelect}
+                defaultExpandDepth={defaultExpandDepth}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -75,6 +112,7 @@ function TreeNodeItem({
           className={[
             'truncate flex-1 leading-tight',
             node.is_umbrella ? 'text-muted-foreground italic' : '',
+            node.is_appendix ? 'text-muted-foreground' : '',
           ].join(' ')}
           title={node.title}
         >
@@ -247,11 +285,12 @@ export function InlineBodyCompare({ selectedCodes }: InlineBodyCompareProps) {
       .finally(() => setTreeLoading(false));
   }, [codesKey, selectedCodes]);
 
-  // Auto-select first L2 node once tree loads
+  // Auto-select first L2 node once tree loads (skip synthetic __appendix__ group)
   useEffect(() => {
     if (!treeData || treeData.length === 0 || activeSecNo) return;
     let firstL2: TreeNode | null = null;
     for (const root of treeData) {
+      if (root._appendix_group) continue;
       if (root.children.length > 0) {
         firstL2 = root.children[0];
         break;
@@ -263,8 +302,9 @@ export function InlineBodyCompare({ selectedCodes }: InlineBodyCompareProps) {
     }
     if (firstL2) {
       setActiveSecNo(firstL2.sec_no);
-    } else if (treeData.length > 0) {
-      setActiveSecNo(treeData[0].sec_no);
+    } else {
+      const firstReal = treeData.find((r) => !r._appendix_group);
+      if (firstReal) setActiveSecNo(firstReal.sec_no);
     }
   }, [treeData, activeSecNo]);
 

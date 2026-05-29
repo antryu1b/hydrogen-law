@@ -9,6 +9,9 @@ interface RawSection {
   body?: string;
   body_chars?: number;
   is_umbrella?: boolean;
+  is_appendix?: boolean;
+  appendix_kind?: string;
+  appendix_no?: string;
 }
 
 export interface TreeNode {
@@ -18,22 +21,35 @@ export interface TreeNode {
   title: string;
   level: number;
   is_umbrella: boolean;
+  is_appendix?: boolean;
+  appendix_kind?: string;
+  appendix_no?: string;
   body_chars: number;
   children: TreeNode[];
+  /** Marks the synthetic appendix group root */
+  _appendix_group?: boolean;
+}
+
+interface RawSectionFile {
+  sections: RawSection[];
+  appendix_sections?: RawSection[];
 }
 
 // Cache per code
-const fileCache = new Map<string, RawSection[]>();
+const fileCache = new Map<string, { sections: RawSection[]; appendix_sections: RawSection[] }>();
 
-async function getSections(code: string): Promise<RawSection[]> {
+async function getSections(code: string): Promise<{ sections: RawSection[]; appendix_sections: RawSection[] }> {
   if (fileCache.has(code)) return fileCache.get(code)!;
 
   const filePath = path.join(process.cwd(), 'data', 'kgs_sections', `${code}.json`);
   const raw = await fs.readFile(filePath, 'utf-8');
-  const data = JSON.parse(raw);
-  const sections = data.sections as RawSection[];
-  fileCache.set(code, sections);
-  return sections;
+  const data = JSON.parse(raw) as RawSectionFile;
+  const result = {
+    sections: data.sections as RawSection[],
+    appendix_sections: (data.appendix_sections ?? []) as RawSection[],
+  };
+  fileCache.set(code, result);
+  return result;
 }
 
 /**
@@ -80,7 +96,7 @@ function getParentSecNo(sec_no: string): string | null {
  * row contamination. This prevents the tree from showing "1 일반사항"
  * multiple times at the root level.
  */
-function buildTree(sections: RawSection[]): TreeNode[] {
+function buildTree(sections: RawSection[], appendix_sections: RawSection[]): TreeNode[] {
   // Sort sections by sec_no numerically, preserving original order for equal sec_nos
   const indexed = sections.map((s, i) => ({ ...s, _origIdx: i }));
   const sorted = indexed.sort((a, b) => {
@@ -139,6 +155,36 @@ function buildTree(sections: RawSection[]): TreeNode[] {
     }
   }
 
+  // Build appendix group (synthetic root) if appendix sections exist
+  if (appendix_sections.length > 0) {
+    const appendixChildren: TreeNode[] = appendix_sections.map((s, i) => ({
+      _key: `appendix__${s.sec_no}__${i}`,
+      sec_no: s.sec_no,
+      title: s.title,
+      level: 2,
+      is_umbrella: false,
+      is_appendix: true,
+      appendix_kind: s.appendix_kind,
+      appendix_no: s.appendix_no,
+      body_chars: s.body_chars ?? (s.body ? s.body.length : 0),
+      children: [],
+    }));
+
+    const appendixRoot: TreeNode = {
+      _key: '__appendix__root',
+      sec_no: '__appendix__',
+      title: `별표·부록 (${appendixChildren.length}개)`,
+      level: 0,
+      is_umbrella: false,
+      is_appendix: true,
+      body_chars: 0,
+      children: appendixChildren,
+      _appendix_group: true,
+    };
+
+    roots.push(appendixRoot);
+  }
+
   return roots;
 }
 
@@ -151,12 +197,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const sections = await getSections(code);
-    const tree = buildTree(sections);
+    const { sections, appendix_sections } = await getSections(code);
+    const tree = buildTree(sections, appendix_sections);
 
     return NextResponse.json({
       code,
       total_sections: sections.length,
+      total_appendix: appendix_sections.length,
       tree,
     });
   } catch (error: unknown) {

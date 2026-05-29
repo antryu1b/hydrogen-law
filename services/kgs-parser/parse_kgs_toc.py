@@ -9,6 +9,7 @@ Fixes applied:
   Fix A: TOC interference — only recognize section headers at page >= 10
   Fix B: Table-row false positives — filter single-digit sec_no with empty/numeric title
   Fix C: Accept umbrella headers (L1/L2) with empty body; flag as is_umbrella=true
+  Fix D: Appendix detection — 부록/별표/별지/Appendix patterns at line-start
 """
 from __future__ import annotations
 
@@ -29,6 +30,25 @@ SECTION_RE = re.compile(
     r"^[ \t]*(\d+(?:\.\d+)*)\.?\s{1,4}([가-힣A-Za-z][가-힣A-Za-z0-9·\-\(\)\s]{0,60})$"
 )
 
+# Appendix header patterns (line-anchored, various KGS formats):
+#   부록 A / 부록A / 부록 1 / 부록A.  / 부록B
+#   별표 1 / 별표 제2호 / 별표1
+#   별지 제1호서식 / 별지 1
+#   Appendix A / Appendix 1
+APPENDIX_RE = re.compile(
+    r"^[ \t]*(?:"
+    r"(부록)\s*([A-Z\d]+)\.?"       # 부록 A  /  부록1  /  부록B.
+    r"|"
+    r"(별표)\s*제?\s*(\d+)\s*호?"   # 별표 1  /  별표 제2호
+    r"|"
+    r"(별지)\s*제?\s*(\d+)\s*호?\s*서식?" # 별지 제1호서식
+    r"|"
+    r"(Appendix)\s+([A-Z\d]+)"      # Appendix A  /  Appendix 1
+    r")"
+    r"(?:\s+(.+))?$",               # optional title remainder
+    re.IGNORECASE,
+)
+
 # KGS standard: TOC occupies pages 1-9
 TOC_PAGE_THRESHOLD = 10
 
@@ -40,7 +60,7 @@ SINGLE_DIGIT_SEC_RE = re.compile(r"^\d+$")
 
 def is_table_row_artifact(sec_no: str, title: str) -> bool:
     """Return True if this looks like a table row rather than a real section header.
-    
+
     Heuristic: sec_no is a plain integer (e.g. "3", "12") AND title is either
     empty, numeric-only, or too short (<=4 chars) to be a real Korean section name.
     """
@@ -55,6 +75,53 @@ def is_table_row_artifact(sec_no: str, title: str) -> bool:
     if len(title_stripped) <= 4:
         return True
     return False
+
+
+def parse_appendix_line(line: str) -> Optional[Dict]:
+    """
+    Try to match an appendix header line.
+    Returns dict with keys: kind, appendix_id, sec_no, title
+    or None if not matched.
+
+    kind: "부록" | "별표" | "별지" | "appendix"
+    appendix_id: "A", "B", "1", "2", ...  (the letter/number from the pattern)
+    sec_no: normalized no-space form, e.g. "부록A", "별표1", "별지1", "AppA"
+    title: remainder text (may be empty string)
+    """
+    m = APPENDIX_RE.match(line)
+    if not m:
+        return None
+
+    g = m.groups()
+    # Groups: (부록_kw, 부록_id, 별표_kw, 별표_id, 별지_kw, 별지_id, app_kw, app_id, title_rest)
+    # Index:       0       1        2        3        4        5       6       7         8
+    title_rest = (g[8] or "").strip()
+
+    if g[0]:  # 부록
+        kind = "부록"
+        appendix_id = g[1].upper()
+        sec_no = f"부록{appendix_id}"
+    elif g[2]:  # 별표
+        kind = "별표"
+        appendix_id = g[3]
+        sec_no = f"별표{appendix_id}"
+    elif g[4]:  # 별지
+        kind = "별지"
+        appendix_id = g[5]
+        sec_no = f"별지{appendix_id}"
+    elif g[6]:  # Appendix
+        kind = "appendix"
+        appendix_id = g[7].upper()
+        sec_no = f"App{appendix_id}"
+    else:
+        return None
+
+    return {
+        "kind": kind,
+        "appendix_id": appendix_id,
+        "sec_no": sec_no,
+        "title": title_rest,
+    }
 
 
 def extract_text_by_page(pdf_path: Path) -> List[Tuple[int, str]]:
@@ -79,33 +146,69 @@ def detect_version_date(pages: List[Tuple[int, str]], code: str) -> Optional[str
     return None
 
 
-def parse_sections(pages: List[Tuple[int, str]]) -> Tuple[List[Dict], List[Dict]]:
+def parse_sections(pages: List[Tuple[int, str]]) -> Tuple[List[Dict], List[Dict], List[Dict]]:
     """
     Walk through all pages line by line.
     When a section header is detected (page >= TOC_PAGE_THRESHOLD), start a new section.
+    When an appendix header is detected, start a new appendix entry.
     Lines from pages < TOC_PAGE_THRESHOLD are recorded as toc_artifacts if they match.
 
-    Returns: (sections, toc_artifacts)
-    
+    Returns: (sections, appendix_sections, toc_artifacts)
+
     Fix A: Skip section headers found on pages < TOC_PAGE_THRESHOLD.
     Fix B: Skip table-row artifacts (single-digit sec_no + weak title).
     Fix C: L1/L2 sections with empty body are valid umbrella headers; marked is_umbrella=True.
+    Fix D: Appendix headers (부록/별표/별지/Appendix) parsed into separate list.
     """
     all_lines: List[Tuple[int, int, str]] = []  # (page_no, line_in_page, text)
     for page_no, text in pages:
         for li, line in enumerate(text.splitlines()):
             all_lines.append((page_no, li, line))
 
-    section_positions: List[Tuple[int, int, str, str, int]] = []
-    # (line_global_idx, page_no, sec_no, title, level)
-    
+    # TOC-entry pattern: trailing dots/bullets followed by optional page number.
+    # e.g. "부록 A 제목·····90" or "1. 일반사항 .......... 5"
+    TOC_TRAIL_RE = re.compile(r"[·.]{3,}\s*\d*\s*$")
+
+    # --- First pass: locate all section + appendix header positions ---
+    # Combined position list; type = "section" | "appendix"
+    header_positions: List[Dict] = []  # {idx, page_no, type, ...}
+
     toc_artifact_positions: List[Dict] = []
+    # Track appendix sec_nos already seen to handle dedup
+    seen_appendix_secnos: set = set()
 
     for global_idx, (page_no, li, line) in enumerate(all_lines):
+        # Try appendix first (higher priority — check before numeric section RE)
+        ap = parse_appendix_line(line.strip())
+        if ap:
+            # Appendix headers are only valid after TOC pages
+            if page_no < TOC_PAGE_THRESHOLD:
+                continue
+            stripped = line.strip()
+            # Skip TOC entries: lines with trailing dots/bullets + page number
+            # e.g. "부록 A 제목·····90"
+            if TOC_TRAIL_RE.search(stripped):
+                continue
+            # Deduplicate: same sec_no appearing twice
+            if ap["sec_no"] in seen_appendix_secnos:
+                continue
+            seen_appendix_secnos.add(ap["sec_no"])
+            header_positions.append({
+                "idx": global_idx,
+                "page_no": page_no,
+                "type": "appendix",
+                "sec_no": ap["sec_no"],
+                "title": ap["title"],
+                "kind": ap["kind"],
+                "appendix_id": ap["appendix_id"],
+            })
+            continue
+
+        # Try numeric section
         m = SECTION_RE.match(line)
         if not m:
             continue
-        
+
         sec_no = m.group(1)
         title = m.group(2).strip()
         level = sec_no.count(".") + 1
@@ -135,19 +238,38 @@ def parse_sections(pages: List[Tuple[int, str]]) -> Tuple[List[Dict], List[Dict]
             })
             continue
 
-        section_positions.append((global_idx, page_no, sec_no, title, level))
+        # Fix D: if this line is inside an appendix region (after first appendix header),
+        # the numeric section-like pattern may be sub-sections of the appendix.
+        # We still record it as a section — tree builder will handle positioning.
+        header_positions.append({
+            "idx": global_idx,
+            "page_no": page_no,
+            "type": "section",
+            "sec_no": sec_no,
+            "title": title,
+            "level": level,
+        })
 
-    if not section_positions:
-        print("[WARNING] No section headers detected!", file=sys.stderr)
-        return [], toc_artifact_positions
+    if not header_positions:
+        print("[WARNING] No section or appendix headers detected!", file=sys.stderr)
+        return [], [], toc_artifact_positions
 
-    print(f"[parse] Detected {len(section_positions)} section headers (skipped {len(toc_artifact_positions)} artifacts)", file=sys.stderr)
+    n_sections = sum(1 for h in header_positions if h["type"] == "section")
+    n_appendix = sum(1 for h in header_positions if h["type"] == "appendix")
+    print(
+        f"[parse] Detected {n_sections} section headers + {n_appendix} appendix headers "
+        f"(skipped {len(toc_artifact_positions)} artifacts)",
+        file=sys.stderr,
+    )
 
-    sections = []
-    for i, (g_idx, page_no, sec_no, title, level) in enumerate(section_positions):
+    # --- Second pass: extract body text for each header ---
+    sections: List[Dict] = []
+    appendix_sections: List[Dict] = []
+
+    for i, hdr in enumerate(header_positions):
         body_lines = []
-        start = g_idx + 1
-        end = section_positions[i + 1][0] if i + 1 < len(section_positions) else len(all_lines)
+        start = hdr["idx"] + 1
+        end = header_positions[i + 1]["idx"] if i + 1 < len(header_positions) else len(all_lines)
 
         for j in range(start, end):
             _, _, body_line = all_lines[j]
@@ -155,26 +277,39 @@ def parse_sections(pages: List[Tuple[int, str]]) -> Tuple[List[Dict], List[Dict]
 
         body = "\n".join(body_lines).strip()
 
-        page_start = page_no
-        page_end = all_lines[end - 1][0] if end > start else page_no
+        page_start = hdr["page_no"]
+        page_end = all_lines[end - 1][0] if end > start else hdr["page_no"]
 
-        # Fix C: umbrella detection (L1/L2 with empty body are valid navigational headers)
-        is_umbrella = (level <= 2) and (len(body) == 0)
+        if hdr["type"] == "section":
+            level = hdr["level"]
+            is_umbrella = (level <= 2) and (len(body) == 0)
+            section = {
+                "sec_no": hdr["sec_no"],
+                "title": hdr["title"],
+                "level": level,
+                "page_start": page_start,
+                "page_end": page_end,
+                "body": body,
+            }
+            if is_umbrella:
+                section["is_umbrella"] = True
+            sections.append(section)
+        else:
+            # Appendix entry
+            appendix_entry = {
+                "sec_no": hdr["sec_no"],
+                "title": hdr["title"],
+                "level": 2,
+                "page_start": page_start,
+                "page_end": page_end,
+                "body": body,
+                "is_appendix": True,
+                "appendix_kind": hdr["kind"],
+                "appendix_no": hdr["appendix_id"],
+            }
+            appendix_sections.append(appendix_entry)
 
-        section = {
-            "sec_no": sec_no,
-            "title": title,
-            "level": level,
-            "page_start": page_start,
-            "page_end": page_end,
-            "body": body,
-        }
-        if is_umbrella:
-            section["is_umbrella"] = True
-
-        sections.append(section)
-
-    return sections, toc_artifact_positions
+    return sections, appendix_sections, toc_artifact_positions
 
 
 def derive_code_from_path(pdf_path: Path) -> str:
@@ -226,7 +361,7 @@ def main():
             title_candidate = line
             break
 
-    sections, toc_artifacts = parse_sections(pages)
+    sections, appendix_sections, toc_artifacts = parse_sections(pages)
 
     depth_dist: Dict[int, int] = {}
     for s in sections:
@@ -237,7 +372,7 @@ def main():
     orphaned = [s for s in sections if not s["body"].strip() and not s.get("is_umbrella")]
     low_confidence = [s for s in sections if 0 < len(s["body"]) < 20]
 
-    print(f"[stats] sections={len(sections)}, depth_dist={depth_dist}", file=sys.stderr)
+    print(f"[stats] sections={len(sections)}, appendix={len(appendix_sections)}, depth_dist={depth_dist}", file=sys.stderr)
     print(f"[stats] umbrella={len(umbrella_sections)}, orphaned (non-umbrella, no body)={len(orphaned)}, low_confidence (body<20)={len(low_confidence)}", file=sys.stderr)
     print(f"[stats] toc_artifacts_skipped={len(toc_artifacts)}", file=sys.stderr)
 
@@ -247,12 +382,14 @@ def main():
         "version_date": version_date,
         "page_count": len(pages),
         "section_count": len(sections),
+        "appendix_count": len(appendix_sections),
         "depth_distribution": depth_dist,
         "umbrella_count": len(umbrella_sections),
         "orphaned_count": len(orphaned),
         "low_confidence_count": len(low_confidence),
         "toc_artifacts_skipped": len(toc_artifacts),
         "sections": sections,
+        "appendix_sections": appendix_sections,
         "toc_artifacts": toc_artifacts,
     }
 
@@ -267,11 +404,17 @@ def main():
     print(f"  version_date: {version_date}")
     print(f"  pages: {len(pages)}")
     print(f"  sections: {len(sections)}")
+    print(f"  appendix_sections: {len(appendix_sections)}")
     print(f"  depth_distribution: {depth_dist}")
     print(f"  umbrella_sections: {len(umbrella_sections)}")
     print(f"  orphaned_sections (non-umbrella, no body): {len(orphaned)}")
     print(f"  low_confidence: {len(low_confidence)}")
     print(f"  toc_artifacts_skipped: {len(toc_artifacts)}")
+
+    if appendix_sections:
+        print("\n--- Appendix sections ---")
+        for ap in appendix_sections:
+            print(f"  [{ap['sec_no']}] {ap['appendix_kind']} p{ap['page_start']}-{ap['page_end']} \"{ap['title'][:50]}\" body={len(ap['body'])} chars")
 
     print("\n--- First 5 sections ---")
     for s in sections[:5]:

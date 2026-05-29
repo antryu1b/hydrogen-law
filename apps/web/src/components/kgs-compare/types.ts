@@ -72,6 +72,11 @@ export interface TreeNode {
   title: string;
   level: number;
   is_umbrella: boolean;
+  is_appendix?: boolean;
+  appendix_kind?: string;
+  appendix_no?: string;
+  /** Marks the synthetic appendix group root (__appendix__) */
+  _appendix_group?: boolean;
   body_chars: number;
   children: TreeNode[];
 }
@@ -79,6 +84,7 @@ export interface TreeNode {
 export interface SectionsTreeResponse {
   code: string;
   total_sections: number;
+  total_appendix?: number;
   tree: TreeNode[];
 }
 
