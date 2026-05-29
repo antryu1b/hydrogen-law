@@ -12,6 +12,8 @@ interface RawSection {
   is_appendix?: boolean;
   appendix_kind?: string;
   appendix_no?: string;
+  /** Set by cleanup_orphans.py — table-row fragments mistakenly parsed as sections */
+  is_orphan_artifact?: boolean;
 }
 
 export interface TreeNode {
@@ -112,8 +114,11 @@ function buildTree(sections: RawSection[], appendix_sections: RawSection[]): Tre
     return true;
   });
 
+  // Skip orphan artifacts (body-text table fragments flagged by cleanup_orphans.py)
+  const cleaned = deduped.filter((s) => !s.is_orphan_artifact);
+
   // Build nodes with unique _key (still useful for React even when sec_nos are now unique)
-  const nodes: (TreeNode & { _parentSecNo: string | null })[] = deduped.map((s, i) => ({
+  const nodes: (TreeNode & { _parentSecNo: string | null })[] = cleaned.map((s, i) => ({
     _key: `${s.sec_no}__${i}`,
     sec_no: s.sec_no,
     title: s.title,

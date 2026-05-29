@@ -182,22 +182,12 @@ def _split_raw_clusters(math_words: list) -> list:
     return clusters
 
 
-def augment_sections(code: str, page_regions: dict) -> dict:
+def _augment_section_list(sections: list, page_regions: dict, slug_prefix: str = "") -> int:
     """
-    Load existing section JSON for code, add equation_regions to matching sections,
-    return updated data dict.
+    Add equation_regions to each section entry whose page range overlaps with
+    detected equation pages. Returns the count of sections augmented.
     """
-    json_path = SECTIONS_DIR / f"{code}.json"
-    if not json_path.exists():
-        print(f"  [WARN] sections file not found: {json_path}")
-        return {}
-
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    sections = data.get("sections", [])
     augmented = 0
-
     for section in sections:
         page_start = section.get("page_start")
         page_end = section.get("page_end")
@@ -209,11 +199,11 @@ def augment_sections(code: str, page_regions: dict) -> dict:
         for page_num, bboxes in sorted(page_regions.items()):
             if page_start <= page_num <= page_end:
                 for bbox in bboxes:
-                    sec_slug = section["sec_no"].replace(".", "_")
+                    sec_slug = section["sec_no"].replace(".", "_").replace(" ", "_")
                     eq_regions.append({
                         "page": page_num,
                         "bbox": bbox,
-                        "id": f"eq_{sec_slug}_{eq_id_counter}",
+                        "id": f"eq_{slug_prefix}{sec_slug}_{eq_id_counter}",
                     })
                     eq_id_counter += 1
 
@@ -224,7 +214,29 @@ def augment_sections(code: str, page_regions: dict) -> dict:
             # Remove any stale equation_regions from previous runs
             section.pop("equation_regions", None)
 
-    return data, augmented
+    return augmented
+
+
+def augment_sections(code: str, page_regions: dict) -> dict:
+    """
+    Load existing section JSON for code, add equation_regions to matching sections
+    AND appendix_sections, return updated data dict.
+    """
+    json_path = SECTIONS_DIR / f"{code}.json"
+    if not json_path.exists():
+        print(f"  [WARN] sections file not found: {json_path}")
+        return {}
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    sections = data.get("sections", [])
+    appendix_sections = data.get("appendix_sections", [])
+
+    augmented = _augment_section_list(sections, page_regions, slug_prefix="")
+    augmented_appendix = _augment_section_list(appendix_sections, page_regions, slug_prefix="app_")
+
+    return data, augmented, augmented_appendix
 
 
 def main():
@@ -255,13 +267,16 @@ def main():
         result = augment_sections(code, page_regions)
         if not result:
             continue
-        data, augmented = result
+        data, augmented, augmented_appendix = result
 
         sections = data.get("sections", [])
+        appendix_sections = data.get("appendix_sections", [])
         total_sections += len(sections)
         total_sections_with_eq += augmented
 
         print(f"  Augmented {augmented}/{len(sections)} sections with equation_regions")
+        if appendix_sections:
+            print(f"  Augmented {augmented_appendix}/{len(appendix_sections)} appendix_sections with equation_regions")
 
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
