@@ -39,4 +39,36 @@ export interface SectionBody {
   body_chars: number;
 }
 
+export interface SectionBlock {
+  sec_no: string;
+  title: string;
+  level: number;
+  body: string;
+  is_umbrella: boolean;
+  body_chars: number;
+}
+
+export interface RecursiveSectionBodyResponse {
+  code: string;
+  root: { sec_no: string; title: string; body: string; is_umbrella: boolean };
+  blocks: SectionBlock[];
+  total_blocks: number;
+  total_body_chars: number;
+}
+
+export interface TreeNode {
+  sec_no: string;
+  title: string;
+  level: number;
+  is_umbrella: boolean;
+  body_chars: number;
+  children: TreeNode[];
+}
+
+export interface SectionsTreeResponse {
+  code: string;
+  total_sections: number;
+  tree: TreeNode[];
+}
+
 export type ViewMode = 'A' | 'B' | 'C';

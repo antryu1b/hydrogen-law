@@ -1,41 +1,127 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader2, AlertTriangle } from 'lucide-react';
-import type { CanonicalFamily, CanonicalTocEntry, SectionBody } from './types';
+import type {
+  CanonicalFamily,
+  TreeNode,
+  SectionsTreeResponse,
+  SectionBlock,
+  RecursiveSectionBodyResponse,
+} from './types';
 import { CODE_TO_FAMILY } from '@/data/kgs-families-display';
 
 interface InlineBodyCompareProps {
   selectedCodes: string[];
 }
 
-function SectionBodyColumn({
-  code,
-  secNo,
-  tocEntry,
-}: {
+// --- Tree Node Item (compact for inline sidebar) ---
+
+interface TreeNodeItemProps {
+  node: TreeNode;
+  depth: number;
+  activeSecNo: string | null;
+  onSelect: (sec_no: string) => void;
+  defaultExpandDepth: number;
+}
+
+function TreeNodeItem({
+  node,
+  depth,
+  activeSecNo,
+  onSelect,
+  defaultExpandDepth,
+}: TreeNodeItemProps) {
+  const [expanded, setExpanded] = useState(depth < defaultExpandDepth);
+  const hasChildren = node.children.length > 0;
+  const isActive = activeSecNo === node.sec_no;
+
+  useEffect(() => {
+    if (activeSecNo && activeSecNo.startsWith(node.sec_no + '.')) {
+      setExpanded(true);
+    }
+  }, [activeSecNo, node.sec_no]);
+
+  return (
+    <div>
+      <button
+        className={[
+          'flex items-center gap-0.5 w-full text-left text-[11px] py-0.5 px-0.5 rounded transition-colors',
+          isActive
+            ? 'bg-[#0d9488]/10 text-[#0d9488] font-semibold'
+            : 'hover:bg-muted/50 text-foreground',
+        ].join(' ')}
+        style={{ paddingLeft: `${depth * 10 + 2}px` }}
+        onClick={() => onSelect(node.sec_no)}
+      >
+        {hasChildren ? (
+          <span
+            className="flex-shrink-0 w-3 h-3 flex items-center justify-center cursor-pointer hover:text-[#0d9488] text-muted-foreground text-[9px]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+          >
+            {expanded ? '▼' : '▶'}
+          </span>
+        ) : (
+          <span className="flex-shrink-0 w-3" />
+        )}
+        <span className="font-mono text-[#0d9488]/60 text-[9px] flex-shrink-0 mr-0.5">
+          {node.sec_no}
+        </span>
+        <span
+          className={[
+            'truncate flex-1 leading-tight',
+            node.is_umbrella ? 'text-muted-foreground italic' : '',
+          ].join(' ')}
+          title={node.title}
+        >
+          {node.title}
+        </span>
+      </button>
+      {expanded && hasChildren && (
+        <div>
+          {node.children.map((child) => (
+            <TreeNodeItem
+              key={child.sec_no}
+              node={child}
+              depth={depth + 1}
+              activeSecNo={activeSecNo}
+              onSelect={onSelect}
+              defaultExpandDepth={defaultExpandDepth}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- Recursive Body Column (compact) ---
+
+interface RecursiveBodyColumnProps {
   code: string;
   secNo: string;
-  tocEntry: CanonicalTocEntry;
-}) {
-  const [data, setData] = useState<SectionBody | null>(null);
+  isPresent: boolean;
+}
+
+function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProps) {
+  const [data, setData] = useState<RecursiveSectionBodyResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
-
-  const codeEntry = tocEntry.codes[code];
-  const isPresent = codeEntry?.present ?? false;
 
   const fetchBody = useCallback(async () => {
     if (!isPresent) return;
     setLoading(true);
     setNotFound(false);
+    setData(null);
     try {
       const res = await fetch(
-        `/api/kgs/section-body?code=${code}&sec_no=${encodeURIComponent(secNo)}`
+        `/api/kgs/section-body?code=${code}&sec_no=${encodeURIComponent(secNo)}&recursive=true`
       );
       if (res.status === 404) {
         setNotFound(true);
-        setData(null);
       } else if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -64,18 +150,39 @@ function SectionBodyColumn({
       </div>
     );
   }
-  if (notFound) {
+  if (notFound || !data) {
     return <p className="text-xs text-muted-foreground italic">데이터 없음</p>;
   }
-  if (data?.is_umbrella || (data && data.body_chars === 0)) {
-    return <p className="text-xs text-muted-foreground italic">(상위 헤더, 본문 없음)</p>;
+
+  const { blocks } = data;
+  if (blocks.length === 0) {
+    return <p className="text-xs text-muted-foreground italic">(섹션 없음)</p>;
   }
-  if (data) {
-    return (
-      <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed">{data.body}</pre>
-    );
-  }
-  return null;
+
+  return (
+    <div className="space-y-2">
+      {blocks.map((block: SectionBlock) => (
+        <section key={block.sec_no} className="border-l-2 border-muted pl-2">
+          <h4 className="text-[11px] font-semibold flex items-center gap-1.5 flex-wrap">
+            <span className="font-mono text-[10px] text-[#0d9488]">{block.sec_no}</span>
+            <span className={block.is_umbrella ? 'text-muted-foreground italic' : ''}>
+              {block.title}
+            </span>
+            {block.is_umbrella && (
+              <span className="text-[9px] text-muted-foreground italic">(상위 헤더)</span>
+            )}
+          </h4>
+          {block.body ? (
+            <pre className="text-[11px] whitespace-pre-wrap mt-0.5 text-foreground/80 font-sans leading-relaxed">
+              {block.body}
+            </pre>
+          ) : !block.is_umbrella ? (
+            <p className="text-[11px] text-muted-foreground italic mt-0.5">(본문 없음)</p>
+          ) : null}
+        </section>
+      ))}
+    </div>
+  );
 }
 
 /** Detect the dominant family among selected codes (most common family id). */
@@ -96,73 +203,79 @@ function detectDominantFamily(codes: string[]): string | null {
   return best;
 }
 
-/** Build relevant TOC entries from families data + selectedCodes. */
-function buildRelevantEntries(
-  families: CanonicalFamily[],
-  selectedCodes: string[],
-  dominantFamilyId: string | null
-): CanonicalTocEntry[] {
-  if (!families.length) return [];
-
-  let tocEntries: CanonicalTocEntry[];
-  if (dominantFamilyId) {
-    const fam = families.find((f) => f.id === dominantFamilyId);
-    tocEntries = fam?.canonical_toc ?? [];
-  } else {
-    const merged = new Map<string, CanonicalTocEntry>();
-    for (const fam of families) {
-      for (const entry of fam.canonical_toc) {
-        if (!merged.has(entry.sec_no)) merged.set(entry.sec_no, entry);
-      }
-    }
-    tocEntries = Array.from(merged.values());
-  }
-
-  return tocEntries.filter((entry) =>
-    selectedCodes.some((code) => entry.codes[code]?.present)
-  );
-}
+// --- Main InlineBodyCompare Component ---
 
 export function InlineBodyCompare({ selectedCodes }: InlineBodyCompareProps) {
-  const [families, setFamilies] = useState<CanonicalFamily[]>([]);
-  const [tocLoading, setTocLoading] = useState(false);
   const [activeSecNo, setActiveSecNo] = useState<string | null>(null);
-  // Track the codes key to detect changes for reset
+  const [treeData, setTreeData] = useState<TreeNode[] | null>(null);
+  const [treeLoading, setTreeLoading] = useState(false);
+  const prevCodesKey = useRef<string>('');
   const codesKey = selectedCodes.join(',');
 
-  // Fetch canonical TOC on mount (once — families are static)
+  // Fetch tree for primary code whenever selectedCodes changes
   useEffect(() => {
-    if (families.length > 0) return; // already fetched
-    setTocLoading(true);
+    if (selectedCodes.length === 0) {
+      setTreeData(null);
+      setActiveSecNo(null);
+      return;
+    }
+    if (codesKey === prevCodesKey.current) return;
+    prevCodesKey.current = codesKey;
+
+    const primaryCode = selectedCodes[0];
+    setTreeLoading(true);
+    setTreeData(null);
+    setActiveSecNo(null);
+
+    fetch(`/api/kgs/sections-tree?code=${primaryCode}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data: SectionsTreeResponse) => {
+        setTreeData(data.tree);
+      })
+      .catch(() => {
+        setTreeData([]);
+      })
+      .finally(() => setTreeLoading(false));
+  }, [codesKey, selectedCodes]);
+
+  // Auto-select first L2 node once tree loads
+  useEffect(() => {
+    if (!treeData || treeData.length === 0 || activeSecNo) return;
+    let firstL2: TreeNode | null = null;
+    for (const root of treeData) {
+      if (root.children.length > 0) {
+        firstL2 = root.children[0];
+        break;
+      }
+      if (root.level === 2) {
+        firstL2 = root;
+        break;
+      }
+    }
+    if (firstL2) {
+      setActiveSecNo(firstL2.sec_no);
+    } else if (treeData.length > 0) {
+      setActiveSecNo(treeData[0].sec_no);
+    }
+  }, [treeData, activeSecNo]);
+
+  // For families-based cross-family warning (keep existing logic)
+  const [families, setFamilies] = useState<CanonicalFamily[]>([]);
+  useEffect(() => {
+    if (families.length > 0) return;
     fetch('/api/kgs/canonical-toc')
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((data) => setFamilies(data.families ?? []))
-      .catch(() => {})
-      .finally(() => setTocLoading(false));
+      .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset sec_no when selected codes change
-  useEffect(() => {
-    setActiveSecNo(null);
-  }, [codesKey]);
-
-  // Derive computed values (no hooks below here for hook-ordering safety)
   const dominantFamilyId = detectDominantFamily(selectedCodes);
   const crossFamily =
     new Set(selectedCodes.map((c) => CODE_TO_FAMILY[c]).filter(Boolean)).size > 1;
-  const relevantEntries = buildRelevantEntries(families, selectedCodes, dominantFamilyId);
 
-  // Auto-select first L2 entry (or first entry) once entries are ready
-  useEffect(() => {
-    if (relevantEntries.length === 0 || activeSecNo) return;
-    const firstL2 = relevantEntries.find((e) => e.level === 2);
-    setActiveSecNo((firstL2 ?? relevantEntries[0]).sec_no);
-  }, [relevantEntries.length, activeSecNo]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Early return AFTER all hooks
   if (selectedCodes.length === 0) return null;
 
-  const activeEntry = relevantEntries.find((e) => e.sec_no === activeSecNo) ?? null;
+  const primaryCode = selectedCodes[0];
 
   return (
     <div className="border rounded-lg overflow-hidden text-sm">
@@ -179,107 +292,83 @@ export function InlineBodyCompare({ selectedCodes }: InlineBodyCompareProps) {
             다른 family — 본문 의미 다를 수 있음
           </span>
         )}
-        {tocLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground ml-auto" />}
+        <span className="text-xs text-muted-foreground ml-auto">
+          목차: {primaryCode}
+        </span>
+        {treeLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
       </div>
 
-      {relevantEntries.length === 0 && !tocLoading ? (
-        <p className="text-xs text-muted-foreground text-center py-6">
-          본문 데이터를 불러올 수 없습니다.
-        </p>
-      ) : (
-        <div className="flex" style={{ minHeight: '280px', maxHeight: '480px' }}>
-          {/* Left: sec_no list (1/3) */}
-          <aside className="w-1/3 border-r overflow-y-auto bg-muted/10 flex-shrink-0">
-            <nav className="p-1">
-              {relevantEntries.map((entry) => {
-                const presentCount = selectedCodes.filter((c) => entry.codes[c]?.present).length;
-                return (
-                  <button
-                    key={entry.sec_no}
-                    onClick={() => setActiveSecNo(entry.sec_no)}
-                    className={[
-                      'text-left w-full px-2 py-1 rounded text-xs transition-colors flex items-start gap-1',
-                      activeSecNo === entry.sec_no
-                        ? 'bg-[#0d9488]/10 text-[#0d9488]'
-                        : 'hover:bg-muted text-foreground',
-                      entry.level === 1 ? 'font-semibold' : '',
-                      entry.level >= 3 ? 'pl-4' : entry.level === 2 ? 'pl-2.5' : '',
-                    ].join(' ')}
-                  >
-                    <span className="font-mono text-[10px] text-primary/60 flex-shrink-0 mt-0.5 w-7">
-                      {entry.sec_no}
-                    </span>
-                    <span className="flex-1 min-w-0">
-                      <span className="line-clamp-2 leading-tight">{entry.title}</span>
-                      {presentCount < selectedCodes.length && (
-                        <span className="text-[9px] text-amber-600 dark:text-amber-400 block">
-                          {presentCount}/{selectedCodes.length}
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
-          </aside>
+      <div className="flex" style={{ minHeight: '280px', maxHeight: '480px' }}>
+        {/* Left: tree sidebar (1/3) */}
+        <aside className="w-1/3 border-r overflow-y-auto bg-muted/10 flex-shrink-0">
+          <nav className="p-1">
+            {treeData && treeData.length > 0 ? (
+              treeData.map((root) => (
+                <TreeNodeItem
+                  key={root.sec_no}
+                  node={root}
+                  depth={0}
+                  activeSecNo={activeSecNo}
+                  onSelect={setActiveSecNo}
+                  defaultExpandDepth={2}
+                />
+              ))
+            ) : !treeLoading ? (
+              <p className="text-xs text-muted-foreground p-3">목차 없음</p>
+            ) : null}
+          </nav>
+        </aside>
 
-          {/* Right: body columns (2/3) */}
-          <div className="flex-1 overflow-auto">
-            {activeEntry ? (
-              <div className="h-full flex flex-col">
-                {/* Section header */}
-                <div className="border-b px-3 py-2 bg-background sticky top-0 z-10">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="font-mono text-[#0d9488] font-bold text-xs">
-                      {activeEntry.sec_no}
-                    </span>
-                    <span className="font-semibold text-xs">{activeEntry.title}</span>
-                  </div>
-                </div>
-
-                {/* Code columns */}
-                <div
-                  className="flex-1 grid divide-x overflow-auto"
-                  style={{
-                    gridTemplateColumns: `repeat(${selectedCodes.length}, minmax(0, 1fr))`,
-                  }}
-                >
-                  {selectedCodes.map((code) => {
-                    const familyId = CODE_TO_FAMILY[code];
-                    const codeEntry = activeEntry.codes[code];
-                    return (
-                      <article key={code} className="p-3 flex flex-col gap-1.5">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h3 className="font-mono font-bold text-[#0d9488] text-xs">{code}</h3>
-                          {familyId && (
-                            <span className="text-[9px] bg-[#0d9488]/10 text-[#0d9488] px-1 py-0.5 rounded-full">
-                              {familyId}
-                            </span>
-                          )}
-                        </div>
-                        {codeEntry && codeEntry.matched_title !== activeEntry.title && (
-                          <p className="text-[10px] text-muted-foreground">
-                            이 코드 제목: {codeEntry.matched_title}
-                          </p>
-                        )}
-                        <SectionBodyColumn
-                          code={code}
-                          secNo={activeEntry.sec_no}
-                          tocEntry={activeEntry}
-                        />
-                      </article>
-                    );
-                  })}
+        {/* Right: body columns (2/3) */}
+        <div className="flex-1 overflow-auto">
+          {activeSecNo ? (
+            <div className="h-full flex flex-col">
+              {/* Section header */}
+              <div className="border-b px-3 py-2 bg-background sticky top-0 z-10">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-mono text-[#0d9488] font-bold text-xs">
+                    {activeSecNo}
+                  </span>
+                  <span className="text-xs text-muted-foreground">({selectedCodes.length}개 코드)</span>
                 </div>
               </div>
-            ) : (
-              <p className="text-xs text-muted-foreground text-center py-8">
-                좌측에서 섹션을 선택하세요.
-              </p>
-            )}
-          </div>
+
+              {/* Code columns */}
+              <div
+                className="flex-1 grid divide-x overflow-auto"
+                style={{
+                  gridTemplateColumns: `repeat(${selectedCodes.length}, minmax(0, 1fr))`,
+                }}
+              >
+                {selectedCodes.map((code) => {
+                  const familyId = CODE_TO_FAMILY[code];
+                  return (
+                    <article key={code} className="p-3 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="font-mono font-bold text-[#0d9488] text-xs">{code}</h3>
+                        {familyId && (
+                          <span className="text-[9px] bg-[#0d9488]/10 text-[#0d9488] px-1 py-0.5 rounded-full">
+                            {familyId}
+                          </span>
+                        )}
+                      </div>
+                      <RecursiveBodyColumn
+                        code={code}
+                        secNo={activeSecNo}
+                        isPresent={true}
+                      />
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground text-center py-8">
+              좌측에서 섹션을 선택하세요.
+            </p>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -1,41 +1,132 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
-import type { CanonicalFamily, CanonicalTocEntry, SectionBody } from './types';
+import type {
+  CanonicalFamily,
+  TreeNode,
+  SectionsTreeResponse,
+  SectionBlock,
+  RecursiveSectionBodyResponse,
+} from './types';
 import { CODE_TO_FAMILY } from '@/data/kgs-families-display';
 
 interface ViewAProps {
   selectedCodes: string[];
   families: CanonicalFamily[];
-  activeFamilyId: string | null; // null = '전체'
+  activeFamilyId: string | null;
 }
 
-function SectionBodyColumn({
-  code,
-  secNo,
-  tocEntry,
-}: {
+// --- Tree Node Component ---
+
+interface TreeNodeItemProps {
+  node: TreeNode;
+  depth: number;
+  activeSecNo: string | null;
+  onSelect: (sec_no: string) => void;
+  defaultExpandDepth: number;
+}
+
+function TreeNodeItem({
+  node,
+  depth,
+  activeSecNo,
+  onSelect,
+  defaultExpandDepth,
+}: TreeNodeItemProps) {
+  const [expanded, setExpanded] = useState(depth < defaultExpandDepth);
+  const hasChildren = node.children.length > 0;
+  const isActive = activeSecNo === node.sec_no;
+
+  // When a descendant becomes active, ensure this node is expanded
+  useEffect(() => {
+    if (activeSecNo && activeSecNo.startsWith(node.sec_no + '.')) {
+      setExpanded(true);
+    }
+  }, [activeSecNo, node.sec_no]);
+
+  return (
+    <div>
+      <button
+        className={[
+          'flex items-center gap-1 w-full text-left text-xs py-1 px-1 rounded transition-colors',
+          isActive ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-muted/50 text-foreground',
+        ].join(' ')}
+        style={{ paddingLeft: `${depth * 12 + 4}px` }}
+        onClick={() => onSelect(node.sec_no)}
+      >
+        {hasChildren ? (
+          <span
+            className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center cursor-pointer hover:text-primary text-muted-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+          >
+            {expanded ? '▼' : '▶'}
+          </span>
+        ) : (
+          <span className="flex-shrink-0 w-3.5" />
+        )}
+        <span className="font-mono text-primary/70 text-[10px] flex-shrink-0 mr-0.5">
+          {node.sec_no}
+        </span>
+        <span
+          className={[
+            'truncate flex-1',
+            node.is_umbrella ? 'text-muted-foreground italic' : '',
+          ].join(' ')}
+          title={node.title}
+        >
+          {node.title}
+        </span>
+        {node.is_umbrella && (
+          <span className="flex-shrink-0 text-[9px] text-muted-foreground ml-1">↳</span>
+        )}
+      </button>
+      {expanded && hasChildren && (
+        <div>
+          {node.children.map((child) => (
+            <TreeNodeItem
+              key={child.sec_no}
+              node={child}
+              depth={depth + 1}
+              activeSecNo={activeSecNo}
+              onSelect={onSelect}
+              defaultExpandDepth={defaultExpandDepth}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- Recursive Body Column (per code) ---
+
+interface RecursiveBodyColumnProps {
   code: string;
   secNo: string;
-  tocEntry: CanonicalTocEntry;
-}) {
-  const [data, setData] = useState<SectionBody | null>(null);
+  /** True if this sec_no is known to exist in the code's tree */
+  isPresent: boolean;
+}
+
+function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProps) {
+  const [data, setData] = useState<RecursiveSectionBodyResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
-
-  const codeEntry = tocEntry.codes[code];
-  const isPresent = codeEntry?.present ?? false;
 
   const fetchBody = useCallback(async () => {
     if (!isPresent) return;
     setLoading(true);
     setNotFound(false);
+    setData(null);
     try {
-      const res = await fetch(`/api/kgs/section-body?code=${code}&sec_no=${encodeURIComponent(secNo)}`);
+      const res = await fetch(
+        `/api/kgs/section-body?code=${code}&sec_no=${encodeURIComponent(secNo)}&recursive=true`
+      );
       if (res.status === 404) {
         setNotFound(true);
-        setData(null);
       } else if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -54,9 +145,7 @@ function SectionBodyColumn({
   }, [fetchBody]);
 
   if (!isPresent) {
-    return (
-      <p className="text-sm text-muted-foreground italic">이 코드엔 해당 섹션 없음</p>
-    );
+    return <p className="text-sm text-muted-foreground italic">이 코드엔 해당 섹션 없음</p>;
   }
   if (loading) {
     return (
@@ -66,54 +155,117 @@ function SectionBodyColumn({
       </div>
     );
   }
-  if (notFound) {
+  if (notFound || !data) {
     return <p className="text-sm text-muted-foreground italic">섹션 데이터 없음</p>;
   }
-  if (data?.is_umbrella || (data && data.body_chars === 0)) {
-    return <p className="text-sm text-muted-foreground italic">(상위 헤더, 본문 없음)</p>;
+
+  const { blocks } = data;
+
+  if (blocks.length === 0) {
+    return <p className="text-sm text-muted-foreground italic">(섹션 없음)</p>;
   }
-  if (data) {
-    return (
-      <pre className="text-sm whitespace-pre-wrap font-sans leading-relaxed">{data.body}</pre>
-    );
-  }
-  return null;
+
+  return (
+    <div className="space-y-3">
+      {blocks.map((block: SectionBlock) => (
+        <section key={block.sec_no} className="border-l-2 border-muted pl-3">
+          <h4 className="text-sm font-semibold flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-xs text-primary">{block.sec_no}</span>
+            <span className={block.is_umbrella ? 'text-muted-foreground italic' : ''}>
+              {block.title}
+            </span>
+            {block.is_umbrella && (
+              <span className="text-[10px] text-muted-foreground italic">(상위 헤더)</span>
+            )}
+          </h4>
+          {block.body ? (
+            <pre className="text-xs whitespace-pre-wrap mt-1 text-foreground/80 font-sans leading-relaxed">
+              {block.body}
+            </pre>
+          ) : !block.is_umbrella ? (
+            <p className="text-xs text-muted-foreground italic mt-1">(본문 없음)</p>
+          ) : null}
+        </section>
+      ))}
+    </div>
+  );
 }
+
+// --- Main ViewA Component ---
 
 export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
   const [activeSecNo, setActiveSecNo] = useState<string | null>(null);
+  const [treeData, setTreeData] = useState<TreeNode[] | null>(null);
+  const [treeLoading, setTreeLoading] = useState(false);
+  const prevCodesKey = useRef<string>('');
+  const codesKey = selectedCodes.join(',');
 
-  // Build the TOC entries to show in sidebar based on selected family
-  const tocEntries = (() => {
-    if (activeFamilyId) {
-      const family = families.find((f) => f.id === activeFamilyId);
-      return family?.canonical_toc ?? [];
+  // Fetch tree for the first selected code whenever selectedCodes changes
+  useEffect(() => {
+    if (selectedCodes.length === 0) {
+      setTreeData(null);
+      setActiveSecNo(null);
+      return;
     }
-    // '전체': merge all families. Use a Map keyed by sec_no to deduplicate.
-    const merged = new Map<string, CanonicalTocEntry>();
-    for (const family of families) {
-      for (const entry of family.canonical_toc) {
-        if (!merged.has(entry.sec_no)) {
-          merged.set(entry.sec_no, entry);
-        }
+    if (codesKey === prevCodesKey.current) return;
+    prevCodesKey.current = codesKey;
+
+    const primaryCode = selectedCodes[0];
+    setTreeLoading(true);
+    setTreeData(null);
+    setActiveSecNo(null);
+
+    fetch(`/api/kgs/sections-tree?code=${primaryCode}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data: SectionsTreeResponse) => {
+        setTreeData(data.tree);
+      })
+      .catch(() => {
+        setTreeData([]);
+      })
+      .finally(() => setTreeLoading(false));
+  }, [codesKey, selectedCodes]);
+
+  // Auto-select first L2 node when tree loads
+  useEffect(() => {
+    if (!treeData || treeData.length === 0 || activeSecNo) return;
+    // Find first L2 node (child of a root node)
+    let firstL2: TreeNode | null = null;
+    for (const root of treeData) {
+      if (root.children.length > 0) {
+        firstL2 = root.children[0];
+        break;
+      }
+      if (root.level === 2) {
+        firstL2 = root;
+        break;
       }
     }
-    return Array.from(merged.values());
-  })();
-
-  // Filter only entries relevant to selected codes
-  const relevantEntries = tocEntries.filter((entry) =>
-    selectedCodes.some((code) => entry.codes[code]?.present)
-  );
-
-  // Auto-select first entry if nothing selected
-  useEffect(() => {
-    if (relevantEntries.length > 0 && !activeSecNo) {
-      setActiveSecNo(relevantEntries[0].sec_no);
+    if (firstL2) {
+      setActiveSecNo(firstL2.sec_no);
+    } else if (treeData.length > 0) {
+      setActiveSecNo(treeData[0].sec_no);
     }
-  }, [relevantEntries, activeSecNo]);
+  }, [treeData, activeSecNo]);
 
-  const activeEntry = relevantEntries.find((e) => e.sec_no === activeSecNo) ?? null;
+  // Determine if a given sec_no is "present" in a code.
+  // We use the tree as the source of truth for the primary code.
+  // For other codes, we fall back to always attempting a fetch (the API returns 404 if absent).
+  const primaryCode = selectedCodes[0];
+
+  // Build a flat set of sec_nos from the tree for the primary code
+  const primarySecNos = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!treeData) return;
+    const collect = (nodes: TreeNode[]) => {
+      for (const n of nodes) {
+        primarySecNos.current.add(n.sec_no);
+        if (n.children.length > 0) collect(n.children);
+      }
+    };
+    primarySecNos.current = new Set();
+    collect(treeData ?? []);
+  }, [treeData]);
 
   if (selectedCodes.length === 0) {
     return (
@@ -125,64 +277,42 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
 
   return (
     <div className="flex gap-0 border rounded-lg overflow-hidden" style={{ minHeight: '600px' }}>
-      {/* Sidebar TOC */}
+      {/* Sidebar TOC — full tree from primary code */}
       <aside className="w-64 border-r flex-shrink-0 overflow-y-auto bg-muted/20">
-        <div className="p-2 text-xs font-semibold text-muted-foreground border-b px-3 py-2">
-          목차 ({relevantEntries.length}개 섹션)
+        <div className="p-2 text-xs font-semibold text-muted-foreground border-b px-3 py-2 flex items-center gap-2">
+          <span>목차 ({primaryCode})</span>
+          {treeLoading && <Loader2 className="w-3 h-3 animate-spin ml-auto" />}
         </div>
         <nav className="p-1">
-          {relevantEntries.map((entry) => {
-            const presentCount = selectedCodes.filter((c) => entry.codes[c]?.present).length;
-            return (
-              <button
-                key={entry.sec_no}
-                onClick={() => setActiveSecNo(entry.sec_no)}
-                className={[
-                  'text-left w-full px-2 py-1.5 rounded text-sm transition-colors flex items-start gap-1.5',
-                  activeSecNo === entry.sec_no
-                    ? 'bg-primary/10 text-primary'
-                    : 'hover:bg-muted text-foreground',
-                  entry.level === 1 ? 'font-semibold' : '',
-                  entry.level >= 3 ? 'pl-5' : entry.level === 2 ? 'pl-3' : '',
-                ].join(' ')}
-              >
-                <span className="font-mono text-xs text-primary/70 flex-shrink-0 mt-0.5 w-8">
-                  {entry.sec_no}
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className="line-clamp-2">{entry.title}</span>
-                  {presentCount < selectedCodes.length && (
-                    <span className="text-[10px] text-amber-600 dark:text-amber-400 block">
-                      {presentCount}/{selectedCodes.length} 코드
-                    </span>
-                  )}
-                </span>
-              </button>
-            );
-          })}
+          {treeData && treeData.length > 0 ? (
+            treeData.map((root) => (
+              <TreeNodeItem
+                key={root.sec_no}
+                node={root}
+                depth={0}
+                activeSecNo={activeSecNo}
+                onSelect={setActiveSecNo}
+                defaultExpandDepth={2}
+              />
+            ))
+          ) : !treeLoading ? (
+            <p className="text-xs text-muted-foreground p-3">목차 없음</p>
+          ) : null}
         </nav>
       </aside>
 
       {/* Body columns */}
       <div className="flex-1 overflow-auto">
-        {activeEntry ? (
+        {activeSecNo ? (
           <div className="h-full flex flex-col">
             {/* Section header */}
             <div className="border-b px-4 py-3 bg-background sticky top-0 z-10">
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-primary font-bold">{activeEntry.sec_no}</span>
-                <span className="font-semibold">{activeEntry.title}</span>
+                <span className="font-mono text-primary font-bold">{activeSecNo}</span>
+                <span className="text-xs text-muted-foreground">
+                  ({selectedCodes.length}개 코드 비교)
+                </span>
               </div>
-              {activeEntry.title_per_family && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  패밀리마다 제목이 다릅니다:
-                  {Object.entries(activeEntry.title_per_family).map(([fam, title]) => (
-                    <span key={fam} className="ml-2">
-                      <span className="font-semibold">{fam}:</span> {title}
-                    </span>
-                  ))}
-                </p>
-              )}
             </div>
 
             {/* Code columns */}
@@ -193,11 +323,14 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
               }}
             >
               {selectedCodes.map((code) => {
-                const codeEntry = activeEntry.codes[code];
                 const familyId = CODE_TO_FAMILY[code];
+                const isPresent =
+                  code === primaryCode
+                    ? primarySecNos.current.has(activeSecNo)
+                    : true; // other codes: optimistic, API returns 404 if absent
                 return (
-                  <article key={code} className="p-4 flex flex-col gap-2">
-                    <div className="flex items-center gap-2 flex-wrap">
+                  <article key={code} className="p-4 flex flex-col gap-2 overflow-y-auto max-h-[600px]">
+                    <div className="flex items-center gap-2 flex-wrap sticky top-0 bg-background pb-2 border-b mb-1">
                       <h3 className="font-mono font-bold text-primary">{code}</h3>
                       {familyId && (
                         <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
@@ -205,15 +338,10 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
                         </span>
                       )}
                     </div>
-                    {codeEntry && codeEntry.matched_title !== activeEntry.title && (
-                      <p className="text-xs text-muted-foreground">
-                        이 코드의 제목: {codeEntry.matched_title}
-                      </p>
-                    )}
-                    <SectionBodyColumn
+                    <RecursiveBodyColumn
                       code={code}
-                      secNo={activeEntry.sec_no}
-                      tocEntry={activeEntry}
+                      secNo={activeSecNo}
+                      isPresent={isPresent}
                     />
                   </article>
                 );
