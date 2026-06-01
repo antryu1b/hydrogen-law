@@ -1,35 +1,21 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FileText, ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
+import { FileText, ChevronLeft, ChevronRight, X, Maximize2, ScanSearch } from 'lucide-react';
 import type { EquationRegion } from './types';
 
 // ---------------------------------------------------------------------------
-// Inline equation / table image strip
+// Inline equation / table region renderer
 //
-// Scanned KGS formulas & tables are rendered server-side at 150 DPI, so a
-// native crop can be anywhere from ~60px (a single symbol) to ~870px wide and
-// ~1380px tall (a full-page table or stacked block).
-//
-// Sizing rule (cap HEIGHT, not WIDTH):
-//   Appendix formulas are typically short-and-wide single lines (e.g. a
-//   ~560×210 CHSS block, or a 460×22 table row at aspect ratio ~10). A hard
-//   WIDTH cap (the old 420px) shrank these to illegible thin strips — a wide
-//   line forced to 420px became a few-pixel-tall bar. The width was never the
-//   problem; tall full-page scans dominating the column were. So we let crops
-//   take the full container width (max-w-full) and instead bound HEIGHT.
-//   - Wide single-line formulas now render at the column width → readable.
-//   - A crop wider than the column horizontally scrolls (overflow-x-auto)
-//     instead of being squished.
-//   - Tall multi-line / full-page scans stay bounded by the height cap, and
-//     click-to-zoom still reveals full detail.
+// Each scanned KGS formula/table region is precomputed offline with free
+// Tesseract OCR (scripts/ocr-kgs.mjs → data/kgs_ocr.json). At render time:
+//   - ocr_good === true  → show the recognized text (readable, selectable),
+//     with the original scan one click away as the authoritative source.
+//   - ocr_good !== true  → never show garbled OCR. Show a "원본 PDF에서 확인"
+//     note that opens the source scan.
+// This is a legal site, so wrong OCR is dangerous — low confidence always
+// falls back to the authoritative source.
 // ---------------------------------------------------------------------------
-
-/**
- * Inline figure height cap — tall scans stay bounded so they don't dominate the
- * body column, while width is free (max-w-full) so wide formulas read clearly.
- */
-const INLINE_MAX_HEIGHT = 300; // px — tall stacked equations / full-page scans stay compact
 
 interface EquationImagesProps {
   code: string;
@@ -47,36 +33,30 @@ export function EquationImages({ code, equationRegions }: EquationImagesProps) {
         const bboxStr = eq.bbox.join(',');
         const src = `/api/kgs/eq-image?code=${code}&page=${eq.page}&bbox=${bboxStr}`;
         const label = `수식/표 영역 ${eq.id} (p.${eq.page})`;
+
+        // OCR passed the confidence + text-quality gate → render as readable
+        // text. The cropped scan stays one click away as the authoritative
+        // source. Legal site: only GOOD OCR is shown as text.
+        if (eq.ocr_good && eq.ocr_text) {
+          return (
+            <OcrTextBlock
+              key={eq.id}
+              text={eq.ocr_text}
+              label={label}
+              onViewSource={() => setZoom({ src, label })}
+            />
+          );
+        }
+
+        // OCR poor / absent → never show garbled text. Point to the source PDF
+        // scan (authoritative) via the existing crop zoom modal.
         return (
-          <figure key={eq.id} className="m-0">
-            {/* Horizontal-scroll wrapper: wide tables scroll instead of overflowing/clipping */}
-            <div className="overflow-x-auto max-w-full">
-              <button
-                type="button"
-                onClick={() => setZoom({ src, label })}
-                title="클릭하여 확대"
-                aria-label={`${label} — 클릭하여 확대`}
-                className="group relative inline-block rounded border border-muted/50 bg-white dark:bg-white/5 p-0.5 cursor-zoom-in transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--brass))]"
-              >
-                <img
-                  src={src}
-                  alt={label}
-                  loading="lazy"
-                  className="block object-contain max-w-full"
-                  style={{
-                    maxHeight: `${INLINE_MAX_HEIGHT}px`,
-                    width: 'auto',
-                    height: 'auto',
-                    imageRendering: 'crisp-edges',
-                  }}
-                />
-                {/* Zoom affordance — appears on hover/focus */}
-                <span className="absolute top-1 right-1 flex items-center justify-center w-5 h-5 rounded bg-[hsl(var(--primary))]/80 text-[hsl(var(--primary-foreground))] opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">
-                  <Maximize2 className="w-3 h-3" />
-                </span>
-              </button>
-            </div>
-          </figure>
+          <OcrFallback
+            key={eq.id}
+            page={eq.page}
+            label={label}
+            onViewSource={() => setZoom({ src, label })}
+          />
         );
       })}
 
@@ -88,6 +68,83 @@ export function EquationImages({ code, equationRegions }: EquationImagesProps) {
         />
       )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// OCR text block — shown when OCR confidence passed the gate.
+// Monospace + preserved line breaks so tables and formula legends keep their
+// alignment. The original scan is one click away as the source of truth.
+// ---------------------------------------------------------------------------
+
+interface OcrTextBlockProps {
+  text: string;
+  label: string;
+  onViewSource: () => void;
+}
+
+function OcrTextBlock({ text, label, onViewSource }: OcrTextBlockProps) {
+  return (
+    <figure className="m-0">
+      <div className="rounded border border-[hsl(var(--brass))]/35 bg-[hsl(var(--parchment,var(--card)))] dark:bg-white/5">
+        <pre
+          className="m-0 px-3 py-2 text-[13px] leading-relaxed text-[hsl(var(--foreground))] whitespace-pre-wrap break-words overflow-x-auto"
+          style={{ fontFamily: "'Pretendard', ui-monospace, 'SF Mono', monospace" }}
+        >
+          {text}
+        </pre>
+        <div className="flex items-center justify-between gap-2 px-3 py-1 border-t border-[hsl(var(--brass))]/20">
+          <span className="text-[10px] text-muted-foreground">
+            자동 인식 텍스트 · 원본 스캔이 기준입니다
+          </span>
+          <button
+            type="button"
+            onClick={onViewSource}
+            title="원본 스캔 보기"
+            aria-label={`${label} — 원본 스캔 보기`}
+            className="inline-flex items-center gap-1 text-[10px] text-[hsl(var(--brass))] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--brass))] rounded"
+          >
+            <ScanSearch className="w-3 h-3" />
+            원본 확인
+          </button>
+        </div>
+      </div>
+    </figure>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// OCR fallback — shown when OCR did NOT pass the gate. Never renders garbled
+// text. Directs the reader to the authoritative source scan.
+// ---------------------------------------------------------------------------
+
+interface OcrFallbackProps {
+  page: number;
+  label: string;
+  onViewSource: () => void;
+}
+
+function OcrFallback({ page, label, onViewSource }: OcrFallbackProps) {
+  return (
+    <figure className="m-0">
+      <button
+        type="button"
+        onClick={onViewSource}
+        title="원본 스캔 보기"
+        aria-label={`${label} — 원본 스캔에서 확인`}
+        className="group flex w-full items-center gap-2 rounded border border-dashed border-[hsl(var(--brass))]/40 bg-[hsl(var(--brass))]/[0.04] px-3 py-2 text-left transition-colors hover:bg-[hsl(var(--brass))]/[0.08] focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--brass))]"
+      >
+        <FileText className="w-4 h-4 flex-shrink-0 text-[hsl(var(--brass))]" />
+        <span className="flex-1 text-xs text-[hsl(var(--foreground))]/80">
+          📄 이 부분(수식/표)은 원본 PDF에서 확인하세요{' '}
+          <span className="text-muted-foreground">(p.{page})</span>
+        </span>
+        <span className="inline-flex items-center gap-1 text-[10px] text-[hsl(var(--brass))] group-hover:underline">
+          <Maximize2 className="w-3 h-3" />
+          원본 보기
+        </span>
+      </button>
+    </figure>
   );
 }
 

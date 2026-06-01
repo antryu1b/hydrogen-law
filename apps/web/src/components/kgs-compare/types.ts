@@ -43,6 +43,15 @@ export interface EquationRegion {
   page: number;
   bbox: [number, number, number, number];
   id: string;
+  /** Precomputed Tesseract OCR text (only present when ocr_good). */
+  ocr_text?: string;
+  /** Mean per-word Tesseract confidence (0–100). */
+  ocr_confidence?: number;
+  /**
+   * True when OCR passed the confidence + text-quality gate. When false the UI
+   * shows a "원본 PDF에서 확인" note instead of garbled text (legal site).
+   */
+  ocr_good?: boolean;
 }
 
 export interface SectionBlock {

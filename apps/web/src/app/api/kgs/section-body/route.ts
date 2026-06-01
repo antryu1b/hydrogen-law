@@ -6,6 +6,15 @@ export interface EquationRegion {
   page: number;
   bbox: [number, number, number, number];
   id: string;
+  /** Precomputed Tesseract OCR text (only meaningful when ocr_good). */
+  ocr_text?: string;
+  /** Mean per-word Tesseract confidence (0–100). */
+  ocr_confidence?: number;
+  /**
+   * Whether the OCR passed the confidence + text-quality gate. When false the
+   * UI must fall back to the source PDF (legal site — never show garbled OCR).
+   */
+  ocr_good?: boolean;
 }
 
 interface RawSection {
@@ -77,6 +86,51 @@ async function getSections(code: string): Promise<{ sections: RawSection[]; appe
   return result;
 }
 
+// --- OCR sidecar ------------------------------------------------------------
+// Precomputed by scripts/ocr-kgs.mjs into data/kgs_ocr.json:
+//   { [code]: { [regionId]: { ocr_text, ocr_confidence, ocr_good } }, _meta }
+// Loaded once and cached. NO OCR happens at request time.
+interface OcrEntry {
+  ocr_text: string;
+  ocr_confidence: number;
+  ocr_good: boolean;
+}
+let ocrIndexCache: Record<string, Record<string, OcrEntry>> | null = null;
+
+async function getOcrIndex(): Promise<Record<string, Record<string, OcrEntry>>> {
+  if (ocrIndexCache) return ocrIndexCache;
+  try {
+    const raw = await fs.readFile(
+      path.join(process.cwd(), 'data', 'kgs_ocr.json'),
+      'utf-8'
+    );
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    delete parsed._meta;
+    ocrIndexCache = parsed as Record<string, Record<string, OcrEntry>>;
+  } catch {
+    ocrIndexCache = {};
+  }
+  return ocrIndexCache;
+}
+
+/** Attach precomputed OCR fields to a region (in place) if available. */
+function enrichRegions(
+  regions: EquationRegion[] | undefined,
+  codeOcr: Record<string, OcrEntry> | undefined
+): EquationRegion[] | undefined {
+  if (!regions || !codeOcr) return regions;
+  return regions.map((r) => {
+    const o = codeOcr[r.id];
+    if (!o) return r;
+    return {
+      ...r,
+      ocr_text: o.ocr_good ? o.ocr_text : undefined,
+      ocr_confidence: o.ocr_confidence,
+      ocr_good: o.ocr_good,
+    };
+  });
+}
+
 /** Compare two sec_no strings numerically segment by segment. */
 function compareSecNo(a: string, b: string): number {
   const aParts = a.split('.');
@@ -117,6 +171,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { sections, appendix_sections } = await getSections(code);
+    const codeOcr = (await getOcrIndex())[code];
 
     // Search in both sections and appendix_sections
     const allSections = [...sections, ...appendix_sections];
@@ -157,7 +212,7 @@ export async function GET(request: NextRequest) {
         body_chars: body.length,
       };
       if (section.equation_regions && section.equation_regions.length > 0) {
-        block.equation_regions = section.equation_regions;
+        block.equation_regions = enrichRegions(section.equation_regions, codeOcr);
       }
       if (section.page_start !== undefined) block.page_start = section.page_start;
       if (section.page_end !== undefined) block.page_end = section.page_end;
@@ -202,7 +257,7 @@ export async function GET(request: NextRequest) {
         body_chars: body.length,
       };
       if (s.equation_regions && s.equation_regions.length > 0) {
-        block.equation_regions = s.equation_regions;
+        block.equation_regions = enrichRegions(s.equation_regions, codeOcr);
       }
       if (s.page_start !== undefined) block.page_start = s.page_start;
       if (s.page_end !== undefined) block.page_end = s.page_end;
