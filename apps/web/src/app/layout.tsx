@@ -68,9 +68,6 @@ export default function RootLayout({
                     © 2026 수소법령 검색 · 국가법령정보센터 기반
                   </p>
                 </div>
-                <p className="text-xs tracking-wide text-muted-foreground">
-                  LLM 최소화 접근법 · 빠르고 정확한 법률 검색
-                </p>
               </div>
             </div>
           </footer>
