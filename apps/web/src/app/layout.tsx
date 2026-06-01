@@ -65,7 +65,7 @@ export default function RootLayout({
                 <div className="flex items-center gap-3">
                   <Scale className="h-4 w-4 text-[hsl(var(--brass))]" strokeWidth={1.75} />
                   <p className="text-sm text-muted-foreground">
-                    © 2026 어플리케이션개발2팀 법령 검색 · 국가법령정보센터 기반
+                    © 2026 수소법령 검색 · 국가법령정보센터 기반
                   </p>
                 </div>
                 <p className="text-xs tracking-wide text-muted-foreground">
