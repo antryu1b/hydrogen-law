@@ -6,7 +6,7 @@ import { Noto_Serif_KR } from 'next/font/google';
 import { BrandLink } from '@/components/BrandLink';
 
 const notoSerifKR = Noto_Serif_KR({
-  weight: ['700'],
+  weight: ['400', '600', '700'],
   subsets: ['latin'],
   variable: '--font-noto-serif-kr',
   display: 'swap',
@@ -33,20 +33,28 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/* Header - Full Width */}
-          <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          {/* Header — gazette masthead with a thin brass top-rule */}
+          <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/65">
+            <div className="h-[3px] w-full bg-[hsl(var(--brass))]" aria-hidden="true" />
             <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1.5rem' }}>
               <div className="flex h-16 items-center justify-between">
                 <BrandLink />
-                <div className="flex items-center gap-4">
-                  <Link href="/kgs-family" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+                <nav className="flex items-center gap-1 sm:gap-2">
+                  <Link
+                    href="/kgs-family"
+                    className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:block"
+                  >
                     기술기준 분류
                   </Link>
-                  <Link href="/kgs-compare" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+                  <Link
+                    href="/kgs-compare"
+                    className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:block"
+                  >
                     본문 비교
                   </Link>
+                  <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
                   <ThemeToggle />
-                </div>
+                </nav>
               </div>
             </div>
           </header>
@@ -58,15 +66,18 @@ export default function RootLayout({
             </div>
           </main>
 
-          {/* Footer - Full Width */}
-          <footer className="border-t py-8">
+          {/* Footer — restrained gazette colophon */}
+          <footer className="mt-8 border-t border-border/70 bg-secondary/40">
             <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1.5rem' }}>
-              <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-                <p className="text-sm text-muted-foreground">
-                  © 2026 어플리케이션개발2팀 법령 검색. 국가법령정보센터 기반.
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  LLM 최소화 접근법 • 빠르고 정확한 법률 검색
+              <div className="flex flex-col items-start justify-between gap-3 py-8 md:flex-row md:items-center">
+                <div className="flex items-center gap-3">
+                  <Scale className="h-4 w-4 text-[hsl(var(--brass))]" strokeWidth={1.75} />
+                  <p className="text-sm text-muted-foreground">
+                    © 2026 어플리케이션개발2팀 법령 검색 · 국가법령정보센터 기반
+                  </p>
+                </div>
+                <p className="text-xs tracking-wide text-muted-foreground">
+                  LLM 최소화 접근법 · 빠르고 정확한 법률 검색
                 </p>
               </div>
             </div>

@@ -352,19 +352,26 @@ export default function HomePage() {
   // 홈 화면
   if (viewState === 'home') {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 bg-background home-bg">
-        {/* 로고 */}
-        <div className="mb-8 text-center fadeIn">
-          <div className="flex items-center justify-center gap-2.5 mb-5">
-            <Scale className="w-6 h-6 text-foreground/50" strokeWidth={1.5} />
-            <span className="text-xs font-medium tracking-widest text-muted-foreground uppercase">어플리케이션개발2팀</span>
+      <div className="min-h-[82vh] flex flex-col items-center justify-center px-4 -mt-4 home-bg">
+        {/* 마스트헤드 */}
+        <div className="mb-9 text-center">
+          <div className="mb-5 flex items-center justify-center gap-2.5 rise-in" style={{ animationDelay: '40ms' }}>
+            <span className="h-px w-8 bg-[hsl(var(--brass)/0.6)]" aria-hidden="true" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[hsl(var(--brass))]">
+              어플리케이션개발2팀
+            </span>
+            <span className="h-px w-8 bg-[hsl(var(--brass)/0.6)]" aria-hidden="true" />
           </div>
-          <h1 className="text-3xl font-noto-serif-kr tracking-tight font-bold leading-tight md:text-4xl mb-3">법령 검색</h1>
-          <p className="text-muted-foreground text-sm">수소·고압가스 관련 법령 및 KGS CODE 통합 검색</p>
+          <h1 className="font-display mb-3 text-[2.1rem] font-bold leading-[1.12] tracking-tight text-foreground md:text-[2.75rem] rise-in" style={{ animationDelay: '90ms' }}>
+            수소·고압가스 법령 검색
+          </h1>
+          <p className="mx-auto max-w-xl text-[15px] leading-relaxed text-muted-foreground rise-in" style={{ animationDelay: '140ms' }}>
+            관련 법령과 KGS CODE 기술기준을 한 번에. 국가법령정보센터 기반의 정확한 1차 검색.
+          </p>
         </div>
 
         {/* 검색창 */}
-        <div className="w-full max-w-2xl fadeIn">
+        <div className="w-full max-w-2xl rise-in" style={{ animationDelay: '190ms' }}>
           <form onSubmit={handleSearch} className="relative">
             <div className="relative">
               {/* 법령 한정 badge — absolute at input's left edge, inside the search bar */}
@@ -395,13 +402,13 @@ export default function HomePage() {
                   if (e.key === 'Escape') setShowSuggestions(false);
                 }}
                 placeholder={scopeLaw ? `${scopeLaw} 안에서 키워드 검색...` : "법령명, 조문, 키워드로 검색..."}
-                className={`h-14 text-base pr-32 rounded-full border-2 shadow-sm focus:shadow-md transition-shadow ${query ? 'ring-primary/30 ring-2' : ''} ${scopeLaw ? 'pl-36' : 'pl-5'}`}
+                className={`h-14 rounded-xl border-2 border-input bg-card pr-32 text-base shadow-[0_2px_10px_-4px_hsl(var(--primary)/0.18)] transition-all focus:shadow-[0_6px_24px_-8px_hsl(var(--primary)/0.30)] focus-visible:border-[hsl(var(--brass)/0.7)] focus-visible:ring-[hsl(var(--brass)/0.30)] ${scopeLaw ? 'pl-36' : 'pl-5'}`}
                 autoComplete="off"
               />
               <Button
                 type="submit"
                 disabled={loading || !query.trim()}
-                className="absolute right-2 top-2 h-10 px-5 rounded-full transition-transform duration-200 hover:scale-105 active:scale-95"
+                className="absolute right-2 top-2 h-10 rounded-lg px-5 transition-transform duration-200 hover:scale-[1.03] active:scale-95"
               >
                 {loading ? (
                   <Clock className="w-4 h-4 animate-spin" />
@@ -416,7 +423,7 @@ export default function HomePage() {
             {showSuggestions && hasSuggestions && (
               <div
                 ref={suggestionsRef}
-                className="absolute top-full left-0 right-0 z-50 mt-2 bg-popover border rounded-2xl shadow-lg overflow-hidden fadeIn"
+                className="absolute top-full left-0 right-0 z-50 mt-2 overflow-hidden rounded-xl border border-border/80 bg-popover shadow-[0_12px_40px_-12px_hsl(var(--primary)/0.30)] fadeIn"
               >
                 {suggestions.history.length > 0 && (
                   <div className="p-2">
@@ -482,8 +489,8 @@ export default function HomePage() {
             )}
           </form>
 
-          {/* 주요 법령 — 빠른 검색 (subtle, doesn't compete with 예시 chips) */}
-          <div className="mt-4 fadeIn">
+          {/* 주요 법령 — 빠른 검색 */}
+          <div className="mt-4">
             <div className="grid grid-cols-3 gap-2">
               {['수소법', '고압가스법', '산업안전보건법'].map((law) => (
                 <button
@@ -498,10 +505,10 @@ export default function HomePage() {
                     doSearch(law);               // immediate search shows law family
                   }}
                   disabled={loading}
-                  className={`h-10 rounded-md border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`h-10 rounded-md border text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                     scopeLaw === law
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-input bg-background text-foreground/85 hover:bg-accent hover:text-foreground hover:border-foreground/30'
+                      ? 'border-[hsl(var(--brass)/0.6)] bg-[hsl(var(--brass)/0.12)] text-[hsl(var(--brass))]'
+                      : 'border-input bg-card/60 text-foreground/85 hover:border-foreground/30 hover:bg-accent hover:text-foreground'
                   }`}
                 >
                   {law}
@@ -515,14 +522,16 @@ export default function HomePage() {
           )}
 
           {/* 키워드 예시 */}
-          <div className="mt-8 fadeIn">
-            <p className="text-xs text-muted-foreground text-center mb-3">예시 검색어</p>
-            <div className="flex flex-wrap gap-2 justify-center">
+          <div className="mt-8">
+            <p className="mb-3 text-center text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              예시 검색어
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
               {['수소충전소', '안전기준', '고압가스', '수소안전', '수소저장', '등록신고'].map((kw) => (
                 <button
                   key={kw}
                   onClick={() => handleSelectSuggestion(kw)}
-                  className="px-3 py-1.5 text-xs border rounded-full hover:bg-accent transition-colors text-muted-foreground hover:text-foreground fadeIn"
+                  className="rounded-full border border-border/80 bg-card/50 px-3.5 py-1.5 text-xs text-muted-foreground transition-all hover:border-[hsl(var(--brass)/0.5)] hover:bg-accent hover:text-foreground"
                 >
                   {kw}
                 </button>
@@ -531,26 +540,29 @@ export default function HomePage() {
           </div>
 
           {/* 안내 뱃지 */}
-          <div className="flex gap-4 items-center justify-center mt-6 text-xs text-muted-foreground fadeIn">
-            <span className="flex items-center gap-1">
-              <Zap className="w-3 h-3" />
+          <div className="mt-7 flex items-center justify-center gap-5 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5 text-[hsl(var(--brass))]" />
               1초 이내
             </span>
-            <span>·</span>
-            <span className="flex items-center gap-1">
-              <Search className="w-3 h-3" />
+            <span className="h-3 w-px bg-border" aria-hidden="true" />
+            <span className="flex items-center gap-1.5">
+              <Search className="h-3.5 w-3.5 text-[hsl(var(--brass))]" />
               법령 + KGS CODE
             </span>
-            <span>·</span>
-            <span className="flex items-center gap-1">
-              <Database className="w-3 h-3" />
+            <span className="h-3 w-px bg-border" aria-hidden="true" />
+            <span className="flex items-center gap-1.5">
+              <Database className="h-3.5 w-3.5 text-[hsl(var(--brass))]" />
               전체 법령 5,573건
             </span>
           </div>
 
-          {/* Decorative Divider */}
-          <div className="border-t border-gray-200 relative mt-8 mb-4">
-            <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-background px-3 text-muted-foreground text-sm">§</span>
+          {/* Gazette divider with § mark */}
+          <div className="relative mb-4 mt-9">
+            <div className="gazette-rule" />
+            <span className="font-display absolute -top-3.5 left-1/2 -translate-x-1/2 bg-background px-3 text-base text-[hsl(var(--brass))]">
+              §
+            </span>
           </div>
         </div>
       </div>
@@ -698,7 +710,7 @@ export default function HomePage() {
           <FileText className="w-4 h-4" />
           법령
           {results && (
-            <span className="ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full absolute top-2 left-2 fadeIn">
+            <span className="absolute left-2 top-2 ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary fadeIn">
               {results.articles.length}
             </span>
           )}
@@ -707,14 +719,14 @@ export default function HomePage() {
           onClick={() => setActiveTab('kgs')}
           className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'kgs'
-              ? 'border-[#0d9488] text-[#0d9488]'
+              ? 'border-[hsl(var(--brass))] text-[hsl(var(--brass))]'
               : 'border-transparent text-muted-foreground hover:text-foreground'
           } fadeIn`}
         >
           <BookOpen className="w-4 h-4" />
           KGS CODE
           {kgsResults.length > 0 && (
-            <span className="ml-1 px-2 py-0.5 text-xs bg-[#0d9488]/10 text-[#0d9488] rounded-full absolute top-2 left-2 fadeIn">
+            <span className="absolute left-2 top-2 ml-1 rounded-full bg-[hsl(var(--brass)/0.12)] px-2 py-0.5 text-xs font-semibold text-[hsl(var(--brass))] fadeIn">
               {kgsResults.length}
             </span>
           )}
@@ -756,11 +768,11 @@ export default function HomePage() {
                       <button
                         key={fam.baseName}
                         onClick={() => { setSelectedLawFilter(fam.baseName); setCurrentPage(1); }}
-                        className="w-full text-left p-4 border-2 rounded-lg hover:border-primary/50 hover:shadow-md transition-all group"
+                        className="group w-full rounded-lg border-2 border-border/70 bg-card p-4 text-left transition-all hover:border-[hsl(var(--brass)/0.55)] hover:shadow-[0_4px_18px_-8px_hsl(var(--primary)/0.25)]"
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-base">{fam.baseName}</div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-display text-base font-bold">{fam.baseName}</div>
                             <div className="flex flex-wrap gap-1.5 mt-1.5">
                               {fam.members.sort((a, b) => a.rank - b.rank).map((m) => {
                                 const label = m.name.replace(fam.baseName, '').trim() || '법률';
@@ -772,7 +784,7 @@ export default function HomePage() {
                               })}
                             </div>
                           </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 ml-3" />
+                          <ChevronRight className="ml-3 h-5 w-5 flex-shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-[hsl(var(--brass))]" />
                         </div>
                       </button>
                     ))}

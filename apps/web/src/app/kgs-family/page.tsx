@@ -5,8 +5,12 @@ import { KGS_FAMILIES } from '@/data/kgs-families-display';
 export default function KGSFamilyPage() {
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-2">KGS CODE 20개, 한눈에 보는 분류</h1>
-      <p className="text-muted-foreground mb-8">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="h-px w-6 bg-[hsl(var(--brass)/0.7)]" aria-hidden="true" />
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brass))]">기술기준 분류</span>
+      </div>
+      <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-2">KGS CODE 20개, 한눈에 보는 분류</h1>
+      <p className="text-muted-foreground mb-8 leading-relaxed">
         수소·가스 안전 기술기준 20개를 목차 구조로 묶으면 3가지 그룹이 됩니다. 같은 그룹 안의 다른 코드를 나란히 비교하면 기준 차이만 빠르게 확인할 수 있습니다.
       </p>
 
@@ -14,9 +18,9 @@ export default function KGSFamilyPage() {
         <section
           key={family.id}
           id={`family-${family.id}`}
-          className="mb-10 border rounded-xl p-5 sm:p-6"
+          className="mb-10 rounded-lg border border-border/70 bg-card p-5 shadow-[0_1px_2px_-1px_hsl(var(--primary)/0.10),0_4px_16px_-10px_hsl(var(--primary)/0.10)] sm:p-6"
         >
-          <h2 className="text-xl sm:text-2xl font-bold mb-2">
+          <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight mb-2">
             {family.emoji} {family.longLabel}
           </h2>
           <p className="text-sm text-muted-foreground mb-3">{family.description}</p>

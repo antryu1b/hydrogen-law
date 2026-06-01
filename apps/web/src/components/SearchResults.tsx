@@ -258,7 +258,7 @@ function ArticleCard({ article, index, keywords = [], onSearch }: { article: Sea
         <CardContent className="space-y-4">
           <div className="relative">
             <div
-              className={`text-xs sm:text-sm leading-relaxed text-muted-foreground bg-muted/30 p-3 sm:p-4 rounded-lg ${!expanded && isLong && !fullHtml ? 'max-h-48 overflow-hidden' : ''} ${appendix || fullHtml ? 'max-h-[70vh] overflow-y-auto whitespace-pre-wrap' : ''}`}
+              className={`prose-legal rounded-lg border border-border/50 bg-muted/40 p-3 text-xs text-foreground/80 sm:p-4 sm:text-sm ${!expanded && isLong && !fullHtml ? 'max-h-48 overflow-hidden' : ''} ${appendix || fullHtml ? 'max-h-[70vh] overflow-y-auto whitespace-pre-wrap' : ''}`}
               dangerouslySetInnerHTML={{ __html: fullHtml ? fullHtml.replace(/\n/g, '<br/>') : sanitized }}
               onClick={(e) => {
                 const target = e.target as HTMLElement;

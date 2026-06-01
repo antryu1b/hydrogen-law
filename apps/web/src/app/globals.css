@@ -3,47 +3,62 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Redesign 2026-06 — "Authoritative Institutional / Legal-Gazette"
+   * Palette: deep ink-navy primary on a warm parchment paper base,
+   * with a single restrained brass/gold accent. The colour language of
+   * official legal gazettes and seals — credible, not generic-gray.
+   */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --background: 40 30% 98%;        /* warm parchment paper */
+    --foreground: 222 38% 12%;       /* near-black ink, faint navy cast */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --radius: 0.5rem;
+    --card-foreground: 222 38% 12%;
+    --popover: 40 30% 99%;
+    --popover-foreground: 222 38% 12%;
+    --primary: 218 48% 19%;          /* deep ink-navy */
+    --primary-foreground: 40 36% 97%;
+    --secondary: 38 26% 94%;         /* warm stone */
+    --secondary-foreground: 218 40% 20%;
+    --muted: 38 24% 95%;
+    --muted-foreground: 220 14% 40%;
+    --accent: 36 44% 90%;            /* soft brass tint surface */
+    --accent-foreground: 218 44% 18%;
+    --destructive: 0 66% 44%;
+    --destructive-foreground: 40 36% 97%;
+    --border: 36 18% 86%;
+    --input: 36 18% 84%;
+    --ring: 38 56% 46%;              /* brass focus ring */
+    --radius: 0.375rem;
+
+    /* Accent token — brass/gold seal, used sparingly for emphasis */
+    --brass: 38 60% 44%;
+    --brass-foreground: 40 40% 97%;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --background: 220 32% 9%;         /* deep slate-navy night */
+    --foreground: 40 22% 92%;
+    --card: 220 28% 12%;
+    --card-foreground: 40 22% 92%;
+    --popover: 220 30% 11%;
+    --popover-foreground: 40 22% 92%;
+    --primary: 38 54% 56%;           /* brass becomes the lead in dark */
+    --primary-foreground: 220 38% 10%;
+    --secondary: 220 22% 17%;
+    --secondary-foreground: 40 22% 92%;
+    --muted: 220 20% 16%;
+    --muted-foreground: 40 12% 64%;
+    --accent: 220 24% 19%;
+    --accent-foreground: 38 50% 62%;
+    --destructive: 0 58% 52%;
+    --destructive-foreground: 40 30% 96%;
+    --border: 220 18% 22%;
+    --input: 220 18% 24%;
+    --ring: 38 54% 52%;
+
+    --brass: 38 58% 56%;
+    --brass-foreground: 220 38% 10%;
   }
 }
 
@@ -53,6 +68,20 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv05", "ss01";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Serif display — Noto Serif KR for authority on headings/brand */
+  .font-display {
+    font-family: var(--font-noto-serif-kr), ui-serif, Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+  /* Korean legal body text: generous line-height for dense 조문 scanning */
+  .prose-legal {
+    line-height: 1.85;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -75,50 +104,105 @@
   animation: fadeInFast 0.15s ease-out;
 }
 
-/* KGS teal accent utility */
+/* KGS accent utility — re-keyed to the brass seal token so the
+ * KGS surfaces sit inside the gazette palette instead of a stray teal. */
 .kgs-accent {
-  color: #0d9488;
+  color: hsl(var(--brass));
 }
 
 .kgs-accent-bg {
-  background-color: #0d9488;
+  background-color: hsl(var(--brass));
 }
 
 .kgs-accent-border {
-  border-color: #0d9488;
+  border-color: hsl(var(--brass));
 }
 
-/* Home background subtle gradient */
+/*
+ * Home background — a quiet "laid paper" field rather than the old
+ * purple-ish radial bloom. Two ultra-faint navy hairline washes plus a
+ * warm vignette read as official letterhead, not a SaaS hero.
+ */
 .home-bg {
-  background: radial-gradient(ellipse at 50% 0%, hsl(var(--primary) / 0.04) 0%, transparent 70%);
+  background-color: hsl(var(--background));
+  background-image:
+    radial-gradient(60rem 32rem at 50% -10%, hsl(var(--brass) / 0.06), transparent 70%),
+    radial-gradient(48rem 40rem at 100% 0%, hsl(var(--primary) / 0.05), transparent 65%),
+    linear-gradient(hsl(var(--foreground) / 0.015) 1px, transparent 1px);
+  background-size: auto, auto, 100% 2.25rem;
 }
 
-/* Keyword highlight mark — adapts to dark mode */
+.dark .home-bg {
+  background-image:
+    radial-gradient(60rem 32rem at 50% -10%, hsl(var(--brass) / 0.10), transparent 70%),
+    radial-gradient(48rem 40rem at 100% 0%, hsl(var(--primary) / 0.10), transparent 65%),
+    linear-gradient(hsl(var(--foreground) / 0.03) 1px, transparent 1px);
+}
+
+/* Hairline rule with a brass tick — a gazette section divider motif */
+.gazette-rule {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    hsl(var(--border)) 12%,
+    hsl(var(--border)) 88%,
+    transparent
+  );
+}
+
+/* Keyword highlight mark — brass underlay, adapts to dark mode */
 mark.kw-highlight {
-  background-color: hsl(48 96% 89%);
+  background-color: hsl(var(--brass) / 0.22);
   color: hsl(var(--foreground));
   padding: 1px 3px;
   border-radius: 3px;
   font-weight: 700;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .dark mark.kw-highlight {
-  background-color: hsl(48 60% 30%);
+  background-color: hsl(var(--brass) / 0.28);
   color: hsl(var(--foreground));
 }
 
-/* Legal citation cross-reference links */
+/* Legal citation cross-reference links — brass underline, gazette tone */
 a.cite-link {
   color: hsl(var(--primary));
   text-decoration: underline;
-  text-decoration-color: hsl(var(--primary) / 0.4);
-  text-underline-offset: 2px;
+  text-decoration-color: hsl(var(--brass) / 0.55);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
   cursor: pointer;
-  font-weight: 500;
-  transition: text-decoration-color 0.15s;
+  font-weight: 600;
+  transition: text-decoration-color 0.15s, color 0.15s;
 }
 
 a.cite-link:hover {
-  text-decoration-color: hsl(var(--primary));
+  color: hsl(var(--brass));
+  text-decoration-color: hsl(var(--brass));
+}
+
+.dark a.cite-link {
+  color: hsl(var(--foreground));
+}
+
+/* Staggered entrance for hero rows (reduced-motion respected below) */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rise-in {
+  animation: riseIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-in,
+  .animate-fade-in,
+  .animate-fade-in-fast {
+    animation: none !important;
+  }
 }
 

@@ -15,15 +15,24 @@ export function BrandLink() {
   return (
     <Link
       href="/"
-      className="flex items-center gap-2 font-semibold text-lg hover:opacity-75 transition-opacity"
+      className="group flex items-center gap-2.5 transition-opacity hover:opacity-80"
       onClick={() => {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('hl-go-home'));
         }
       }}
     >
-      <Scale className="w-5 h-5 text-foreground/70" strokeWidth={1.75} />
-      <span className="tracking-tight">어플리케이션개발2팀 법령 검색</span>
+      <span className="flex h-8 w-8 items-center justify-center rounded-md border border-[hsl(var(--brass)/0.4)] bg-[hsl(var(--brass)/0.12)] text-[hsl(var(--brass))] transition-colors group-hover:bg-[hsl(var(--brass)/0.18)]">
+        <Scale className="h-[18px] w-[18px]" strokeWidth={1.75} />
+      </span>
+      <span className="flex flex-col leading-none">
+        <span className="font-display text-[15px] font-bold tracking-tight text-foreground sm:text-base">
+          어플리케이션개발2팀 법령 검색
+        </span>
+        <span className="mt-0.5 hidden text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground sm:block">
+          수소 · 고압가스 안전 법령
+        </span>
+      </span>
     </Link>
   );
 }
