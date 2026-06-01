@@ -150,9 +150,9 @@ export function ViewC({ selectedCodes, families }: ViewCProps) {
   const isLoading = dataA.loading || dataB.loading;
 
   return (
-    <div className="relative flex gap-0 border rounded-lg overflow-hidden" style={{ height: '80vh' }}>
-      {/* Sidebar TOC */}
-      <aside className="w-56 border-r flex-shrink-0 overflow-y-auto bg-muted/20">
+    <div className="relative flex flex-col lg:flex-row gap-0 border rounded-lg overflow-hidden lg:h-[80vh]">
+      {/* Sidebar TOC — full width on mobile, fixed on lg+ */}
+      <aside className="w-full lg:w-56 border-b lg:border-b-0 lg:border-r flex-shrink-0 overflow-y-auto bg-muted/20 max-h-56 lg:max-h-none">
         <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b">
           목차 ({tocEntries.length})
         </div>
@@ -184,10 +184,10 @@ export function ViewC({ selectedCodes, families }: ViewCProps) {
         </nav>
       </aside>
 
-      {/* Two panes */}
-      <div className="flex-1 grid grid-cols-2 overflow-hidden divide-x">
+      {/* Two panes — stacked on mobile, side-by-side on lg+ */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden divide-y lg:divide-y-0 lg:divide-x">
         {/* Left pane: Code A */}
-        <div ref={leftPaneRef} className="overflow-y-auto p-4">
+        <div ref={leftPaneRef} className="overflow-y-auto p-4 max-h-[60vh] lg:max-h-none">
           <div className="sticky top-0 bg-background/90 backdrop-blur pb-2 mb-3 border-b">
             <div className="flex items-center gap-2">
               <span className="font-mono font-bold text-primary">{codeA}</span>
@@ -211,7 +211,7 @@ export function ViewC({ selectedCodes, families }: ViewCProps) {
         </div>
 
         {/* Right pane: Code B */}
-        <div ref={rightPaneRef} className="overflow-y-auto p-4">
+        <div ref={rightPaneRef} className="overflow-y-auto p-4 max-h-[60vh] lg:max-h-none">
           <div className="sticky top-0 bg-background/90 backdrop-blur pb-2 mb-3 border-b">
             <div className="flex items-center gap-2">
               <span className="font-mono font-bold text-orange-500">{codeB}</span>

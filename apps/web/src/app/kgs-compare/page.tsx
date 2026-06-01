@@ -110,7 +110,7 @@ function KgsComparePage() {
       </div>
 
       {/* Family filter tabs */}
-      <div className="flex gap-1 border-b">
+      <div className="flex gap-1 border-b overflow-x-auto">
         {[
           { id: null, label: '전체' },
           ...KGS_FAMILIES.map((f) => ({ id: f.id, label: `${f.id} ${f.shortLabel}` })),
@@ -119,7 +119,7 @@ function KgsComparePage() {
             key={tab.id ?? 'all'}
             onClick={() => setActiveFamilyFilter(tab.id)}
             className={[
-              'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap flex-shrink-0',
               activeFamilyFilter === tab.id
                 ? 'border-primary text-primary'
                 : 'border-transparent text-muted-foreground hover:text-foreground',
@@ -222,21 +222,21 @@ function KgsComparePage() {
       )}
 
       {/* View mode tabs */}
-      <div className="flex gap-1 bg-muted/30 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-muted/30 rounded-lg p-1 w-full sm:w-fit">
         {(['A', 'B', 'C'] as ViewMode[]).map((mode) => (
           <button
             key={mode}
             onClick={() => switchViewMode(mode)}
             className={[
-              'px-4 py-1.5 rounded-md text-sm font-medium transition-colors',
+              'flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap',
               viewMode === mode
                 ? 'bg-background shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground',
             ].join(' ')}
           >
-            {mode === 'A' && 'A 목차 사이드바'}
-            {mode === 'B' && 'B 자동 정렬'}
-            {mode === 'C' && 'C 좌우 split'}
+            {mode === 'A' && (<><span className="sm:hidden">A 목차</span><span className="hidden sm:inline">A 목차 사이드바</span></>)}
+            {mode === 'B' && (<><span className="sm:hidden">B 정렬</span><span className="hidden sm:inline">B 자동 정렬</span></>)}
+            {mode === 'C' && (<><span className="sm:hidden">C split</span><span className="hidden sm:inline">C 좌우 split</span></>)}
           </button>
         ))}
       </div>

@@ -202,8 +202,8 @@ function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProp
     <div className="space-y-2">
       {blocks.map((block: SectionBlock) => (
         <section key={block.sec_no} className="border-l-2 border-muted pl-2">
-          <h4 className="text-[11px] font-semibold flex items-center gap-1.5 flex-wrap">
-            <span className="font-mono text-[10px] text-[#0d9488]">{block.sec_no}</span>
+          <h4 className="text-[13px] lg:text-[11px] font-semibold flex items-center gap-1.5 flex-wrap">
+            <span className="font-mono text-xs lg:text-[10px] text-[#0d9488]">{block.sec_no}</span>
             <span className={block.is_umbrella ? 'text-muted-foreground italic' : ''}>
               {block.title}
             </span>
@@ -212,7 +212,7 @@ function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProp
             )}
           </h4>
           {block.body ? (
-            <pre className="text-[11px] whitespace-pre-wrap mt-0.5 text-foreground/80 font-sans leading-relaxed">
+            <pre className="text-sm lg:text-[11px] whitespace-pre-wrap break-words mt-0.5 text-foreground/80 font-sans leading-relaxed">
               {block.body}
             </pre>
           ) : !block.is_umbrella ? (
@@ -347,9 +347,9 @@ export function InlineBodyCompare({ selectedCodes }: InlineBodyCompareProps) {
         {treeLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
       </div>
 
-      <div className="flex" style={{ minHeight: '280px', maxHeight: '480px' }}>
-        {/* Left: tree sidebar (1/3) */}
-        <aside className="w-1/3 border-r overflow-y-auto bg-muted/10 flex-shrink-0">
+      <div className="flex flex-col lg:flex-row lg:min-h-[280px] lg:max-h-[480px]">
+        {/* Left: tree sidebar — full width on mobile, 1/3 on lg+ */}
+        <aside className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r overflow-y-auto bg-muted/10 flex-shrink-0 max-h-56 lg:max-h-none">
           <nav className="p-1">
             {treeData && treeData.length > 0 ? (
               treeData.map((root) => (
@@ -382,12 +382,14 @@ export function InlineBodyCompare({ selectedCodes }: InlineBodyCompareProps) {
                 </div>
               </div>
 
-              {/* Code columns */}
+              {/* Code columns — stack on mobile, side-by-side on lg+ */}
               <div
-                className="flex-1 grid divide-x overflow-auto"
-                style={{
-                  gridTemplateColumns: `repeat(${selectedCodes.length}, minmax(0, 1fr))`,
-                }}
+                className="flex-1 grid grid-cols-1 divide-y lg:divide-y-0 lg:divide-x overflow-auto lg:[grid-template-columns:var(--cols)]"
+                style={
+                  {
+                    '--cols': `repeat(${selectedCodes.length}, minmax(0, 1fr))`,
+                  } as React.CSSProperties
+                }
               >
                 {selectedCodes.map((code) => {
                   const familyId = CODE_TO_FAMILY[code];

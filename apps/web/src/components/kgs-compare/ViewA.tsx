@@ -218,7 +218,7 @@ function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProp
             )}
           </h4>
           {block.body ? (
-            <pre className="text-xs whitespace-pre-wrap mt-1 text-foreground/80 font-sans leading-relaxed">
+            <pre className="text-sm lg:text-xs whitespace-pre-wrap break-words mt-1 text-foreground/80 font-sans leading-relaxed">
               {block.body}
             </pre>
           ) : !block.is_umbrella ? (
@@ -329,9 +329,9 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
   }
 
   return (
-    <div className="flex gap-0 border rounded-lg overflow-hidden" style={{ minHeight: '600px' }}>
+    <div className="flex flex-col lg:flex-row gap-0 border rounded-lg overflow-hidden lg:min-h-[600px]">
       {/* Sidebar TOC — full tree from primary code */}
-      <aside className="w-64 border-r flex-shrink-0 overflow-y-auto bg-muted/20">
+      <aside className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r flex-shrink-0 overflow-y-auto bg-muted/20 max-h-64 lg:max-h-none">
         <div className="p-2 text-xs font-semibold text-muted-foreground border-b px-3 py-2 flex items-center gap-2">
           <span>목차 ({primaryCode})</span>
           {treeLoading && <Loader2 className="w-3 h-3 animate-spin ml-auto" />}
@@ -368,12 +368,14 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
               </div>
             </div>
 
-            {/* Code columns */}
+            {/* Code columns — stack on mobile, side-by-side on lg+ */}
             <div
-              className="flex-1 grid divide-x overflow-auto"
-              style={{
-                gridTemplateColumns: `repeat(${selectedCodes.length}, minmax(0, 1fr))`,
-              }}
+              className="flex-1 grid grid-cols-1 divide-y lg:divide-y-0 lg:divide-x overflow-auto lg:[grid-template-columns:var(--cols)]"
+              style={
+                {
+                  '--cols': `repeat(${selectedCodes.length}, minmax(0, 1fr))`,
+                } as React.CSSProperties
+              }
             >
               {selectedCodes.map((code) => {
                 const familyId = CODE_TO_FAMILY[code];
@@ -382,7 +384,7 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
                     ? primarySecNos.current.has(activeSecNo)
                     : true; // other codes: optimistic, API returns 404 if absent
                 return (
-                  <article key={code} className="p-4 flex flex-col gap-2 overflow-y-auto max-h-[600px]">
+                  <article key={code} className="p-4 flex flex-col gap-2 lg:overflow-y-auto lg:max-h-[600px]">
                     <div className="flex items-center gap-2 flex-wrap sticky top-0 bg-background pb-2 border-b mb-1">
                       <h3 className="font-mono font-bold text-primary">{code}</h3>
                       {familyId && (

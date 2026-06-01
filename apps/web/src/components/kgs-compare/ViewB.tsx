@@ -91,8 +91,12 @@ function IntersectionRow({
       </summary>
       {open && (
         <div
-          className="grid divide-x border-t"
-          style={{ gridTemplateColumns: `repeat(${selectedCodes.length}, minmax(0, 1fr))` }}
+          className="grid grid-cols-1 divide-y lg:divide-y-0 lg:divide-x border-t lg:[grid-template-columns:var(--cols)]"
+          style={
+            {
+              '--cols': `repeat(${selectedCodes.length}, minmax(0, 1fr))`,
+            } as React.CSSProperties
+          }
         >
           {selectedCodes.map((code) => {
             const isPresent = item.codesPresent.includes(code);
