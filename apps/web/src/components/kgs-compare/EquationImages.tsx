@@ -1,12 +1,24 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FileText, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { FileText, ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 import type { EquationRegion } from './types';
 
 // ---------------------------------------------------------------------------
-// Inline equation image strip
+// Inline equation / table image strip
+//
+// Scanned KGS formulas & tables are rendered server-side at 150 DPI, so a
+// native crop can be anywhere from ~60px (a single symbol) to ~870px wide and
+// ~1380px tall (a full-page table or stacked block). Letting them fill the
+// body column ("max-w-full") made them dwarf the ~15px body text and tall ones
+// got clipped by the scroll containers. We instead cap them to a modest
+// inline-figure size, keep the aspect ratio, let wide tables scroll
+// horizontally, and offer click-to-zoom for full detail.
 // ---------------------------------------------------------------------------
+
+/** Inline figure caps — tuned so a typical formula sits proportionate to body text. */
+const INLINE_MAX_WIDTH = 420; // px — wider crops (tables) scroll horizontally
+const INLINE_MAX_HEIGHT = 180; // px — tall stacked equations stay compact
 
 interface EquationImagesProps {
   code: string;
@@ -14,24 +26,116 @@ interface EquationImagesProps {
 }
 
 export function EquationImages({ code, equationRegions }: EquationImagesProps) {
+  const [zoom, setZoom] = useState<{ src: string; label: string } | null>(null);
+
   if (equationRegions.length === 0) return null;
 
   return (
-    <div className="mt-1.5 space-y-1.5">
+    <div className="mt-1.5 space-y-2">
       {equationRegions.map((eq) => {
         const bboxStr = eq.bbox.join(',');
         const src = `/api/kgs/eq-image?code=${code}&page=${eq.page}&bbox=${bboxStr}`;
+        const label = `수식/표 영역 ${eq.id} (p.${eq.page})`;
         return (
-          <img
-            key={eq.id}
-            src={src}
-            alt={`수식 영역 ${eq.id}`}
-            loading="lazy"
-            className="max-w-full object-contain rounded border border-muted/40 bg-white dark:bg-white/5"
-            style={{ display: 'block', imageRendering: 'crisp-edges' }}
-          />
+          <figure key={eq.id} className="m-0">
+            {/* Horizontal-scroll wrapper: wide tables scroll instead of overflowing/clipping */}
+            <div className="overflow-x-auto max-w-full">
+              <button
+                type="button"
+                onClick={() => setZoom({ src, label })}
+                title="클릭하여 확대"
+                aria-label={`${label} — 클릭하여 확대`}
+                className="group relative inline-block rounded border border-muted/50 bg-white dark:bg-white/5 p-0.5 cursor-zoom-in transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--brass))]"
+              >
+                <img
+                  src={src}
+                  alt={label}
+                  loading="lazy"
+                  className="block object-contain"
+                  style={{
+                    maxWidth: `${INLINE_MAX_WIDTH}px`,
+                    maxHeight: `${INLINE_MAX_HEIGHT}px`,
+                    width: 'auto',
+                    height: 'auto',
+                    imageRendering: 'crisp-edges',
+                  }}
+                />
+                {/* Zoom affordance — appears on hover/focus */}
+                <span className="absolute top-1 right-1 flex items-center justify-center w-5 h-5 rounded bg-[hsl(var(--primary))]/80 text-[hsl(var(--primary-foreground))] opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">
+                  <Maximize2 className="w-3 h-3" />
+                </span>
+              </button>
+            </div>
+          </figure>
         );
       })}
+
+      {zoom && (
+        <EquationZoomModal
+          src={zoom.src}
+          label={zoom.label}
+          onClose={() => setZoom(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Equation crop zoom modal — shows the cropped formula/table at full detail.
+// (Distinct from the full PDF-page modal below.)
+// ---------------------------------------------------------------------------
+
+interface EquationZoomModalProps {
+  src: string;
+  label: string;
+  onClose: () => void;
+}
+
+function EquationZoomModal({ src, label, onClose }: EquationZoomModalProps) {
+  const handleKey = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    },
+    [onClose]
+  );
+  useEffect(() => {
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [handleKey]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={label}
+    >
+      <div
+        className="relative bg-background rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0">
+          <span className="text-sm font-medium text-muted-foreground">{label}</span>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded hover:bg-muted text-muted-foreground"
+            aria-label="닫기"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        {/* Scroll both axes so even very large crops are fully reachable */}
+        <div className="flex-1 overflow-auto p-4 flex items-start justify-center bg-white dark:bg-white/5">
+          <img
+            src={src}
+            alt={label}
+            className="max-w-none"
+            style={{ imageRendering: 'crisp-edges' }}
+          />
+        </div>
+      </div>
     </div>
   );
 }
