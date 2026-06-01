@@ -7,8 +7,8 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export const metadata: Metadata = {
-  title: '어플리케이션개발2팀 법령 검색',
-  description: '어플리케이션개발2팀 법령 검색 시스템 · 국가법령정보센터',
+  title: '수소법령 검색',
+  description: '수소·고압가스 법령 검색 시스템 · 국가법령정보센터',
 };
 
 export default function RootLayout({
