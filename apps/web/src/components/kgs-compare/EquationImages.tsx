@@ -29,36 +29,38 @@ export function EquationImages({ code, equationRegions }: EquationImagesProps) {
 
   if (equationRegions.length === 0) return null;
 
+  // OCR passed the gate → show the recognized text (it's real content).
+  const goodOcr = equationRegions.filter((eq) => eq.ocr_good && eq.ocr_text);
+  // OCR poor/absent → never show garbled text. Multiple such regions on the
+  // same page are consolidated into ONE simple "원본 PDF 확인" note per page
+  // (avoid showing N notes for N formulas).
+  const fallbackPages = Array.from(
+    new Set(
+      equationRegions
+        .filter((eq) => !(eq.ocr_good && eq.ocr_text))
+        .map((eq) => eq.page)
+    )
+  ).sort((a, b) => a - b);
+
   return (
     <div className="mt-1.5 space-y-2">
-      {equationRegions.map((eq) => {
-        const label = `수식/표 영역 ${eq.id} (p.${eq.page})`;
+      {goodOcr.map((eq) => (
+        <OcrTextBlock
+          key={eq.id}
+          text={eq.ocr_text ?? ''}
+          label={`수식/표 (p.${eq.page})`}
+          onViewSource={() => setPageView({ page: eq.page })}
+        />
+      ))}
 
-        // OCR passed the confidence + text-quality gate → render as readable
-        // text. The full source page stays one click away as the authoritative
-        // source. Legal site: only GOOD OCR is shown as text.
-        if (eq.ocr_good && eq.ocr_text) {
-          return (
-            <OcrTextBlock
-              key={eq.id}
-              text={eq.ocr_text}
-              label={label}
-              onViewSource={() => setPageView({ page: eq.page })}
-            />
-          );
-        }
-
-        // OCR poor / absent → never show garbled text. Point to the full
-        // source PDF page (authoritative, complete context).
-        return (
-          <OcrFallback
-            key={eq.id}
-            page={eq.page}
-            label={label}
-            onViewSource={() => setPageView({ page: eq.page })}
-          />
-        );
-      })}
+      {fallbackPages.map((page) => (
+        <OcrFallback
+          key={`fb-${page}`}
+          page={page}
+          label={`수식/표 (p.${page})`}
+          onViewSource={() => setPageView({ page })}
+        />
+      ))}
 
       {pageView && (
         <PageImageModal
