@@ -355,13 +355,6 @@ export default function HomePage() {
       <div className="min-h-[82vh] flex flex-col items-center justify-center px-4 -mt-4 home-bg">
         {/* 마스트헤드 */}
         <div className="mb-9 text-center">
-          <div className="mb-5 flex items-center justify-center gap-2.5 rise-in" style={{ animationDelay: '40ms' }}>
-            <span className="h-px w-8 bg-[hsl(var(--brass)/0.6)]" aria-hidden="true" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[hsl(var(--brass))]">
-              어플리케이션개발2팀
-            </span>
-            <span className="h-px w-8 bg-[hsl(var(--brass)/0.6)]" aria-hidden="true" />
-          </div>
           <h1 className="font-display mb-3 text-[2.1rem] font-bold leading-[1.12] tracking-tight text-foreground md:text-[2.75rem] rise-in" style={{ animationDelay: '90ms' }}>
             수소·고압가스 법령 검색
           </h1>
