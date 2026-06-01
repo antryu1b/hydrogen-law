@@ -9,16 +9,27 @@ import type { EquationRegion } from './types';
 //
 // Scanned KGS formulas & tables are rendered server-side at 150 DPI, so a
 // native crop can be anywhere from ~60px (a single symbol) to ~870px wide and
-// ~1380px tall (a full-page table or stacked block). Letting them fill the
-// body column ("max-w-full") made them dwarf the ~15px body text and tall ones
-// got clipped by the scroll containers. We instead cap them to a modest
-// inline-figure size, keep the aspect ratio, let wide tables scroll
-// horizontally, and offer click-to-zoom for full detail.
+// ~1380px tall (a full-page table or stacked block).
+//
+// Sizing rule (cap HEIGHT, not WIDTH):
+//   Appendix formulas are typically short-and-wide single lines (e.g. a
+//   ~560×210 CHSS block, or a 460×22 table row at aspect ratio ~10). A hard
+//   WIDTH cap (the old 420px) shrank these to illegible thin strips — a wide
+//   line forced to 420px became a few-pixel-tall bar. The width was never the
+//   problem; tall full-page scans dominating the column were. So we let crops
+//   take the full container width (max-w-full) and instead bound HEIGHT.
+//   - Wide single-line formulas now render at the column width → readable.
+//   - A crop wider than the column horizontally scrolls (overflow-x-auto)
+//     instead of being squished.
+//   - Tall multi-line / full-page scans stay bounded by the height cap, and
+//     click-to-zoom still reveals full detail.
 // ---------------------------------------------------------------------------
 
-/** Inline figure caps — tuned so a typical formula sits proportionate to body text. */
-const INLINE_MAX_WIDTH = 420; // px — wider crops (tables) scroll horizontally
-const INLINE_MAX_HEIGHT = 180; // px — tall stacked equations stay compact
+/**
+ * Inline figure height cap — tall scans stay bounded so they don't dominate the
+ * body column, while width is free (max-w-full) so wide formulas read clearly.
+ */
+const INLINE_MAX_HEIGHT = 300; // px — tall stacked equations / full-page scans stay compact
 
 interface EquationImagesProps {
   code: string;
@@ -51,9 +62,8 @@ export function EquationImages({ code, equationRegions }: EquationImagesProps) {
                   src={src}
                   alt={label}
                   loading="lazy"
-                  className="block object-contain"
+                  className="block object-contain max-w-full"
                   style={{
-                    maxWidth: `${INLINE_MAX_WIDTH}px`,
                     maxHeight: `${INLINE_MAX_HEIGHT}px`,
                     width: 'auto',
                     height: 'auto',
