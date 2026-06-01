@@ -52,7 +52,18 @@ const config: Config = {
         },
       },
       fontFamily: {
-        'noto-serif-kr': ['var(--font-noto-serif-kr)', 'serif'],
+        sans: [
+          "Pretendard Variable",
+          "Pretendard",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Apple SD Gothic Neo",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif",
+        ],
       },
       borderRadius: {
         lg: "var(--radius)",

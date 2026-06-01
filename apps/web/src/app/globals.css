@@ -1,3 +1,8 @@
+/* Pretendard — modern Korean web font (variable, dynamic subset).
+ * Official CDN distribution. Replaces the dated Noto Serif KR for a
+ * clean, high-legibility modern look while keeping the gazette palette. */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,14 +73,20 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "cv05", "ss01";
+    /* Modern Korean sans — Pretendard leads, system fallbacks behind it */
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+      'Apple SD Gothic Neo', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  /* Serif display — Noto Serif KR for authority on headings/brand */
+  /* Display headings / brand — Pretendard SemiBold-Bold, tightened tracking
+   * for an authoritative-but-modern masthead voice (no dated serif). */
   .font-display {
-    font-family: var(--font-noto-serif-kr), ui-serif, Georgia, serif;
-    letter-spacing: -0.01em;
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+      'Apple SD Gothic Neo', 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.02em;
+    font-feature-settings: 'tnum';
   }
   /* Korean legal body text: generous line-height for dense 조문 scanning */
   .prose-legal {
