@@ -23,19 +23,19 @@ interface EquationImagesProps {
 }
 
 export function EquationImages({ code, equationRegions }: EquationImagesProps) {
-  const [zoom, setZoom] = useState<{ src: string; label: string } | null>(null);
+  // "원본 보기" opens the FULL PDF page (complete context), not just the
+  // cropped region — users reported the crop showed only a partial slice.
+  const [pageView, setPageView] = useState<{ page: number } | null>(null);
 
   if (equationRegions.length === 0) return null;
 
   return (
     <div className="mt-1.5 space-y-2">
       {equationRegions.map((eq) => {
-        const bboxStr = eq.bbox.join(',');
-        const src = `/api/kgs/eq-image?code=${code}&page=${eq.page}&bbox=${bboxStr}`;
         const label = `수식/표 영역 ${eq.id} (p.${eq.page})`;
 
         // OCR passed the confidence + text-quality gate → render as readable
-        // text. The cropped scan stays one click away as the authoritative
+        // text. The full source page stays one click away as the authoritative
         // source. Legal site: only GOOD OCR is shown as text.
         if (eq.ocr_good && eq.ocr_text) {
           return (
@@ -43,28 +43,29 @@ export function EquationImages({ code, equationRegions }: EquationImagesProps) {
               key={eq.id}
               text={eq.ocr_text}
               label={label}
-              onViewSource={() => setZoom({ src, label })}
+              onViewSource={() => setPageView({ page: eq.page })}
             />
           );
         }
 
-        // OCR poor / absent → never show garbled text. Point to the source PDF
-        // scan (authoritative) via the existing crop zoom modal.
+        // OCR poor / absent → never show garbled text. Point to the full
+        // source PDF page (authoritative, complete context).
         return (
           <OcrFallback
             key={eq.id}
             page={eq.page}
             label={label}
-            onViewSource={() => setZoom({ src, label })}
+            onViewSource={() => setPageView({ page: eq.page })}
           />
         );
       })}
 
-      {zoom && (
-        <EquationZoomModal
-          src={zoom.src}
-          label={zoom.label}
-          onClose={() => setZoom(null)}
+      {pageView && (
+        <PageImageModal
+          code={code}
+          pageStart={pageView.page}
+          pageEnd={pageView.page}
+          onClose={() => setPageView(null)}
         />
       )}
     </div>
@@ -145,65 +146,6 @@ function OcrFallback({ page, label, onViewSource }: OcrFallbackProps) {
         </span>
       </button>
     </figure>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Equation crop zoom modal — shows the cropped formula/table at full detail.
-// (Distinct from the full PDF-page modal below.)
-// ---------------------------------------------------------------------------
-
-interface EquationZoomModalProps {
-  src: string;
-  label: string;
-  onClose: () => void;
-}
-
-function EquationZoomModal({ src, label, onClose }: EquationZoomModalProps) {
-  const handleKey = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose]
-  );
-  useEffect(() => {
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [handleKey]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={label}
-    >
-      <div
-        className="relative bg-background rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0">
-          <span className="text-sm font-medium text-muted-foreground">{label}</span>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded hover:bg-muted text-muted-foreground"
-            aria-label="닫기"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        {/* Scroll both axes so even very large crops are fully reachable */}
-        <div className="flex-1 overflow-auto p-4 flex items-start justify-center bg-white dark:bg-white/5">
-          <img
-            src={src}
-            alt={label}
-            className="max-w-none"
-            style={{ imageRendering: 'crisp-edges' }}
-          />
-        </div>
-      </div>
-    </div>
   );
 }
 
