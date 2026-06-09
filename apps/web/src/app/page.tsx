@@ -7,6 +7,7 @@ import { SearchResults } from '@/components/SearchResults';
 import KGSComparison from '@/components/KGSComparison';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { deriveLawType } from '@/lib/utils';
 
 // 자주 검색되는 법률 용어 자동완성
 const AUTOCOMPLETE_TERMS = [
@@ -293,11 +294,11 @@ export default function HomePage() {
 
   // 법령 종류별 정렬 우선순위
   const getLawTypeRank = (lawName: string, lawType?: string): number => {
-    const t = (lawType || '').toLowerCase();
-    if (lawName.includes('시행규칙') || t.includes('시행규칙') || t.includes('부령') || t.includes('총리령')) return 2;
-    if (lawName.includes('시행령') || t.includes('시행령') || t.includes('대통령령')) return 1;
     if (lawName.includes('별표')) return 3;
     if (lawName.includes('부칙')) return 4;
+    const ty = deriveLawType(lawName, lawType);
+    if (ty === '시행규칙') return 2;
+    if (ty === '시행령') return 1;
     return 0; // 법률
   };
 
@@ -768,7 +769,7 @@ export default function HomePage() {
                             <div className="font-display text-base font-bold">{fam.baseName}</div>
                             <div className="flex flex-wrap gap-1.5 mt-1.5">
                               {fam.members.sort((a, b) => a.rank - b.rank).map((m) => {
-                                const label = m.name.replace(fam.baseName, '').trim() || '법률';
+                                const label = m.name.replace(fam.baseName, '').trim() || deriveLawType(m.name);
                                 return (
                                   <span key={m.name} className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                                     {label} {m.count}
