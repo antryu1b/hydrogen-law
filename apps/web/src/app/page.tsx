@@ -91,6 +91,7 @@ export default function HomePage() {
   const [viewState, setViewState] = useState<ViewState>('home');
   const [selectedLaw, setSelectedLaw] = useState<typeof TOP_LAWS[0] | null>(null);
   const [selectedLawFilter, setSelectedLawFilter] = useState<string | null>(null); // 최상위 법령 필터
+  const [selectedSubLaw, setSelectedSubLaw] = useState<string | null>(null); // 특정 하위법령(법률/시행령/시행규칙) 바로가기 필터
   const [searchStack, setSearchStack] = useState<string[]>([]); // cross-ref drill-down back stack
   const [scopeLaw, setScopeLaw] = useState<string | null>(null); // 법령 한정 chip (수소법/고압가스법/etc)
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -135,6 +136,7 @@ export default function HomePage() {
       setResults(null);
       setError(null);
       setSelectedLawFilter(null);
+      setSelectedSubLaw(null);
       setQuery('');
       setScopeLaw(null);
       setSearchStack([]);
@@ -150,6 +152,7 @@ export default function HomePage() {
     setError(null);
     setCurrentPage(1);
     setSelectedLawFilter(null);
+    setSelectedSubLaw(null);
     setSubmittedQuery(searchQuery.trim());
     setViewState('results');
     setSelectedLaw(null);
@@ -334,8 +337,10 @@ export default function HomePage() {
     const articles = results?.articles ?? [];
     if (!selectedLawFilter) return articles;
 
-    // family 매칭: selectedLawFilter는 base name
-    const filtered = articles.filter((a) => getBaseLawName(a.law_name) === selectedLawFilter);
+    // selectedSubLaw(특정 법령 정확일치) 우선, 없으면 family base 매칭
+    const filtered = articles.filter((a) =>
+      selectedSubLaw ? a.law_name === selectedSubLaw : getBaseLawName(a.law_name) === selectedLawFilter
+    );
     // 정렬: 법률 → 시행령 → 시행규칙 → 별표 → 부칙, 같은 type 안에서는 조문번호 순
     return filtered.sort((a, b) => {
       const rankDiff = getLawTypeRank(a.law_name, a.law_type) - getLawTypeRank(b.law_name, b.law_type);
@@ -620,7 +625,7 @@ export default function HomePage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => { setViewState('home'); setResults(null); setError(null); setSelectedLawFilter(null); }}
+            onClick={() => { setViewState('home'); setResults(null); setError(null); setSelectedLawFilter(null); setSelectedSubLaw(null); }}
             className="h-11 px-4 fadeIn gap-1.5"
           >
             <Home className="w-4 h-4" />
@@ -755,28 +760,47 @@ export default function HomePage() {
                   </p>
                   <div className="space-y-2">
                     {lawFamilies.map((fam) => (
-                      <button
+                      <div
                         key={fam.baseName}
-                        onClick={() => { setSelectedLawFilter(fam.baseName); setCurrentPage(1); }}
-                        className="group w-full rounded-lg border-2 border-border/70 bg-card p-4 text-left transition-all hover:border-[hsl(var(--brass)/0.55)] hover:shadow-[0_4px_18px_-8px_hsl(var(--primary)/0.25)]"
+                        className="group w-full rounded-lg border-2 border-border/70 bg-card p-4 transition-all hover:border-[hsl(var(--brass)/0.55)] hover:shadow-[0_4px_18px_-8px_hsl(var(--primary)/0.25)]"
                       >
                         <div className="flex items-center justify-between">
                           <div className="min-w-0 flex-1">
-                            <div className="font-display text-base font-bold">{fam.baseName}</div>
+                            <button
+                              type="button"
+                              onClick={() => { setSelectedLawFilter(fam.baseName); setSelectedSubLaw(null); setCurrentPage(1); }}
+                              className="font-display text-base font-bold text-left hover:text-[hsl(var(--brass))] transition-colors"
+                            >
+                              {fam.baseName}
+                            </button>
+                            {/* 하위 법령 배지 — 클릭하면 그 법령 조문만 바로가기 */}
                             <div className="flex flex-wrap gap-1.5 mt-1.5">
                               {fam.members.sort((a, b) => a.rank - b.rank).map((m) => {
                                 const label = m.name.replace(fam.baseName, '').trim() || deriveLawType(m.name);
                                 return (
-                                  <span key={m.name} className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                  <button
+                                    key={m.name}
+                                    type="button"
+                                    onClick={() => { setSelectedLawFilter(fam.baseName); setSelectedSubLaw(m.name); setCurrentPage(1); }}
+                                    title={`${label} 조문만 보기`}
+                                    className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-[hsl(var(--brass)/0.18)] hover:text-foreground transition-colors cursor-pointer"
+                                  >
                                     {label} {m.count}
-                                  </span>
+                                  </button>
                                 );
                               })}
                             </div>
                           </div>
-                          <ChevronRight className="ml-3 h-5 w-5 flex-shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-[hsl(var(--brass))]" />
+                          <button
+                            type="button"
+                            onClick={() => { setSelectedLawFilter(fam.baseName); setSelectedSubLaw(null); setCurrentPage(1); }}
+                            aria-label={`${fam.baseName} 전체 보기`}
+                            className="ml-3 shrink-0"
+                          >
+                            <ChevronRight className="h-5 w-5 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-[hsl(var(--brass))]" />
+                          </button>
                         </div>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -785,15 +809,28 @@ export default function HomePage() {
               {/* 2차: 선택된 상위법의 하위 법령 조문 (정렬: 법률→시행령→시행규칙→별표→부칙) */}
               {selectedLawFilter && (
                 <div className="mt-4 mb-4">
-                  <button
-                    onClick={() => { setSelectedLawFilter(null); setCurrentPage(1); }}
-                    className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mb-3"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    상위 법령 목록
-                  </button>
-                  <p className="text-sm font-semibold">{selectedLawFilter}</p>
-                  <p className="text-xs text-muted-foreground mt-1">법률 → 시행령 → 시행규칙 → 별표 순으로 정렬</p>
+                  <div className="flex flex-wrap items-center gap-3 mb-3">
+                    <button
+                      onClick={() => { setSelectedLawFilter(null); setSelectedSubLaw(null); setCurrentPage(1); }}
+                      className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      상위 법령 목록
+                    </button>
+                    {selectedSubLaw && (
+                      <button
+                        onClick={() => { setSelectedSubLaw(null); setCurrentPage(1); }}
+                        className="text-xs text-[hsl(var(--brass))] hover:underline inline-flex items-center gap-1"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        {selectedLawFilter} 전체
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold">{selectedSubLaw || selectedLawFilter}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {selectedSubLaw ? '이 법령의 조문만 표시' : '법률 → 시행령 → 시행규칙 → 별표 순으로 정렬'}
+                  </p>
                 </div>
               )}
 
@@ -802,7 +839,7 @@ export default function HomePage() {
                 <>
                   <div className="text-xs text-muted-foreground mb-3 fadeIn">
                     {submittedQuery && <span className="font-medium">&ldquo;{submittedQuery}&rdquo;</span>}
-                    {selectedLawFilter && <span className="ml-1 text-primary font-medium">· {selectedLawFilter}</span>}
+                    {(selectedSubLaw || selectedLawFilter) && <span className="ml-1 text-primary font-medium">· {selectedSubLaw || selectedLawFilter}</span>}
                     {' '}{totalItems}건 중 {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}건
                   </div>
                   <SearchResults
