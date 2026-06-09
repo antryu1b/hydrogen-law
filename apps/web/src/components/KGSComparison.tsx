@@ -187,9 +187,10 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
             {marineCodes.map((rec) => {
               const issuingBody = MARINE_ISSUING_BODY[rec.code];
               return (
-                <div
+                <Link
                   key={rec.code}
-                  className="flex items-start gap-3 p-3 border border-amber-200/60 dark:border-amber-800/40 rounded-lg bg-amber-50/40 dark:bg-amber-950/10"
+                  href={`/kgs-compare?codes=${rec.code}`}
+                  className="flex items-start gap-3 p-3 border border-amber-200/60 dark:border-amber-800/40 rounded-lg bg-amber-50/40 dark:bg-amber-950/10 hover:bg-amber-100/60 dark:hover:bg-amber-950/20 hover:border-amber-300 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -218,8 +219,12 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
                         ))}
                       </div>
                     )}
+                    <p className="mt-1.5 text-[11px] text-amber-700/80 dark:text-amber-400/80 inline-flex items-center gap-1">
+                      <BookOpen className="w-3 h-3" /> 본문·원본 보기 →
+                    </p>
                   </div>
-                </div>
+                  <BookOpen className="w-4 h-4 text-amber-600/70 shrink-0 mt-0.5" />
+                </Link>
               );
             })}
           </div>
