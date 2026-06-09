@@ -24,6 +24,9 @@ const AUTOCOMPLETE_TERMS = [
   '수소차', '수소버스', '수소트럭',
   '연료전지 발전', '수전해', '그린수소',
   '배관', '용기', '저장탱크', '디스펜서',
+  // 선박(marine) sector
+  '선박', '선박안전법', '선박용 연료전지', '어선법', '항만법',
+  '위험물 해상운송', '한국선급', '선급검사',
 ];
 
 // 최상위 법령 목록
@@ -483,10 +486,10 @@ export default function HomePage() {
             )}
           </form>
 
-          {/* 주요 법령 — 빠른 검색 */}
+          {/* 주요 법령 — 빠른 검색 (선박 sector: 선박안전법 포함) */}
           <div className="mt-4">
-            <div className="grid grid-cols-3 gap-2">
-              {['수소법', '고압가스법', '산업안전보건법'].map((law) => (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {['수소법', '고압가스법', '산업안전보건법', '선박안전법'].map((law) => (
                 <button
                   key={law}
                   type="button"

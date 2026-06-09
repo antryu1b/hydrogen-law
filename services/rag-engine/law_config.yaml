@@ -63,6 +63,133 @@ target_laws:
       - "청정수소"
       - "수소안전"
 
+  # 3. 선박(marine) 연료전지 — 선박용 수소연료전지 sector
+  #    상위 법령 5종. UI 선박 scope chip + KR 「선박용 연료전지 시스템 지침」(GC-12-K)과 짝.
+  - law_name: "선박안전법"
+    short_name: "선박안전법"
+    priority: 2
+    category: "marine"
+    components:
+      - type: "법률"
+        required: true
+      - type: "시행령"
+        required: true
+      - type: "시행규칙"
+        required: true
+    keywords:
+      - "선박"
+      - "선박안전"
+      - "선박검사"
+      - "연료전지"
+      - "위험물"
+
+  - law_name: "어선법"
+    short_name: "어선법"
+    priority: 2
+    category: "marine"
+    components:
+      - type: "법률"
+        required: true
+      - type: "시행령"
+        required: true
+      - type: "시행규칙"
+        required: true
+    keywords:
+      - "어선"
+      - "어선검사"
+      - "선박"
+      - "연료전지"
+
+  - law_name: "항만법"
+    short_name: "항만법"
+    priority: 2
+    category: "marine"
+    components:
+      - type: "법률"
+        required: true
+      - type: "시행령"
+        required: true
+      - type: "시행규칙"
+        required: true
+    keywords:
+      - "항만"
+      - "항만시설"
+      - "수소"
+      - "연료공급"
+
+  - law_name: "항만시설보안법"
+    short_name: "항만시설보안법"
+    priority: 2
+    category: "marine"
+    components:
+      - type: "법률"
+        required: true
+      - type: "시행령"
+        required: true
+      - type: "시행규칙"
+        required: true
+    keywords:
+      - "항만"
+      - "보안"
+      - "항만시설"
+
+  - law_name: "위험물의 해상운송 및 저장에 관한 법률"
+    short_name: "위험물해상운송법"
+    priority: 2
+    category: "marine"
+    components:
+      - type: "법률"
+        required: true
+      - type: "시행령"
+        required: true
+      - type: "시행규칙"
+        required: true
+    keywords:
+      - "위험물"
+      - "해상운송"
+      - "저장"
+      - "수소"
+      - "선박"
+
+# 선박(marine) 기술기준 — KGS CODE와 동일 패턴(PDF → load_pdfs_to_rag).
+# KGS CODE 가 가스기술기준이라면, 선박은 한국선급(KR) 선급규칙·지침이 대응.
+marine_standards:
+  - id: "GC12K"
+    code: "GC-12-K"
+    name: "선박용 연료전지 시스템 지침"
+    issuer: "한국선급(KR)"
+    year: 2024
+    source: "pdf"
+    pdf_path: "data/marine_pdfs/KR_선박용연료전지시스템지침_2024_GC-12-K.pdf"
+    category: "marine"
+    keywords:
+      - "선박"
+      - "연료전지"
+      - "수소"
+      - "한국선급"
+      - "지침"
+
+  # 해수부 표준(PDF 입수 완료 2026-06): 해양수산부 「선박수소연료전지설비 잠정기준」.
+  # 기준 근거: 선박안전법 제26조, 같은 법 시행규칙 제4조제15호.
+  # GC-12-K(한국선급)와 함께 선박 sector 의 2번째 기술기준.
+  - id: "MOF_PROVISIONAL"
+    code: "MOFFC"
+    name: "선박수소연료전지설비 잠정기준"
+    issuer: "해양수산부"
+    year: 2024
+    source: "pdf"
+    pdf_path: "data/marine_pdfs/MOF_선박수소연료전지설비_잠정기준_2024.pdf"
+    legal_basis: "선박안전법 제26조, 같은 법 시행규칙 제4조제15호"
+    category: "marine"
+    status: "ingested"
+    keywords:
+      - "선박"
+      - "수소연료전지"
+      - "연료전지설비"
+      - "잠정기준"
+      - "해양수산부"
+      - "선박안전법"
+
 # 선택적 수집 법령 (추후 확장 시)
 optional_laws:
   - law_name: "액화석유가스의 안전관리 및 사업법"
@@ -322,6 +449,38 @@ compliance_rules:
           article: "제36조"
           condition_keywords: ["연료전지", "보험", "배상"]
           requirement: "제36조에 따른 수소 사고 배상책임 보험 가입 권고"
+          severity: recommended
+
+    marine_fuel_cell:
+      description: "선박용 수소연료전지 설치 및 운영"
+      match_keywords: ["선박", "선박용 연료전지", "marine fuel cell", "어선", "항만", "선박연료전지"]
+      # 상위 법령은 Beopmang/law.go.kr 에서 법령명으로 검색됨(선박안전법·어선법·항만법 등).
+      # KR 「선박용 연료전지 시스템 지침」(GC-12-K)은 marine_standards 로 ingest.
+      applicable_laws: ["ship-safety", "fishing-vessel", "harbor", "harbor-facility-security", "dangerous-goods-marine-transport"]
+      key_articles:
+        - rule_id: "ship-safety-survey"
+          law_id: "ship-safety"
+          article: "제8조"
+          condition_keywords: ["선박", "검사", "연료전지", "건조검사"]
+          requirement: "선박안전법 제8조에 따른 건조검사·정기검사 등 선박검사 수검 의무"
+          severity: mandatory
+        - rule_id: "dangerous-goods-marine"
+          law_id: "dangerous-goods-marine-transport"
+          article: "제5조"
+          condition_keywords: ["위험물", "해상운송", "저장", "수소"]
+          requirement: "위험물의 해상운송 및 저장에 관한 법률에 따른 위험물(수소) 해상운송·저장 기준 준수"
+          severity: mandatory
+        - rule_id: "kr-guideline-GC12K"
+          law_id: "kr-guideline"
+          article: "GC-12-K"
+          condition_keywords: ["선박", "연료전지", "한국선급", "지침"]
+          requirement: "한국선급(KR) 「선박용 연료전지 시스템 지침」(GC-12-K, 2024) 적용 권고"
+          severity: recommended
+        - rule_id: "mof-provisional-fuel-cell"
+          law_id: "mof-provisional"
+          article: "선박안전법 제26조"
+          condition_keywords: ["선박", "수소연료전지", "잠정기준", "해양수산부", "연료전지설비"]
+          requirement: "해양수산부 「선박수소연료전지설비 잠정기준」(선박안전법 제26조, 같은 법 시행규칙 제4조제15호) 적용 권고"
           severity: recommended
 
   # H1 compat (기존 형식 유지)

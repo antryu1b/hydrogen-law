@@ -199,6 +199,57 @@ export const kgsCodesData: {
       }
     },
     {
+      "code": "GC12K",
+      "name": "선박용 연료전지 시스템 지침 (한국선급 KR, GC-12-K)",
+      "category": "선박",
+      "subcategory": "연료전지",
+      "updated": "2024.01.01",
+      "pages": 0,
+      "views": 0,
+      "keywords": [
+        "선박",
+        "연료전지",
+        "수소",
+        "한국선급",
+        "지침"
+      ],
+      "pdfUrl": "kgscode_pdf/marine/GC12K_2024.pdf",
+      "criteria": {
+        "최대압력": "지침 참조",
+        "안전거리": "지침 참조",
+        "검사주기": "선급검사",
+        "긴급차단": "지침 참조",
+        "압력방출": "지침 참조",
+        "누출감지": "지침 참조"
+      }
+    },
+    {
+      "code": "MOFFC",
+      "name": "선박수소연료전지설비 잠정기준 (해양수산부)",
+      "category": "선박",
+      "subcategory": "연료전지",
+      "updated": "2024.01.01",
+      "pages": 40,
+      "views": 0,
+      "keywords": [
+        "선박",
+        "수소연료전지",
+        "연료전지설비",
+        "잠정기준",
+        "해양수산부",
+        "선박안전법"
+      ],
+      "pdfUrl": "kgscode_pdf/marine/MOFFC_2024.pdf",
+      "criteria": {
+        "최대압력": "기준 참조",
+        "안전거리": "기준 참조",
+        "검사주기": "선박안전법 검사",
+        "긴급차단": "기준 참조",
+        "압력방출": "기준 참조",
+        "누출감지": "기준 참조"
+      }
+    },
+    {
       "code": "AH373",
       "name": "이동형 연료전지(드론용) 제조의 시설·기술·검사 기준",
       "category": "수소",
@@ -528,15 +579,18 @@ export const kgsCodesData: {
       "용기": 3,
       "저장·사용시설": 3,
       "특정설비": 1
+    },
+    "선박": {
+      "연료전지": 1
     }
   },
   "metadata": {
-    "source": "KGS Code 가스기술기준정보시스템",
+    "source": "KGS Code 가스기술기준정보시스템 + 한국선급(KR) 선급규칙",
     "url": "https://cyber.kgs.or.kr/kgscode.Index.do",
     "collected": "2026-04-02",
-    "total_codes": 20,
-    "phase": "Phase 1+2 Complete",
-    "note": "수소 전체 + 고압가스 주요 CODE (충전/용기/저장) 포함"
+    "total_codes": 21,
+    "phase": "Phase 1+2 Complete + 선박 sector",
+    "note": "수소 전체 + 고압가스 주요 CODE (충전/용기/저장) + 선박용 연료전지 KR 지침(GC-12-K) 포함"
   }
 };
 export default kgsCodesData;

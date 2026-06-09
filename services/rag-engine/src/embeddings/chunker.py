@@ -204,7 +204,11 @@ class LawChunker:
                 chunks.append(chunk)
 
             # 다음 시작점 (중첩 적용)
-            start = end - self.overlap if end < len(text) else end
+            next_start = end - self.overlap if end < len(text) else end
+            # 문장 경계 보정으로 end 가 작아지면 next_start <= start 가 되어
+            # 무한 루프에 빠질 수 있음(예: 마침표가 start 근처에 몰린 지침 텍스트).
+            # 항상 최소 1글자는 전진하도록 보장.
+            start = next_start if next_start > start else end if end > start else start + 1
 
         return chunks
 

@@ -231,6 +231,12 @@ const KR_LAW_ALIASES: Record<string, string> = {
   '항공법': '항공안전법',
   '철도법': '철도안전법',
   '건설기계법': '건설기계관리법',
+  // 선박(marine) sector — 선박용 수소연료전지 관련 상위 법령
+  '선박안전법': '선박안전법',
+  '어선법': '어선법',
+  '항만법': '항만법',
+  '항만시설보안법': '항만시설보안법',
+  '위험물해상운송법': '위험물의 해상운송 및 저장에 관한 법률',
 };
 function resolveLawAlias(k: string): string {
   return KR_LAW_ALIASES[k] || k;
