@@ -183,16 +183,6 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
       {/* ── 선박 기술기준 섹션 (KGS CODE 아님 — 발급기관 다름) ── */}
       {section === 'marine' && marineCodes.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Anchor className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
-            <h2 className="text-sm font-semibold text-foreground">선박 기술기준</h2>
-            <span className="text-[10px] text-amber-600 font-medium bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded">
-              KGS CODE 아님 — 발급기관 상이
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            아래 기준은 한국가스안전공사(KGS)가 아닌 별도 기관이 발급합니다.
-          </p>
           <div className="space-y-1.5">
             {marineCodes.map((rec) => {
               const issuingBody = MARINE_ISSUING_BODY[rec.code];
