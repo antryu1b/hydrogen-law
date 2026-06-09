@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { deriveLawType } from '@/lib/utils';
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_RESULTS = 100;
@@ -101,7 +102,7 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
       lawGroups.push({
         law_id: result.law_id,
         law_name: result.law_name,
-        law_type: result.law_type || '법률',
+        law_type: deriveLawType(result.law_name, result.law_type),
         article_count: result.matched_articles?.length || 0,
         score: result.score,
       });
@@ -111,11 +112,11 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
           article_id: result.law_id,
           law_name: lawName,
           law_id: result.law_id,
-          law_type: result.law_type || '법률',
+          law_type: deriveLawType(result.law_name, result.law_type),
           article_number: '',
           title: result.law_name,
-          content: `[${result.law_type}]`,
-          highlighted_content: `[${result.law_type}]`,
+          content: `[${deriveLawType(result.law_name, result.law_type)}]`,
+          highlighted_content: `[${deriveLawType(result.law_name, result.law_type)}]`,
           relevance_score: result.score * 100,
           article_type: 'article' as const,
           related_articles: [],
@@ -138,7 +139,7 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
           article_id: `${result.law_id}_${label}`,
           law_name: lawName,
           law_id: result.law_id,
-          law_type: result.law_type || '법률',
+          law_type: deriveLawType(result.law_name, result.law_type),
           article_number: label,
           title: `${lawName} ${label}`,
           content,
@@ -431,14 +432,14 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
       const lawKey = row.law_name;
       const existing = lawGroupMap.get(lawKey);
       if (existing) existing.count++;
-      else lawGroupMap.set(lawKey, { law_name: row.law_name, law_type: row.law_type || '법률', count: 1 });
+      else lawGroupMap.set(lawKey, { law_name: row.law_name, law_type: deriveLawType(row.law_name, row.law_type), count: 1 });
 
       const content = (row.content || '').slice(0, 400);
       return {
         article_id: row.id,
         law_name: row.law_name,
         law_id: row.law_id || '',
-        law_type: row.law_type || '법률',
+        law_type: deriveLawType(row.law_name, row.law_type),
         article_number: row.article_no || '',
         title: row.title || '',
         content,
