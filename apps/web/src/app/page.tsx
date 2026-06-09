@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, Zap, Database, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor } from 'lucide-react';
+import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor } from 'lucide-react';
 import type { SearchResponse } from '@/types/search';
 import { SearchResults } from '@/components/SearchResults';
 import KGSComparison from '@/components/KGSComparison';
@@ -534,24 +534,6 @@ export default function HomePage() {
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* 안내 뱃지 */}
-          <div className="mt-7 flex items-center justify-center gap-5 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Zap className="h-3.5 w-3.5 text-[hsl(var(--brass))]" />
-              1초 이내
-            </span>
-            <span className="h-3 w-px bg-border" aria-hidden="true" />
-            <span className="flex items-center gap-1.5">
-              <Search className="h-3.5 w-3.5 text-[hsl(var(--brass))]" />
-              법령 + KGS CODE
-            </span>
-            <span className="h-3 w-px bg-border" aria-hidden="true" />
-            <span className="flex items-center gap-1.5">
-              <Database className="h-3.5 w-3.5 text-[hsl(var(--brass))]" />
-              전체 법령 5,573건
-            </span>
           </div>
 
           {/* Gazette divider with § mark */}
