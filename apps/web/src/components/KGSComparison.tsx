@@ -13,13 +13,21 @@ const MARINE_ISSUING_BODY: Record<string, string> = {
   MOFFC: '해양수산부 (해수부)',
 };
 
+// 선박 기준 클릭 시 검색할 키워드 (Supabase 적재 law_name과 매칭 → 법령 탭에 조문 표시)
+const MARINE_SEARCH_TERM: Record<string, string> = {
+  MOFFC: '선박수소연료전지설비 잠정기준',
+  GC12K: '선박용 연료전지 시스템 지침',
+};
+
 interface KGSComparisonProps {
   searchQuery: string;
   // 'kgs' = 한국가스안전공사 KGS CODE only; 'marine' = 선박 기술기준 only (다른 발급기관)
   section?: 'kgs' | 'marine';
+  // 선박 기준 박스 클릭 → 부모가 법령 탭으로 전환 + 해당 기준 검색(조문 표시)
+  onOpenStandard?: (term: string) => void;
 }
 
-export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSComparisonProps) {
+export default function KGSComparison({ searchQuery, section = 'kgs', onOpenStandard }: KGSComparisonProps) {
   const [recommendations, setRecommendations] = useState<Array<{
     code: string;
     name: string;
@@ -187,10 +195,11 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
             {marineCodes.map((rec) => {
               const issuingBody = MARINE_ISSUING_BODY[rec.code];
               return (
-                <Link
+                <button
                   key={rec.code}
-                  href={`/kgs-compare?codes=${rec.code}`}
-                  className="flex items-start gap-3 p-3 border border-amber-200/60 dark:border-amber-800/40 rounded-lg bg-amber-50/40 dark:bg-amber-950/10 hover:bg-amber-100/60 dark:hover:bg-amber-950/20 hover:border-amber-300 transition-colors"
+                  type="button"
+                  onClick={() => onOpenStandard?.(MARINE_SEARCH_TERM[rec.code] ?? rec.name)}
+                  className="w-full text-left flex items-start gap-3 p-3 border border-amber-200/60 dark:border-amber-800/40 rounded-lg bg-amber-50/40 dark:bg-amber-950/10 hover:bg-amber-100/60 dark:hover:bg-amber-950/20 hover:border-amber-300 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -220,11 +229,11 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
                       </div>
                     )}
                     <p className="mt-1.5 text-[11px] text-amber-700/80 dark:text-amber-400/80 inline-flex items-center gap-1">
-                      <BookOpen className="w-3 h-3" /> 본문·원본 보기 →
+                      <BookOpen className="w-3 h-3" /> 조문 보기 →
                     </p>
                   </div>
                   <BookOpen className="w-4 h-4 text-amber-600/70 shrink-0 mt-0.5" />
-                </Link>
+                </button>
               );
             })}
           </div>

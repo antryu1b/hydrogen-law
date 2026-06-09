@@ -915,7 +915,11 @@ export default function HomePage() {
           </div>
 
           {(selectedLawFilter || submittedQuery) && (
-            <KGSComparison searchQuery={selectedLawFilter || submittedQuery} section="marine" />
+            <KGSComparison
+              searchQuery={selectedLawFilter || submittedQuery}
+              section="marine"
+              onOpenStandard={(term) => { setActiveTab('law'); handleSelectSuggestion(term); }}
+            />
           )}
 
           {!loading && !(selectedLawFilter || submittedQuery) && (
