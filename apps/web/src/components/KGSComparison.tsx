@@ -15,9 +15,11 @@ const MARINE_ISSUING_BODY: Record<string, string> = {
 
 interface KGSComparisonProps {
   searchQuery: string;
+  // 'kgs' = 한국가스안전공사 KGS CODE only; 'marine' = 선박 기술기준 only (다른 발급기관)
+  section?: 'kgs' | 'marine';
 }
 
-export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
+export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSComparisonProps) {
   const [recommendations, setRecommendations] = useState<Array<{
     code: string;
     name: string;
@@ -79,7 +81,7 @@ export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
   return (
     <div className="mt-6 space-y-6">
       {/* ── KGS CODE 섹션 (한국가스안전공사 고압가스·수소 기술기준) ── */}
-      {(kgsCodes.length > 0 || loading) && (
+      {section === 'kgs' && (kgsCodes.length > 0 || loading) && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Wrench className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
@@ -179,8 +181,8 @@ export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
       )}
 
       {/* ── 선박 기술기준 섹션 (KGS CODE 아님 — 발급기관 다름) ── */}
-      {marineCodes.length > 0 && (
-        <div className="space-y-3 border-t pt-5">
+      {section === 'marine' && marineCodes.length > 0 && (
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Anchor className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
             <h2 className="text-sm font-semibold text-foreground">선박 기술기준</h2>
@@ -231,6 +233,14 @@ export default function KGSComparison({ searchQuery }: KGSComparisonProps) {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* 선박 탭인데 관련 선박 기술기준이 없을 때 */}
+      {section === 'marine' && marineCodes.length === 0 && !loading && (
+        <div className="text-center py-12 text-muted-foreground">
+          <Anchor className="w-9 h-9 mx-auto mb-3 opacity-30" strokeWidth={1.5} />
+          <p className="text-sm">관련 선박 기술기준이 없습니다.</p>
         </div>
       )}
     </div>

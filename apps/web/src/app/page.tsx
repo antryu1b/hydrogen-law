@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, Zap, Database, ChevronLeft, AlertCircle, Pin, ArrowLeft } from 'lucide-react';
+import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, Zap, Database, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor } from 'lucide-react';
 import type { SearchResponse } from '@/types/search';
 import { SearchResults } from '@/components/SearchResults';
 import KGSComparison from '@/components/KGSComparison';
@@ -64,7 +64,7 @@ function clearSearchHistory() {
   localStorage.removeItem(SEARCH_HISTORY_KEY);
 }
 
-type TabType = 'law' | 'kgs';
+type TabType = 'law' | 'kgs' | 'marine';
 type ViewState = 'home' | 'results' | 'drilldown';
 
 interface KGSRecommendation {
@@ -728,6 +728,17 @@ export default function HomePage() {
             </span>
           )}
         </button>
+        <button
+          onClick={() => setActiveTab('marine')}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'marine'
+              ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          } fadeIn`}
+        >
+          <Anchor className="w-4 h-4" />
+          선박 기술기준
+        </button>
       </div>
 
       {/* 에러 */}
@@ -863,6 +874,35 @@ export default function HomePage() {
             <div className="text-center py-16 text-muted-foreground fadeIn">
               <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-30" />
               <p>관련 KGS CODE가 없습니다.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 선박 기술기준 탭 내용 (KGS CODE 아님 — 한국선급·해수부 등 별도 발급기관) */}
+      {!loading && activeTab === 'marine' && (
+        <div className="space-y-6">
+          <div className="rounded-lg border border-amber-200/60 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/10 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Anchor className="w-4 h-4 text-amber-600 dark:text-amber-400" strokeWidth={1.75} />
+              <span className="text-sm font-semibold text-foreground">선박 수소연료전지 기술기준</span>
+              <span className="text-[10px] text-amber-600 font-medium bg-amber-100/70 dark:bg-amber-950/30 px-1.5 py-0.5 rounded">
+                KGS CODE 아님 — 발급기관 상이
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5">
+              한국선급(KR)·해양수산부(해수부) 등 한국가스안전공사가 아닌 기관이 발급한 선박 분야 기술기준입니다.
+            </p>
+          </div>
+
+          {(selectedLawFilter || submittedQuery) && (
+            <KGSComparison searchQuery={selectedLawFilter || submittedQuery} section="marine" />
+          )}
+
+          {!loading && !(selectedLawFilter || submittedQuery) && (
+            <div className="text-center py-16 text-muted-foreground fadeIn">
+              <Anchor className="w-10 h-10 mx-auto mb-3 opacity-30" strokeWidth={1.5} />
+              <p>선박 관련 검색어를 입력하세요 (예: 선박안전법, 선박용 연료전지).</p>
             </div>
           )}
         </div>
