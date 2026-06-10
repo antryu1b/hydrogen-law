@@ -152,12 +152,17 @@ export function StandardColumn({
                   !item.article_no.replace(/\s+/g, '').includes(item.title.replace(/\s+/g, ''));
                 return (
                   <div className="min-w-0">
+                    {/* 장(상위) 줄 — 검정색, 절은 아래 들여쓰기 (의장 포맷 지시) */}
                     {context && (
-                      <p className="text-[10px] text-muted-foreground mb-0.5 break-words leading-snug">
+                      <p className="text-sm font-semibold text-foreground break-words leading-snug">
                         {context}
                       </p>
                     )}
-                    <div className="flex items-baseline gap-2 flex-wrap min-w-0">
+                    <div
+                      className={`flex items-baseline gap-2 flex-wrap min-w-0 ${
+                        context ? 'pl-4 mt-0.5' : ''
+                      }`}
+                    >
                       {main && (
                         <span className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400 break-words min-w-0">
                           {main}
