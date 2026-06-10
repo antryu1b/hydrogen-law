@@ -91,6 +91,11 @@ def parse_jang_jeol(text, law_name, law_type, law_id):
         # pypdf sometimes glues the first sub-clause onto the heading line
         # ("…비파괴검사301. 일반사항…") — cut at the NNN. marker.
         header = re.split(r'\s*\d{3}\.', header)[0].strip()
+        # Glued "제 N 장 …제 M 절 …" on one line — split into 장 context + 절 heading
+        gm = re.match(r'^(제\s?\d+\s?장\s?.{0,30}?)\s*(제\s?\d+\s?절\s?.*)$', header)
+        if gm:
+            cur_jang = gm.group(1).strip()
+            header = gm.group(2).strip()
         if '장' in header.split('절')[0][:8] and '절' not in header:
             cur_jang = header
         ano = f"{cur_jang} {header}".strip() if cur_jang and cur_jang != header else header
