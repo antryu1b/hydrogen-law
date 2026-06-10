@@ -112,7 +112,7 @@ function KgsComparePage() {
   const viewAFamilyId = activeFamilyFilter;
 
   return (
-    {/* 헤더 컨테이너(90rem)와 동일 폭 */}
+    // 헤더 컨테이너(90rem)와 동일 폭
     <div className="max-w-[90rem] mx-auto space-y-4">
       {/* Page header */}
       <div>
