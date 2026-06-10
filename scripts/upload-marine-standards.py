@@ -72,7 +72,9 @@ def parse_jo(text, law_name, law_type, law_id):
 
 def parse_jang_jeol(text, law_name, law_type, law_id):
     # split by 제 N 절 (절) sections, keep 장 context. Best-effort for the guideline.
-    pat = re.compile(r'(제\s?\d+\s?[장절][^\n]{0,40})')
+    # Line-anchored: only headings at line start count — mid-sentence references
+    # ("…제15장 301.의 2항…") must not leak into article labels.
+    pat = re.compile(r'(?m)^[ \t]*(제\s?\d+\s?[장절][^\n]{0,40})')
     parts = pat.split(text)
     clean = re.sub(r'\s+', '', law_name)
     rows, cur_jang = [], ''
