@@ -529,7 +529,7 @@ export default function HomePage() {
               예시 검색어
             </p>
             <div className="flex flex-wrap justify-center gap-2">
-              {['수소충전소', '안전기준', '고압가스', '수소안전', '수소저장', '등록신고'].map((kw) => (
+              {['연료전지', '수소충전소', '안전기준', '고압가스', '수소안전', '수소저장', '등록신고'].map((kw) => (
                 <button
                   key={kw}
                   onClick={() => handleSelectSuggestion(kw)}
