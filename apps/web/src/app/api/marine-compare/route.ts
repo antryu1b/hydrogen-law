@@ -20,6 +20,7 @@ const SNIPPET_LEN = 400;
 const STANDARDS: { law_id: string; law_name: string }[] = [
   { law_id: 'MOFFC-2024', law_name: '선박수소연료전지설비 잠정기준' },
   { law_id: 'GC12K-2024', law_name: '선박용 연료전지 시스템 지침 (GC-12-K)' },
+  { law_id: 'KRLFP-2026', law_name: '저인화점연료선박 규칙 (KR 2026)' },
 ];
 
 interface MarineRow {

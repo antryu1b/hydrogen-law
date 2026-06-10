@@ -12,6 +12,7 @@ import { MarineInlineBody } from '@/components/marine-compare/MarineInlineBody';
 const MARINE_ISSUING_BODY: Record<string, string> = {
   GC12K: '한국선급 (KR)',
   MOFFC: '해양수산부 (해수부)',
+  KRLFP: '한국선급 (KR)',
 };
 
 // 선박 표준은 고정 2종 — 추천(키워드 매칭) 결과와 무관하게 항상 노출한다.
@@ -20,6 +21,7 @@ const MARINE_ISSUING_BODY: Record<string, string> = {
 const MARINE_STANDARDS = [
   { code: 'MOFFC', law_id: 'MOFFC-2024', name: '선박수소연료전지설비 잠정기준' },
   { code: 'GC12K', law_id: 'GC12K-2024', name: '선박용 연료전지 시스템 지침 (GC-12-K)' },
+  { code: 'KRLFP', law_id: 'KRLFP-2026', name: '저인화점연료선박 규칙 (KR 2026)' },
 ];
 
 interface KGSComparisonProps {

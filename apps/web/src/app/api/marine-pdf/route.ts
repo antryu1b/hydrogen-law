@@ -15,6 +15,7 @@ const PDF_DIR = path.join(process.cwd(), 'data', 'kgs_pdfs');
 const CODE_FILE: Record<string, string> = {
   MOFFC: 'MOFFC_2024.pdf',
   GC12K: 'GC12K_2024.pdf',
+  KRLFP: 'KRLFP_2026.pdf',
 };
 
 export async function GET(request: NextRequest) {

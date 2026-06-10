@@ -1,29 +1,59 @@
 #!/usr/bin/env python3
-"""Build article -> PDF page map for the two marine standards.
+"""Build article -> PDF page map for the marine standards.
 
 Reads per-page text from the marine PDFs and matches each article
-(from the live /api/marine-compare list, which mirrors Supabase) to the
-first page containing its heading. Output is committed as
-apps/web/src/data/marine-page-map.json and consumed by the
-marine-compare API to attach a `page` field per item.
+(queried directly from Supabase law_articles, mirroring the
+marine-compare API's cleanLabel) to the first page containing its
+heading. Output is committed as apps/web/src/data/marine-page-map.json
+and consumed by the marine-compare API to attach a `page` per item.
 
 Usage: /tmp/marinevenv/bin/python scripts/build-marine-page-map.py
 """
 import json
 import re
 import sys
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 from pypdf import PdfReader
-import requests
 
 ROOT = Path(__file__).resolve().parent.parent
 PDFS = {
     "MOFFC-2024": ROOT / "apps/web/data/kgs_pdfs/MOFFC_2024.pdf",
     "GC12K-2024": ROOT / "apps/web/data/kgs_pdfs/GC12K_2024.pdf",
+    "KRLFP-2026": ROOT / "apps/web/data/kgs_pdfs/KRLFP_2026.pdf",
 }
-API = "https://hydrogen-law.vercel.app/api/marine-compare"
 OUT = ROOT / "apps/web/src/data/marine-page-map.json"
+
+
+def load_env() -> tuple[str, str]:
+    url = key = None
+    for line in open(ROOT / ".env.local", encoding="utf-8"):
+        if line.startswith("NEXT_PUBLIC_SUPABASE_URL="):
+            url = line.split("=", 1)[1].strip().strip('"').strip("'")
+        elif line.startswith("SUPABASE_SERVICE_ROLE_KEY="):
+            key = line.split("=", 1)[1].strip().strip('"').strip("'")
+    if not url or not key:
+        sys.exit("missing supabase env")
+    return url, key
+
+
+def clean_label(s: str) -> str:
+    """Mirror of the API's cleanLabel: strip trailing dots/middots/space."""
+    return re.sub(r"[·\s.]+$", "", s or "").strip()
+
+
+def fetch_articles(url: str, key: str, law_id: str) -> list[dict]:
+    q = urllib.parse.urlencode(
+        {"law_id": f"eq.{law_id}", "select": "article_no,title", "limit": "1000"}
+    )
+    req = urllib.request.Request(
+        f"{url}/rest/v1/law_articles?{q}",
+        headers={"apikey": key, "Authorization": f"Bearer {key}"},
+    )
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.load(r)
 
 
 def norm(s: str) -> str:
@@ -47,21 +77,21 @@ def find_page(pages: list[str], candidates: list[str]) -> int | None:
 
 
 def main() -> None:
-    items = requests.get(API, timeout=30).json()["standards"]
+    url, key = load_env()
     result: dict[str, dict[str, int]] = {}
     missing = 0
 
-    for std in items:
-        law_id = std["law_id"]
-        pdf = PDFS.get(law_id)
-        if not pdf or not pdf.exists():
+    for law_id, pdf in PDFS.items():
+        if not pdf.exists():
             print(f"!! PDF missing for {law_id}", file=sys.stderr)
             continue
         pages = page_texts(pdf)
         result[law_id] = {}
-        for it in std["items"]:
-            ano, title = it["article_no"], it["title"]
-            key = f"{ano}||{title}"
+        rows = fetch_articles(url, key, law_id)
+        for r in rows:
+            ano = clean_label(r.get("article_no") or "")
+            title = clean_label(r.get("title") or "")
+            key_ = f"{ano}||{title}"
             n_ano, n_title = norm(ano), norm(title)
             candidates = [
                 n_ano + n_title,
@@ -73,10 +103,9 @@ def main() -> None:
             page = find_page(pages, candidates)
             if page is None:
                 missing += 1
-                print(f"  ?? no page: {law_id} {ano} {title[:30]}", file=sys.stderr)
             else:
-                result[law_id][key] = page
-        print(f"{law_id}: {len(result[law_id])}/{len(std['items'])} mapped")
+                result[law_id][key_] = page
+        print(f"{law_id}: {len(result[law_id])}/{len(rows)} mapped")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(result, ensure_ascii=False, indent=1))

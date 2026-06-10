@@ -76,8 +76,8 @@ export function MarineInlineBody({ searchQuery, selectedIds }: MarineInlineBodyP
         <div className="flex items-start gap-2 border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/20 rounded-lg p-3">
           <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-            잠정기준(조)과 지침(장·절)은 조문 체계가 달라 1:1로 정렬되지 않습니다.
-            두 기준의 본문을 주제별로 나란히 펼쳐 비교하는 방식입니다.
+            기준마다 조문 체계(조 / 장·절)가 달라 1:1로 정렬되지 않습니다.
+            각 기준의 본문을 주제별로 나란히 펼쳐 비교하는 방식입니다.
           </p>
         </div>
       )}

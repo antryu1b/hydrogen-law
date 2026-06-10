@@ -118,7 +118,7 @@ function KgsComparePage() {
         <h1 className="text-2xl font-bold">기술기준 본문 비교</h1>
         <p className="text-sm text-muted-foreground mt-1">
           {domain === 'marine'
-            ? '선박 기술기준 두 표준(해수부 잠정기준 · 한국선급 지침)의 본문을 주제별로 대조합니다.'
+            ? '선박 기술기준(해수부 잠정기준 · 한국선급 GC-12-K 지침 · 저인화점연료선박 규칙)의 본문을 주제별로 대조합니다.'
             : 'KGS CODE(가스·수소)를 분야별로 골라 본문을 나란히 비교합니다. 최대 5개 (View C는 2개 고정)'}
         </p>
       </div>
@@ -128,7 +128,6 @@ function KgsComparePage() {
         {([
           { id: 'kgs' as Domain, label: 'KGS CODE', disabled: false },
           { id: 'marine' as Domain, label: '⚓ 선박 기술기준', disabled: false },
-          { id: 'air' as Domain, label: '✈ 항공 (예정)', disabled: true },
         ]).map((tab) => (
           <button
             key={tab.id}

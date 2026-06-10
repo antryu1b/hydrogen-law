@@ -10,6 +10,7 @@ const STANDARD_META: Record<
 > = {
   'MOFFC-2024': { agency: '해양수산부', pdfCode: 'MOFFC', accent: 'left' },
   'GC12K-2024': { agency: '한국선급 (KR)', pdfCode: 'GC12K', accent: 'right' },
+  'KRLFP-2026': { agency: '한국선급 (KR)', pdfCode: 'KRLFP', accent: 'right' },
 };
 
 export interface MarineItem {
@@ -238,8 +239,8 @@ export function MarineCompare() {
       <div className="flex items-start gap-2 border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/20 rounded-lg p-3">
         <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-          잠정기준(조)과 지침(장·절)은 조문 체계가 달라 1:1로 정렬되지 않습니다.
-          같은 줄에 놓인 조문이 서로 대응한다는 뜻이 아니라, 두 기준의 본문을
+          기준마다 조문 체계(조 / 장·절)가 달라 1:1로 정렬되지 않습니다.
+          같은 줄에 놓인 조문이 서로 대응한다는 뜻이 아니라, 각 기준의 본문을
           주제별로 나란히 펼쳐 비교하는 방식입니다.
         </p>
       </div>
