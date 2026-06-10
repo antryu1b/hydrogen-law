@@ -9,6 +9,7 @@ import type { CanonicalTocData, CanonicalFamily, ViewMode } from '@/components/k
 import { ViewA } from '@/components/kgs-compare/ViewA';
 import { ViewB } from '@/components/kgs-compare/ViewB';
 import { ViewC } from '@/components/kgs-compare/ViewC';
+import { MarineCompare } from '@/components/marine-compare/MarineCompare';
 
 // Code metadata from existing data
 const ALL_CODES = kgsCodesData.codes.map((c) => ({
@@ -17,7 +18,8 @@ const ALL_CODES = kgsCodesData.codes.map((c) => ({
   category: c.category,
 }));
 
-const MARINE_FILTER = '__marine__'; // 선박 기술기준 전용 필터 (가스 KGS 패밀리와 분리)
+// 최상위 분야(domain) — KGS CODE(가스·수소) / 선박 / 항공(예정)
+type Domain = 'kgs' | 'marine' | 'air';
 
 function getFamilyLabel(familyId: string) {
   if (familyId === 'A') return 'A 제조';
@@ -30,8 +32,9 @@ function KgsComparePage() {
   const searchParams = useSearchParams();
 
   // State
+  const [domain, setDomain] = useState<Domain>('kgs'); // 최상위 분야 탭
   const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
-  const [activeFamilyFilter, setActiveFamilyFilter] = useState<string | null>(null); // null = all
+  const [activeFamilyFilter, setActiveFamilyFilter] = useState<string | null>(null); // null = all (KGS 패밀리 2차 필터)
   const [viewMode, setViewMode] = useState<ViewMode>('A');
   const [tocData, setTocData] = useState<CanonicalTocData | null>(null);
   const [tocLoading, setTocLoading] = useState(true);
@@ -68,13 +71,11 @@ function KgsComparePage() {
   const selectedFamilies = [...new Set(selectedCodes.map((c) => CODE_TO_FAMILY[c]).filter(Boolean))];
   const isCrossFamily = selectedFamilies.length > 1;
 
-  // Filter codes for picker — 선박은 별도 필터, 전체(KGS)는 선박 제외
-  const codesForPicker =
-    activeFamilyFilter === MARINE_FILTER
-      ? ALL_CODES.filter((c) => c.category === '선박')
-      : activeFamilyFilter
-      ? ALL_CODES.filter((c) => CODE_TO_FAMILY[c.code] === activeFamilyFilter)
-      : ALL_CODES.filter((c) => c.category !== '선박');
+  // Filter codes for picker — KGS 도메인 한정. 선택된 패밀리가 있으면 그 패밀리,
+  // 없으면(전체) 선박을 제외한 모든 가스·수소 코드.
+  const codesForPicker = activeFamilyFilter
+    ? ALL_CODES.filter((c) => CODE_TO_FAMILY[c.code] === activeFamilyFilter)
+    : ALL_CODES.filter((c) => c.category !== '선박');
 
   // Toggle code selection
   function toggleCode(code: string) {
@@ -111,16 +112,46 @@ function KgsComparePage() {
       <div>
         <h1 className="text-2xl font-bold">기술기준 본문 비교</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          KGS CODE(가스·수소)와 선박 기술기준을 분야별로 골라 본문을 나란히 비교합니다. 최대 5개 (View C는 2개 고정)
+          {domain === 'marine'
+            ? '선박 기술기준 두 표준(해수부 잠정기준 · 한국선급 지침)의 본문을 주제별로 대조합니다.'
+            : 'KGS CODE(가스·수소)를 분야별로 골라 본문을 나란히 비교합니다. 최대 5개 (View C는 2개 고정)'}
         </p>
       </div>
 
-      {/* Family filter tabs */}
+      {/* 1차 행 — 최상위 분야(domain) 탭 */}
+      <div className="flex gap-1 border-b overflow-x-auto">
+        {([
+          { id: 'kgs' as Domain, label: 'KGS CODE', disabled: false },
+          { id: 'marine' as Domain, label: '⚓ 선박 기술기준', disabled: false },
+          { id: 'air' as Domain, label: '✈ 항공 (예정)', disabled: true },
+        ]).map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => !tab.disabled && setDomain(tab.id)}
+            disabled={tab.disabled}
+            className={[
+              'px-4 py-2 text-sm font-semibold border-b-2 transition-colors -mb-px whitespace-nowrap flex-shrink-0',
+              tab.disabled
+                ? 'border-transparent text-muted-foreground/40 cursor-not-allowed'
+                : domain === tab.id
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground',
+            ].join(' ')}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {domain === 'marine' ? (
+        <MarineCompare />
+      ) : (
+      <>
+      {/* 2차 행 — KGS 패밀리 서브 필터 (domain === 'kgs' 일 때만) */}
       <div className="flex gap-1 border-b overflow-x-auto">
         {[
-          { id: null as string | null, label: 'KGS 전체 (가스·수소)' },
+          { id: null as string | null, label: '전체 (가스·수소)' },
           ...KGS_FAMILIES.map((f) => ({ id: f.id as string | null, label: `${f.id} ${f.shortLabel}` })),
-          { id: MARINE_FILTER as string | null, label: '⚓ 선박 기술기준' },
         ].map((tab) => (
           <button
             key={tab.id ?? 'all'}
@@ -276,6 +307,8 @@ function KgsComparePage() {
             />
           )}
         </div>
+      )}
+      </>
       )}
     </div>
   );
