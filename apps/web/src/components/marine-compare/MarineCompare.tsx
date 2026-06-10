@@ -16,6 +16,8 @@ export interface MarineItem {
   article_no: string;
   title: string;
   content: string;
+  // 원문 PDF에서 이 조문이 시작하는 페이지
+  page?: number;
 }
 
 export interface MarineStandard {
@@ -56,8 +58,14 @@ function highlight(text: string, q: string, keywords?: string[]): React.ReactNod
   );
 }
 
-function pdfHref(pdfCode: string): string {
-  return `/api/kgs/page-image?code=${pdfCode}&page=1`;
+// 특정 페이지 이미지 (조문별 "원문 p.N" 링크)
+function pdfPageHref(pdfCode: string, page: number): string {
+  return `/api/kgs/page-image?code=${pdfCode}&page=${page}`;
+}
+
+// 원문 PDF 전체 (브라우저 네이티브 뷰어 — 모든 페이지)
+function pdfFullHref(pdfCode: string): string {
+  return `/api/marine-pdf?code=${pdfCode}`;
 }
 
 export function StandardColumn({
@@ -96,12 +104,12 @@ export function StandardColumn({
           </div>
           {meta.pdfCode && (
             <a
-              href={pdfHref(meta.pdfCode)}
+              href={pdfFullHref(meta.pdfCode)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-400 hover:underline whitespace-nowrap flex-shrink-0 mt-0.5"
             >
-              원본 PDF
+              원문 전체 보기
               <ExternalLink className="w-3 h-3" />
             </a>
           )}
@@ -134,6 +142,18 @@ export function StandardColumn({
                   <span className="text-sm font-semibold leading-snug">
                     {highlight(item.title, q, keywords)}
                   </span>
+                )}
+                {item.page && meta.pdfCode && (
+                  <a
+                    href={pdfPageHref(meta.pdfCode, item.page)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-auto flex items-center gap-0.5 text-[11px] text-amber-700/90 dark:text-amber-400/90 hover:underline whitespace-nowrap"
+                    title={`원문 PDF ${item.page}페이지 보기`}
+                  >
+                    원문 p.{item.page}
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
                 )}
               </div>
               {item.content && (

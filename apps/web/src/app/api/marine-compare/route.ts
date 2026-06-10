@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import marinePageMap from '@/data/marine-page-map.json';
 
 /**
  * GET /api/marine-compare?q=<keyword>
@@ -34,7 +35,12 @@ interface MarineItem {
   article_no: string;
   title: string;
   content: string;
+  // 원문 PDF에서 이 조문이 시작하는 페이지 (build-marine-page-map.py 산출)
+  page?: number;
 }
+
+// law_id -> ("article_no||title" -> page)
+const PAGE_MAP = marinePageMap as Record<string, Record<string, number>>;
 
 interface MarineStandard {
   law_id: string;
@@ -138,11 +144,16 @@ export async function GET(request: Request) {
     const standards: MarineStandard[] = STANDARDS.map((std) => {
       const ownRows = rows.filter((r) => r.law_id === std.law_id);
 
-      const items: MarineItem[] = ownRows.map((r) => ({
-        article_no: cleanLabel(r.article_no || ''),
-        title: cleanLabel(r.title || ''),
-        content: makeSnippet(r.content || '', keywords),
-      }));
+      const items: MarineItem[] = ownRows.map((r) => {
+        const articleNo = cleanLabel(r.article_no || '');
+        const title = cleanLabel(r.title || '');
+        return {
+          article_no: articleNo,
+          title,
+          content: makeSnippet(r.content || '', keywords),
+          page: PAGE_MAP[std.law_id]?.[`${articleNo}||${title}`],
+        };
+      });
 
       // MOFFC: 조 번호 오름차순. GC12K: DB 등장 순서(=장·절 순서) 유지.
       if (std.law_id === 'MOFFC-2024') {
