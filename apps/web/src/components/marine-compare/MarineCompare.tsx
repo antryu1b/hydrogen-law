@@ -64,6 +64,17 @@ function pdfPageHref(pdfCode: string, page: number): string {
   return `/api/kgs/page-image?code=${pdfCode}&page=${page}`;
 }
 
+// 장·절 라벨 분해 — "제 1 편 … 제 2 장 … 제 1 절 일반사항"처럼 긴 라벨은
+// 마지막 "제 N 절"을 기준으로 상위 맥락(편·장)과 절 제목으로 나눠
+// 모든 항목이 같은 2단 구조(맥락 줄 + 제목 줄)로 보이게 한다.
+function splitArticleLabel(articleNo: string): { context: string | null; main: string } {
+  const m = articleNo.match(/^(.*)(제\s?\d+\s?절\s*\S[^]*)$/);
+  if (m && m[1].trim().length > 0) {
+    return { context: m[1].trim(), main: m[2].trim() };
+  }
+  return { context: null, main: articleNo };
+}
+
 // 원문 PDF 전체 (브라우저 네이티브 뷰어 — 모든 페이지)
 function pdfFullHref(pdfCode: string): string {
   return `/api/marine-pdf?code=${pdfCode}`;
@@ -133,32 +144,46 @@ export function StandardColumn({
               key={`${item.article_no}-${i}`}
               className="border rounded-md p-3 hover:border-amber-300 dark:hover:border-amber-700/60 transition-colors"
             >
-              <div className="flex items-baseline gap-2 flex-wrap min-w-0">
-                {item.article_no && (
-                  <span className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400 break-words min-w-0">
-                    {item.article_no}
-                  </span>
-                )}
-                {item.title &&
+              {(() => {
+                const { context, main } = splitArticleLabel(item.article_no || '');
+                const showTitle =
+                  item.title &&
                   // 장·절 구조 표준은 article_no에 제목이 이미 포함됨 — 중복 표기 방지
-                  !item.article_no.replace(/\s+/g, '').includes(item.title.replace(/\s+/g, '')) && (
-                  <span className="text-sm font-semibold leading-snug min-w-0 break-words">
-                    {highlight(item.title, q, keywords)}
-                  </span>
-                )}
-                {item.page && meta.pdfCode && (
-                  <a
-                    href={pdfPageHref(meta.pdfCode, item.page)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-auto flex items-center gap-0.5 text-[11px] text-amber-700/90 dark:text-amber-400/90 hover:underline whitespace-nowrap"
-                    title={`원문 PDF ${item.page}페이지 보기`}
-                  >
-                    원문 p.{item.page}
-                    <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
-                )}
-              </div>
+                  !item.article_no.replace(/\s+/g, '').includes(item.title.replace(/\s+/g, ''));
+                return (
+                  <div className="min-w-0">
+                    {context && (
+                      <p className="text-[10px] text-muted-foreground mb-0.5 break-words leading-snug">
+                        {context}
+                      </p>
+                    )}
+                    <div className="flex items-baseline gap-2 flex-wrap min-w-0">
+                      {main && (
+                        <span className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400 break-words min-w-0">
+                          {main}
+                        </span>
+                      )}
+                      {showTitle && (
+                        <span className="text-sm font-semibold leading-snug min-w-0 break-words">
+                          {highlight(item.title, q, keywords)}
+                        </span>
+                      )}
+                      {item.page && meta.pdfCode && (
+                        <a
+                          href={pdfPageHref(meta.pdfCode, item.page)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-auto flex items-center gap-0.5 text-[11px] text-amber-700/90 dark:text-amber-400/90 hover:underline whitespace-nowrap"
+                          title={`원문 PDF ${item.page}페이지 보기`}
+                        >
+                          원문 p.{item.page}
+                          <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
               {item.content && (
                 <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed whitespace-pre-wrap break-words">
                   {highlight(item.content, q, keywords)}
