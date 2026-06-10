@@ -82,6 +82,15 @@ def parse_jang_jeol(text, law_name, law_type, law_id):
     while i < len(parts):
         header = re.sub(r'\s+', ' ', parts[i].strip())
         body = (parts[i+1] if i+1 < len(parts) else '').strip()
+        # TOC dot-leader lines ("제 16 장 제조 및 시험 ····· 27") are noise —
+        # never a real heading, never 장 context. Single '·' can be a legit
+        # middle dot in headings — only a RUN of dots marks a TOC line.
+        if '··' in header:
+            i += 2
+            continue
+        # pypdf sometimes glues the first sub-clause onto the heading line
+        # ("…비파괴검사301. 일반사항…") — cut at the NNN. marker.
+        header = re.split(r'\s*\d{3}\.', header)[0].strip()
         if '장' in header.split('절')[0][:8] and '절' not in header:
             cur_jang = header
         ano = f"{cur_jang} {header}".strip() if cur_jang and cur_jang != header else header
