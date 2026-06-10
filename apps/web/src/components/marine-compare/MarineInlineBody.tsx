@@ -83,7 +83,12 @@ export function MarineInlineBody({ searchQuery, selectedIds }: MarineInlineBodyP
       )}
       <div className="flex flex-col lg:flex-row gap-4 items-stretch">
         {standards.map((std) => (
-          <StandardColumn key={std.law_id} standard={std} q={data?.q ?? ''} />
+          <StandardColumn
+            key={std.law_id}
+            standard={std}
+            q={data?.q ?? ''}
+            keywords={data?.keywords}
+          />
         ))}
       </div>
     </div>

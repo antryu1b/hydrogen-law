@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BookOpen, Loader2, Wrench, Anchor } from 'lucide-react';
+import { BookOpen, Loader2, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { CODE_TO_FAMILY, KGS_FAMILIES } from '@/data/kgs-families-display';
 import { InlineBodyCompare } from '@/components/kgs-compare/InlineBodyCompare';
@@ -14,11 +14,13 @@ const MARINE_ISSUING_BODY: Record<string, string> = {
   MOFFC: '해양수산부 (해수부)',
 };
 
-// 추천 코드(MOFFC/GC12K) → Supabase law_id (인라인 본문 조회용)
-const MARINE_LAW_ID: Record<string, string> = {
-  MOFFC: 'MOFFC-2024',
-  GC12K: 'GC12K-2024',
-};
+// 선박 표준은 고정 2종 — 추천(키워드 매칭) 결과와 무관하게 항상 노출한다.
+// 키워드는 본문 필터에만 쓰고, 박스 노출 여부엔 쓰지 않는다 ("등록신고" 같은
+// 미등록 키워드에서 박스 자체가 사라지는 문제 방지).
+const MARINE_STANDARDS = [
+  { code: 'MOFFC', law_id: 'MOFFC-2024', name: '선박수소연료전지설비 잠정기준' },
+  { code: 'GC12K', law_id: 'GC12K-2024', name: '선박용 연료전지 시스템 지침 (GC-12-K)' },
+];
 
 interface KGSComparisonProps {
   searchQuery: string;
@@ -36,8 +38,10 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
     matchedKeywords: string[];
   }>>([]);
   const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
-  // 선박 표준 선택 (law_id) — 1개=단독 본문, 2개=나란히 비교
-  const [selectedMarine, setSelectedMarine] = useState<string[]>([]);
+  // 선박 표준 선택 (law_id) — 기본 둘 다 선택(비교), 하나만 남기면 단독 본문
+  const [selectedMarine, setSelectedMarine] = useState<string[]>(
+    MARINE_STANDARDS.map((s) => s.law_id)
+  );
   const [loading, setLoading] = useState(false);
 
   // 추천 CODE 가져오기
@@ -60,13 +64,6 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
           // 상위 3개 자동 선택
           const topCodes = data.recommended.slice(0, 3).map((r: { code: string }) => r.code);
           setSelectedCodes(topCodes);
-
-          // 선박 표준: 최상위 1개 자동 선택 (단독 본문 기본, 나머지 클릭 시 비교)
-          const topMarine = (data.recommended || []).find(
-            (r: { code: string; category: string }) =>
-              r.category === '선박' && MARINE_LAW_ID[r.code]
-          );
-          setSelectedMarine(topMarine ? [MARINE_LAW_ID[topMarine.code]] : []);
         }
       } catch (error) {
         console.error('Recommendation fetch error:', error);
@@ -96,7 +93,8 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
   const kgsCodes = recommendations.filter((r) => r.category !== '선박');
   const marineCodes = recommendations.filter((r) => r.category === '선박');
 
-  if (recommendations.length === 0 && !loading) {
+  // KGS 섹션만 추천 결과에 의존 — 선박 섹션은 표준 2종을 항상 노출
+  if (section === 'kgs' && recommendations.length === 0 && !loading) {
     return null;
   }
 
@@ -203,7 +201,7 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
       )}
 
       {/* ── 선박 기술기준 섹션 (KGS CODE 아님 — 발급기관 다름) ── */}
-      {section === 'marine' && marineCodes.length > 0 && (
+      {section === 'marine' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
@@ -218,13 +216,13 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
             </Link>
           </div>
           <div className="space-y-1.5">
-            {marineCodes.map((rec) => {
-              const issuingBody = MARINE_ISSUING_BODY[rec.code];
-              const lawId = MARINE_LAW_ID[rec.code];
-              const isSelected = lawId ? selectedMarine.includes(lawId) : false;
+            {MARINE_STANDARDS.map((std) => {
+              const rec = marineCodes.find((r) => r.code === std.code);
+              const issuingBody = MARINE_ISSUING_BODY[std.code];
+              const isSelected = selectedMarine.includes(std.law_id);
               return (
                 <label
-                  key={rec.code}
+                  key={std.code}
                   className={`w-full text-left flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                     isSelected
                       ? 'border-amber-400 dark:border-amber-600 bg-amber-100/60 dark:bg-amber-950/25'
@@ -234,26 +232,22 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => lawId && toggleMarine(lawId)}
-                    disabled={!lawId}
+                    onChange={() => toggleMarine(std.law_id)}
                     className="mt-0.5 accent-amber-600"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono font-semibold text-amber-700 dark:text-amber-400 text-sm">
-                        {rec.code}
+                        {std.code}
                       </span>
                       {issuingBody && (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-300 text-amber-700 dark:text-amber-400">
                           발급: {issuingBody}
                         </Badge>
                       )}
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                        {rec.subcategory}
-                      </Badge>
                     </div>
-                    <p className="text-sm text-foreground/80 mt-1">{rec.name}</p>
-                    {rec.matchedKeywords.length > 0 && (
+                    <p className="text-sm text-foreground/80 mt-1">{std.name}</p>
+                    {rec && rec.matchedKeywords.length > 0 && (
                       <div className="flex gap-1 mt-1.5 flex-wrap">
                         {rec.matchedKeywords.map((kw: string) => (
                           <span
@@ -277,13 +271,6 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
         </div>
       )}
 
-      {/* 선박 탭인데 관련 선박 기술기준이 없을 때 */}
-      {section === 'marine' && marineCodes.length === 0 && !loading && (
-        <div className="text-center py-12 text-muted-foreground">
-          <Anchor className="w-9 h-9 mx-auto mb-3 opacity-30" strokeWidth={1.5} />
-          <p className="text-sm">관련 선박 기술기준이 없습니다.</p>
-        </div>
-      )}
     </div>
   );
 }

@@ -27,6 +27,8 @@ export interface MarineStandard {
 
 export interface MarineResponse {
   q: string;
+  // 실제 매칭에 쓰인 키워드 (복합어 fallback 시 q와 다를 수 있음, 예: 등록신고 → [등록, 신고])
+  keywords?: string[];
   standards: MarineStandard[];
 }
 
@@ -35,9 +37,10 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function highlight(text: string, q: string): React.ReactNode {
-  if (!q) return text;
-  const re = new RegExp(`(${escapeRegex(q)})`, 'gi');
+function highlight(text: string, q: string, keywords?: string[]): React.ReactNode {
+  const terms = (keywords && keywords.length > 0 ? keywords : [q]).filter(Boolean);
+  if (terms.length === 0) return text;
+  const re = new RegExp(`(${terms.map(escapeRegex).join('|')})`, 'gi');
   const parts = text.split(re);
   return parts.map((part, i) =>
     re.test(part) ? (
@@ -60,9 +63,11 @@ function pdfHref(pdfCode: string): string {
 export function StandardColumn({
   standard,
   q,
+  keywords,
 }: {
   standard: MarineStandard;
   q: string;
+  keywords?: string[];
 }) {
   const meta = STANDARD_META[standard.law_id] ?? {
     agency: '',
@@ -127,13 +132,13 @@ export function StandardColumn({
                 )}
                 {item.title && (
                   <span className="text-sm font-semibold leading-snug">
-                    {highlight(item.title, q)}
+                    {highlight(item.title, q, keywords)}
                   </span>
                 )}
               </div>
               {item.content && (
                 <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed whitespace-pre-wrap break-words">
-                  {highlight(item.content, q)}
+                  {highlight(item.content, q, keywords)}
                 </p>
               )}
             </div>
@@ -239,7 +244,7 @@ export function MarineCompare() {
           {/* 2-column layout: LEFT 잠정기준(MOFFC), RIGHT 지침(GC-12-K) */}
           <div className="flex flex-col lg:flex-row gap-4 items-stretch">
             {standards.map((std) => (
-              <StandardColumn key={std.law_id} standard={std} q={q} />
+              <StandardColumn key={std.law_id} standard={std} q={q} keywords={data?.keywords} />
             ))}
           </div>
           {standards.length > 0 && totalCount === 0 && q && (

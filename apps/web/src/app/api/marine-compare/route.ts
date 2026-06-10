@@ -57,11 +57,11 @@ function parseJoNumber(articleNo: string): number {
 
 // 키워드 기준 400자 스니펫. q 가 있으면 키워드 위치를 중심으로 윈도우를 잡고,
 // 없으면 앞에서 400자.
-function makeSnippet(content: string, q: string | null): string {
+function makeSnippet(content: string, keywords: string[]): string {
   const text = (content || '').replace(/[·]{3,}/g, ' ').replace(/\s+/g, ' ').trim();
   if (text.length <= SNIPPET_LEN) return text;
-  if (q) {
-    const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  for (const kw of keywords) {
+    const idx = text.toLowerCase().indexOf(kw.toLowerCase());
     if (idx >= 0) {
       const half = Math.floor(SNIPPET_LEN / 2);
       const end = Math.min(text.length, idx - half + SNIPPET_LEN);
@@ -91,18 +91,40 @@ export async function GET(request: Request) {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    let query = supabase
-      .from('law_articles')
-      .select('id, law_id, law_name, article_no, title, content')
-      .in('law_id', STANDARDS.map((s) => s.law_id));
+    // 토큰 목록으로 OR ilike 조회 (빈 목록이면 전체)
+    const fetchRows = async (tokens: string[]) => {
+      let query = supabase
+        .from('law_articles')
+        .select('id, law_id, law_name, article_no, title, content')
+        .in('law_id', STANDARDS.map((s) => s.law_id));
+      if (tokens.length > 0) {
+        query = query.or(
+          tokens
+            .map((t) => `content.ilike.%${t}%,title.ilike.%${t}%,law_name.ilike.%${t}%`)
+            .join(',')
+        );
+      }
+      return query.limit(500);
+    };
 
-    if (q) {
-      query = query.or(
-        `content.ilike.%${q}%,title.ilike.%${q}%,law_name.ilike.%${q}%`
+    const baseTokens = q ? q.split(/[\s,]+/).filter(Boolean) : [];
+    let keywords = baseTokens;
+    let { data, error } = await fetchRows(baseTokens);
+
+    // 복합어 fallback: "등록신고"처럼 통짜 매칭이 0건이면 4자 이상 토큰을
+    // 반으로 쪼개 재조회 (등록+신고). 법령 검색의 키워드 분해 동작과 정렬.
+    if (!error && q && (data || []).length === 0) {
+      const split = baseTokens.flatMap((t) =>
+        t.length >= 4
+          ? [t.slice(0, Math.ceil(t.length / 2)), t.slice(Math.ceil(t.length / 2))]
+          : [t]
       );
+      if (split.length > baseTokens.length) {
+        keywords = split;
+        ({ data, error } = await fetchRows(split));
+      }
     }
 
-    const { data, error } = await query.limit(500);
     if (error) {
       console.error('marine-compare supabase error:', error);
       return NextResponse.json(
@@ -119,7 +141,7 @@ export async function GET(request: Request) {
       const items: MarineItem[] = ownRows.map((r) => ({
         article_no: cleanLabel(r.article_no || ''),
         title: cleanLabel(r.title || ''),
-        content: makeSnippet(r.content || '', q || null),
+        content: makeSnippet(r.content || '', keywords),
       }));
 
       // MOFFC: 조 번호 오름차순. GC12K: DB 등장 순서(=장·절 순서) 유지.
@@ -137,7 +159,7 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json({ q, standards });
+    return NextResponse.json({ q, keywords, standards });
   } catch (e) {
     console.error('marine-compare error:', e);
     return NextResponse.json(
