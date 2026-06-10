@@ -93,7 +93,8 @@ export default function IntegratePage() {
   const articleCount = result?.total ?? 0;
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    // 본문비교 페이지와 동일 폭 (헤더 컨테이너 90rem)
+    <main className="max-w-[90rem] mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="mb-3 flex items-center gap-2">
         <span className="h-px w-6 bg-[hsl(var(--brass)/0.7)]" aria-hidden="true" />
         <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brass))]">
