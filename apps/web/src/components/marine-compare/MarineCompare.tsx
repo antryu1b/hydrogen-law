@@ -133,14 +133,16 @@ export function StandardColumn({
               key={`${item.article_no}-${i}`}
               className="border rounded-md p-3 hover:border-amber-300 dark:hover:border-amber-700/60 transition-colors"
             >
-              <div className="flex items-baseline gap-2 flex-wrap">
+              <div className="flex items-baseline gap-2 flex-wrap min-w-0">
                 {item.article_no && (
-                  <span className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400 whitespace-nowrap">
+                  <span className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400 break-words min-w-0">
                     {item.article_no}
                   </span>
                 )}
-                {item.title && (
-                  <span className="text-sm font-semibold leading-snug">
+                {item.title &&
+                  // 장·절 구조 표준은 article_no에 제목이 이미 포함됨 — 중복 표기 방지
+                  !item.article_no.replace(/\s+/g, '').includes(item.title.replace(/\s+/g, '')) && (
+                  <span className="text-sm font-semibold leading-snug min-w-0 break-words">
                     {highlight(item.title, q, keywords)}
                   </span>
                 )}
