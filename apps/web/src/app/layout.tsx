@@ -44,6 +44,12 @@ export default function RootLayout({
                   >
                     본문 비교
                   </Link>
+                  <Link
+                    href="/integrate"
+                    className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:block"
+                  >
+                    통합 요건(교차참조)
+                  </Link>
                   <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
                   <ThemeToggle />
                 </nav>
