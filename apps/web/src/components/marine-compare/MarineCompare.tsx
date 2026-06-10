@@ -146,10 +146,16 @@ export function StandardColumn({
             >
               {(() => {
                 const { context, main } = splitArticleLabel(item.article_no || '');
+                // 통일 구조: [앰버 번호(제N조/제N절/제N장)] + [검정 제목]
+                const nm = main.match(/^(제\s?\d+\s?[조절장](?:의\d+)?)\s*([^]*)$/);
+                const mainNo = nm ? nm[1] : main;
+                const inlineTitle = nm ? nm[2].trim() : '';
                 const showTitle =
+                  !inlineTitle &&
                   item.title &&
                   // 장·절 구조 표준은 article_no에 제목이 이미 포함됨 — 중복 표기 방지
                   !item.article_no.replace(/\s+/g, '').includes(item.title.replace(/\s+/g, ''));
+                const titleText = inlineTitle || (showTitle ? item.title : '');
                 return (
                   <div className="min-w-0">
                     {/* 장(상위) 줄 — 검정색, 절은 아래 들여쓰기 (의장 포맷 지시) */}
@@ -163,14 +169,14 @@ export function StandardColumn({
                         context ? 'pl-4 mt-0.5' : ''
                       }`}
                     >
-                      {main && (
+                      {mainNo && (
                         <span className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400 break-words min-w-0">
-                          {main}
+                          {mainNo}
                         </span>
                       )}
-                      {showTitle && (
+                      {titleText && (
                         <span className="text-sm font-semibold leading-snug min-w-0 break-words">
-                          {highlight(item.title, q, keywords)}
+                          {highlight(titleText, q, keywords)}
                         </span>
                       )}
                       {item.page && meta.pdfCode && (

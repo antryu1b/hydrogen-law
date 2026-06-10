@@ -112,7 +112,8 @@ function KgsComparePage() {
   const viewAFamilyId = activeFamilyFilter;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4">
+    {/* 헤더 컨테이너(90rem)와 동일 폭 */}
+    <div className="max-w-[90rem] mx-auto space-y-4">
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-bold">기술기준 본문 비교</h1>
