@@ -6,11 +6,18 @@ import { BookOpen, Loader2, Wrench, Anchor } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { CODE_TO_FAMILY, KGS_FAMILIES } from '@/data/kgs-families-display';
 import { InlineBodyCompare } from '@/components/kgs-compare/InlineBodyCompare';
+import { MarineInlineBody } from '@/components/marine-compare/MarineInlineBody';
 
 // Issuing-body labels for marine standards (NOT 한국가스안전공사)
 const MARINE_ISSUING_BODY: Record<string, string> = {
   GC12K: '한국선급 (KR)',
   MOFFC: '해양수산부 (해수부)',
+};
+
+// 추천 코드(MOFFC/GC12K) → Supabase law_id (인라인 본문 조회용)
+const MARINE_LAW_ID: Record<string, string> = {
+  MOFFC: 'MOFFC-2024',
+  GC12K: 'GC12K-2024',
 };
 
 interface KGSComparisonProps {
@@ -29,6 +36,8 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
     matchedKeywords: string[];
   }>>([]);
   const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
+  // 선박 표준 선택 (law_id) — 1개=단독 본문, 2개=나란히 비교
+  const [selectedMarine, setSelectedMarine] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   // 추천 CODE 가져오기
@@ -51,6 +60,13 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
           // 상위 3개 자동 선택
           const topCodes = data.recommended.slice(0, 3).map((r: { code: string }) => r.code);
           setSelectedCodes(topCodes);
+
+          // 선박 표준: 최상위 1개 자동 선택 (단독 본문 기본, 나머지 클릭 시 비교)
+          const topMarine = (data.recommended || []).find(
+            (r: { code: string; category: string }) =>
+              r.category === '선박' && MARINE_LAW_ID[r.code]
+          );
+          setSelectedMarine(topMarine ? [MARINE_LAW_ID[topMarine.code]] : []);
         }
       } catch (error) {
         console.error('Recommendation fetch error:', error);
@@ -67,6 +83,12 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
       prev.includes(code)
         ? prev.filter((c) => c !== code)
         : [...prev, code]
+    );
+  };
+
+  const toggleMarine = (lawId: string) => {
+    setSelectedMarine((prev) =>
+      prev.includes(lawId) ? prev.filter((id) => id !== lawId) : [...prev, lawId]
     );
   };
 
@@ -183,15 +205,39 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
       {/* ── 선박 기술기준 섹션 (KGS CODE 아님 — 발급기관 다름) ── */}
       {section === 'marine' && marineCodes.length > 0 && (
         <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              표준을 선택하세요 — 1개는 단독 본문, 2개를 선택하면 나란히 비교됩니다
+            </p>
+            <Link
+              href="/kgs-compare?domain=marine"
+              className="text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline inline-flex items-center gap-1 flex-shrink-0"
+            >
+              <BookOpen className="w-3 h-3" />
+              전체 본문 비교 페이지 →
+            </Link>
+          </div>
           <div className="space-y-1.5">
             {marineCodes.map((rec) => {
               const issuingBody = MARINE_ISSUING_BODY[rec.code];
+              const lawId = MARINE_LAW_ID[rec.code];
+              const isSelected = lawId ? selectedMarine.includes(lawId) : false;
               return (
-                <Link
+                <label
                   key={rec.code}
-                  href="/kgs-compare?domain=marine"
-                  className="w-full text-left flex items-start gap-3 p-3 border border-amber-200/60 dark:border-amber-800/40 rounded-lg bg-amber-50/40 dark:bg-amber-950/10 hover:bg-amber-100/60 dark:hover:bg-amber-950/20 hover:border-amber-300 transition-colors"
+                  className={`w-full text-left flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'border-amber-400 dark:border-amber-600 bg-amber-100/60 dark:bg-amber-950/25'
+                      : 'border-amber-200/60 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/10 hover:bg-amber-100/60 dark:hover:bg-amber-950/20 hover:border-amber-300'
+                  }`}
                 >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => lawId && toggleMarine(lawId)}
+                    disabled={!lawId}
+                    className="mt-0.5 accent-amber-600"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono font-semibold text-amber-700 dark:text-amber-400 text-sm">
@@ -219,15 +265,15 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
                         ))}
                       </div>
                     )}
-                    <p className="mt-1.5 text-[11px] text-amber-700/80 dark:text-amber-400/80 inline-flex items-center gap-1">
-                      <BookOpen className="w-3 h-3" /> 기준 본문 보기 →
-                    </p>
                   </div>
                   <BookOpen className="w-4 h-4 text-amber-600/70 shrink-0 mt-0.5" />
-                </Link>
+                </label>
               );
             })}
           </div>
+
+          {/* 인라인 본문 — 선택한 표준의 키워드 매칭 조문 (KGS 인라인 비교와 동일 UX) */}
+          <MarineInlineBody searchQuery={searchQuery} selectedIds={selectedMarine} />
         </div>
       )}
 

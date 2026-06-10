@@ -12,20 +12,20 @@ const STANDARD_META: Record<
   'GC12K-2024': { agency: '한국선급 (KR)', pdfCode: 'GC12K', accent: 'right' },
 };
 
-interface MarineItem {
+export interface MarineItem {
   article_no: string;
   title: string;
   content: string;
 }
 
-interface MarineStandard {
+export interface MarineStandard {
   law_id: string;
   law_name: string;
   count: number;
   items: MarineItem[];
 }
 
-interface MarineResponse {
+export interface MarineResponse {
   q: string;
   standards: MarineStandard[];
 }
@@ -57,7 +57,7 @@ function pdfHref(pdfCode: string): string {
   return `/api/kgs/page-image?code=${pdfCode}&page=1`;
 }
 
-function StandardColumn({
+export function StandardColumn({
   standard,
   q,
 }: {
