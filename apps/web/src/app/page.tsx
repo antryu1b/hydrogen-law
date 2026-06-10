@@ -918,7 +918,6 @@ export default function HomePage() {
             <KGSComparison
               searchQuery={selectedLawFilter || submittedQuery}
               section="marine"
-              onOpenStandard={(term) => { setActiveTab('law'); handleSelectSuggestion(term); }}
             />
           )}
 

@@ -39,6 +39,11 @@ function KgsComparePage() {
   const [tocData, setTocData] = useState<CanonicalTocData | null>(null);
   const [tocLoading, setTocLoading] = useState(true);
 
+  // Open a specific domain tab from URL (?domain=marine)
+  useEffect(() => {
+    if (searchParams.get('domain') === 'marine') setDomain('marine');
+  }, [searchParams]);
+
   // Preselect codes from URL query params (?codes=FP217,FP216,FU212)
   useEffect(() => {
     const codesParam = searchParams.get('codes');
