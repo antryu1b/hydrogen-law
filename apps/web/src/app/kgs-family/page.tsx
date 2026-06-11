@@ -9,9 +9,9 @@ export default function KGSFamilyPage() {
         <span className="h-px w-6 bg-[hsl(var(--brass)/0.7)]" aria-hidden="true" />
         <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brass))]">기술기준 분류</span>
       </div>
-      <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-2">KGS CODE 20개, 한눈에 보는 분류</h1>
+      <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-2">수소 안전 기술기준, 한눈에 보는 분류</h1>
       <p className="text-muted-foreground mb-8 leading-relaxed">
-        수소·가스 안전 기술기준 20개를 목차 구조로 묶으면 3가지 그룹이 됩니다. 같은 그룹 안의 다른 코드를 나란히 비교하면 기준 차이만 빠르게 확인할 수 있습니다.
+        육상 수소·가스 안전 기술기준(KGS CODE 20개)은 목차 구조로 묶으면 3가지 그룹이 되고, 선박·해양(항만) 분야는 별도 기준이 적용됩니다. 같은 그룹 안의 코드를 나란히 비교하면 기준 차이만 빠르게 확인할 수 있습니다.
       </p>
 
       {KGS_FAMILIES.map((family) => (
