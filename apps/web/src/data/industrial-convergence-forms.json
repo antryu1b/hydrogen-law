@@ -1,0 +1,268 @@
+{
+  "source": "국가법령정보센터 (law.go.kr)",
+  "fetchedAt": "2026-06-11T02:29:08.419Z",
+  "laws": [
+    {
+      "key": "enforcementDecree",
+      "lawName": "산업융합 촉진법 시행령",
+      "mst": "286329",
+      "forms": [
+        {
+          "number": "0001",
+          "branchNumber": "00",
+          "kind": "별표",
+          "title": "보험 또는 공제의 가입 대상 법률(제19조 관련)",
+          "hwpFileName": "law0114752026052636346KC_000100E.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476523"
+        },
+        {
+          "number": "0002",
+          "branchNumber": "00",
+          "kind": "별표",
+          "title": "삭제 &lt;2020. 5. 12.&gt;",
+          "hwpFileName": "law0114752026052636346KC_000200E.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476529"
+        },
+        {
+          "number": "0003",
+          "branchNumber": "00",
+          "kind": "별표",
+          "title": "권한의 위임 대상 기관(제38조제2항 관련)",
+          "hwpFileName": "law0114752026052636346KC_000300E.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476535"
+        },
+        {
+          "number": "0004",
+          "branchNumber": "00",
+          "kind": "별표",
+          "title": "권한의 위임 대상 기관(제38조제3항 관련)",
+          "hwpFileName": "law0114752026052636346KC_000400E.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476541"
+        },
+        {
+          "number": "0005",
+          "branchNumber": "00",
+          "kind": "별표",
+          "title": "업무의 위탁 대상 기관(제38조제4항 관련)",
+          "hwpFileName": "law0114752026052636346KC_000500E.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476547"
+        },
+        {
+          "number": "0006",
+          "branchNumber": "00",
+          "kind": "별표",
+          "title": "과태료의 부과기준(제39조 관련)",
+          "hwpFileName": "law0114752026052636346KC_000600E.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476555"
+        },
+        {
+          "number": "0001",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "규제 신속확인 신청서",
+          "hwpFileName": "law0114752026052636346KC_000100F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476565"
+        },
+        {
+          "number": "0002",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "규제 신속확인 결과 통지서",
+          "hwpFileName": "law0114752026052636346KC_000200F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476573"
+        },
+        {
+          "number": "0003",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "실증을 위한 규제특례 신청서",
+          "hwpFileName": "law0114752026052636346KC_000300F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476579"
+        },
+        {
+          "number": "0004",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "책임보험 가입 불가 사유서",
+          "hwpFileName": "law0114752026052636346KC_000400F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476587"
+        },
+        {
+          "number": "0005",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "실증을 위한 규제특례 (연장) 확인서",
+          "hwpFileName": "law0114752026052636346KC_000500F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476593"
+        },
+        {
+          "number": "0005",
+          "branchNumber": "02",
+          "kind": "서식",
+          "title": "실증을 위한 규제특례 변경ㆍ취소 신청서",
+          "hwpFileName": "law0114752026052636346KC_000502F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476599"
+        },
+        {
+          "number": "0006",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "실증을 위한 규제특례 유효기간 연장 신청서",
+          "hwpFileName": "law0114752026052636346KC_000600F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476607"
+        },
+        {
+          "number": "0006",
+          "branchNumber": "02",
+          "kind": "서식",
+          "title": "법령정비 요청서",
+          "hwpFileName": "law0114752026052636346KC_000602F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476615"
+        },
+        {
+          "number": "0006",
+          "branchNumber": "03",
+          "kind": "서식",
+          "title": "법령정비 판단결과 통지서",
+          "hwpFileName": "law0114752026052636346KC_000603F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476621"
+        },
+        {
+          "number": "0007",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "임시허가 신청서",
+          "hwpFileName": "law0114752026052636346KC_000700F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476627"
+        },
+        {
+          "number": "0008",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "임시허가(연장)서",
+          "hwpFileName": "law0114752026052636346KC_000800F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476635"
+        },
+        {
+          "number": "0009",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "임시허가 유효기간 연장 신청서",
+          "hwpFileName": "law0114752026052636346KC_000900F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476641"
+        },
+        {
+          "number": "0009",
+          "branchNumber": "02",
+          "kind": "서식",
+          "title": "임시허가 변경ㆍ취소 신청서",
+          "hwpFileName": "law0114752026052636346KC_000902F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476649"
+        },
+        {
+          "number": "0010",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 신제품 적합성 인증 신청서",
+          "hwpFileName": "law0114752026052636346KC_001000F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476657"
+        },
+        {
+          "number": "0011",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 신제품 적합성 인증 심사 대상 여부 통지서",
+          "hwpFileName": "law0114752026052636346KC_001100F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476665"
+        },
+        {
+          "number": "0012",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 신제품 적합성 인증 결과 통보서",
+          "hwpFileName": "law0114752026052636346KC_001200F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476671"
+        },
+        {
+          "number": "0013",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 신제품 적합성 인증서",
+          "hwpFileName": "law0114752026052636346KC_001300F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476677"
+        },
+        {
+          "number": "0014",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 신제품 적합성 인증 결과 이의신청서",
+          "hwpFileName": "law0114752026052636346KC_001400F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476683"
+        },
+        {
+          "number": "0015",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 촉진을 위한 지식재산권 업무 수행 기관·단체 지정신청서",
+          "hwpFileName": "law0114752026052636346KC_001500F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476689"
+        },
+        {
+          "number": "0016",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 촉진을 위한 지식재산권 업무 수행 기관ㆍ단체 지정서",
+          "hwpFileName": "law0114752026052636346KC_001600F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476695"
+        },
+        {
+          "number": "0017",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 선도기업 선정신청서",
+          "hwpFileName": "law0114752026052636346KC_001700F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476701"
+        },
+        {
+          "number": "0018",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 선도기업 선정서",
+          "hwpFileName": "law0114752026052636346KC_001800F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476707"
+        },
+        {
+          "number": "0019",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합 특성화대학등 지정 신청서",
+          "hwpFileName": "law0114752026052636346KC_001900F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=164476713"
+        }
+      ]
+    },
+    {
+      "key": "enforcementRule",
+      "lawName": "산업융합 촉진법 시행규칙",
+      "mst": "278729",
+      "forms": [
+        {
+          "number": "0001",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합지원센터 지정신청서",
+          "hwpFileName": "law0114782025100100001KC_000100F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=156789701"
+        },
+        {
+          "number": "0002",
+          "branchNumber": "00",
+          "kind": "서식",
+          "title": "산업융합지원센터 지정서",
+          "hwpFileName": "law0114782025100100001KC_000200F.hwp",
+          "downloadUrl": "https://www.law.go.kr/LSW/flDownload.do?flSeq=156789707"
+        }
+      ]
+    }
+  ]
+}
