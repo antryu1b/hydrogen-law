@@ -4,7 +4,7 @@ import { KGS_FAMILIES } from '@/data/kgs-families-display';
 
 export default function KGSFamilyPage() {
   return (
-    <main style={{ maxWidth: '90rem' }} className="mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="mb-3 flex items-center gap-2">
         <span className="h-px w-6 bg-[hsl(var(--brass)/0.7)]" aria-hidden="true" />
         <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brass))]">기술기준 분류</span>

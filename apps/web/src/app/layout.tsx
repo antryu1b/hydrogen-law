@@ -33,12 +33,6 @@ export default function RootLayout({
                 <BrandLink />
                 <nav className="flex items-center gap-1 sm:gap-2">
                   <Link
-                    href="/kgs-family"
-                    className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:block"
-                  >
-                    기술기준 분류
-                  </Link>
-                  <Link
                     href="/kgs-compare"
                     className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:block"
                   >
@@ -49,6 +43,12 @@ export default function RootLayout({
                     className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:block"
                   >
                     통합 요건(교차참조)
+                  </Link>
+                  <Link
+                    href="/kgs-family"
+                    className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:block"
+                  >
+                    기술기준 분류
                   </Link>
                   <Link
                     href="/forms/industrial-convergence"
