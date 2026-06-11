@@ -34,8 +34,16 @@ function sleep(ms) {
 
 function decode(raw) {
   if (raw == null) return '';
-  // CDATA 제거 후 트림
-  return raw.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '').trim();
+  // CDATA 제거 + HTML 엔티티 복원 후 트림
+  return raw
+    .replace(/<!\[CDATA\[/g, '')
+    .replace(/\]\]>/g, '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .trim();
 }
 
 function pick(block, tag) {
