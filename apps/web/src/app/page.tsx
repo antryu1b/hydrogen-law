@@ -367,9 +367,6 @@ export default function HomePage() {
           <h1 className="font-display mb-3 text-[2.1rem] font-bold leading-[1.12] tracking-tight text-foreground md:text-[2.75rem] rise-in" style={{ animationDelay: '90ms' }}>
             수소·고압가스 법령 검색
           </h1>
-          <p className="mx-auto max-w-xl text-[15px] leading-relaxed text-muted-foreground rise-in" style={{ animationDelay: '140ms' }}>
-            관련 법령과 KGS CODE 기술기준을 한 번에. 국가법령정보센터 기반의 정확한 1차 검색.
-          </p>
         </div>
 
         {/* 검색창 */}
