@@ -4,7 +4,7 @@ import { KGS_FAMILIES } from '@/data/kgs-families-display';
 
 export default function KGSFamilyPage() {
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <main className="max-w-[90rem] mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="mb-3 flex items-center gap-2">
         <span className="h-px w-6 bg-[hsl(var(--brass)/0.7)]" aria-hidden="true" />
         <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brass))]">기술기준 분류</span>
@@ -44,6 +44,37 @@ export default function KGSFamilyPage() {
           </ul>
         </section>
       ))}
+
+      <section
+        id="family-marine"
+        className="mb-10 rounded-lg border border-border/70 bg-card p-5 shadow-[0_1px_2px_-1px_hsl(var(--primary)/0.10),0_4px_16px_-10px_hsl(var(--primary)/0.10)] sm:p-6"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <span className="h-px w-6 bg-[hsl(var(--brass)/0.7)]" aria-hidden="true" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brass))]">선박·해양(항만) 기술기준</span>
+        </div>
+        <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight mb-2">🚢 수소 선박·해양 기술기준</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          선박안전법·한국선급 기반의 수소 선박·해양 기술기준입니다. KGS CODE(육상)와 별개로 선박·항만 분야에 적용됩니다.
+        </p>
+        <ul className="space-y-2 text-sm mb-4">
+          <li className="flex gap-3">
+            <span className="font-mono font-bold text-primary min-w-[88px]">잠정기준</span>
+            <span>선박수소연료전지설비 잠정기준 — 해양수산부 (선박안전법 제26조 근거)</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="font-mono font-bold text-primary min-w-[88px]">GC-12-K</span>
+            <span>선박용 연료전지 시스템 지침 — 한국선급</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="font-mono font-bold text-primary min-w-[88px]">한국선급</span>
+            <span>선박 연료전지 규칙 (KRLFP)</span>
+          </li>
+        </ul>
+        <Link href="/kgs-compare" className="text-primary hover:underline text-sm font-medium">
+          선박·해양 기준 비교 보기 →
+        </Link>
+      </section>
 
       <section className="mt-10 p-5 bg-muted/30 rounded-xl">
         <h2 className="text-lg font-bold mb-2">이 분류가 왜 유용한가요?</h2>
