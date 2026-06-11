@@ -14,6 +14,15 @@ export default function KGSFamilyPage() {
         육상 수소·가스 안전 기술기준(KGS CODE 20개)은 목차 구조로 묶으면 3가지 그룹이 되고, 선박·해양(항만) 분야는 별도 기준이 적용됩니다. 같은 그룹 안의 코드를 나란히 비교하면 기준 차이만 빠르게 확인할 수 있습니다.
       </p>
 
+      {/* 도메인 1: 육상 (KGS CODE) */}
+      <div className="mb-5 mt-2 flex items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary text-xs font-bold">육상</span>
+        <div>
+          <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight leading-tight">수소·가스 안전 기술기준 (KGS CODE)</h2>
+          <p className="text-xs text-muted-foreground">코드 20개 · 아래 3개 그룹으로 분류</p>
+        </div>
+      </div>
+
       {KGS_FAMILIES.map((family) => (
         <section
           key={family.id}
@@ -45,14 +54,19 @@ export default function KGSFamilyPage() {
         </section>
       ))}
 
+      {/* 도메인 2: 해양 (선박·항만) */}
+      <div className="mb-5 mt-12 flex items-center gap-3 border-t border-border/60 pt-8">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary text-xs font-bold">해양</span>
+        <div>
+          <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight leading-tight">선박·해양(항만) 기술기준</h2>
+          <p className="text-xs text-muted-foreground">KGS CODE(육상)와 별개 · 선박 수소연료전지 기준 3종</p>
+        </div>
+      </div>
+
       <section
         id="family-marine"
         className="mb-10 rounded-lg border border-border/70 bg-card p-5 shadow-[0_1px_2px_-1px_hsl(var(--primary)/0.10),0_4px_16px_-10px_hsl(var(--primary)/0.10)] sm:p-6"
       >
-        <div className="mb-3 flex items-center gap-2">
-          <span className="h-px w-6 bg-[hsl(var(--brass)/0.7)]" aria-hidden="true" />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brass))]">선박·해양(항만) 기술기준</span>
-        </div>
         <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight mb-2">🚢 수소 선박·해양 기술기준</h2>
         <p className="text-sm text-muted-foreground mb-4">
           선박안전법·한국선급 기반의 수소 선박·해양 기술기준입니다. KGS CODE(육상)와 별개로 선박·항만 분야에 적용됩니다.
