@@ -63,8 +63,11 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
           const data = await res.json();
           setRecommendations(data.recommended || []);
 
-          // 상위 3개 자동 선택
-          const topCodes = data.recommended.slice(0, 3).map((r: { code: string }) => r.code);
+          // 상위 3개 자동 선택 — KGS(가스·수소) only; 선박 코드는 sections-tree가 없으므로 제외
+          const topCodes = (data.recommended as Array<{ code: string; category: string }>)
+            .filter((r) => r.category !== '선박')
+            .slice(0, 3)
+            .map((r) => r.code);
           setSelectedCodes(topCodes);
         }
       } catch (error) {
