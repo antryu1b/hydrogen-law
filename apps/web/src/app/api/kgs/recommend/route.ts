@@ -14,28 +14,43 @@ function ocrTextByCode(code: string): string {
 }
 
 interface MatchedSection { sec_no: string; title: string; snippet: string; keyword: string; }
+interface CodeSections { full: string; sections: Array<{ sec_no: string; title: string; body: string }>; }
 
-// 코드의 조항 본문에서 쿼리 키워드가 등장하는 조항 + 하이라이트용 스니펫을 추출.
-async function matchedSectionsFor(code: string, queryKeywords: string[]): Promise<MatchedSection[]> {
-  try {
-    const raw = await fs.readFile(path.join(process.cwd(), 'data', 'kgs_sections', `${code}.json`), 'utf-8');
-    const doc = JSON.parse(raw) as { sections?: Array<{ sec_no: string; title: string; body?: string }> };
-    const out: MatchedSection[] = [];
-    for (const s of doc.sections ?? []) {
-      const body = s.body ?? '';
-      const low = body.toLowerCase();
-      const kw = queryKeywords.find((qk) => low.includes(qk));
-      if (!kw) continue;
-      const idx = low.indexOf(kw);
-      const start = Math.max(0, idx - 40);
-      const snippet = (start > 0 ? '…' : '') + body.slice(start, idx + kw.length + 60).replace(/\s+/g, ' ').trim() + '…';
-      out.push({ sec_no: s.sec_no, title: s.title, snippet, keyword: kw });
-      if (out.length >= 6) break;
-    }
-    return out;
-  } catch {
-    return [];
+// 조항 본문(kgs_sections) 전체를 코드별로 1회 로드·캐시 — 본문 전문(full-text) 검색용.
+let _sectionsCache: Record<string, CodeSections> | null = null;
+async function loadSections(codes: string[]): Promise<Record<string, CodeSections>> {
+  if (_sectionsCache) return _sectionsCache;
+  const cache: Record<string, CodeSections> = {};
+  await Promise.all(
+    codes.map(async (code) => {
+      try {
+        const raw = await fs.readFile(path.join(process.cwd(), 'data', 'kgs_sections', `${code}.json`), 'utf-8');
+        const doc = JSON.parse(raw) as { sections?: Array<{ sec_no: string; title: string; body?: string }> };
+        const sections = (doc.sections ?? []).map((s) => ({ sec_no: s.sec_no, title: s.title, body: s.body ?? '' }));
+        cache[code] = { full: sections.map((s) => `${s.title} ${s.body}`).join(' ').toLowerCase(), sections };
+      } catch {
+        cache[code] = { full: '', sections: [] };
+      }
+    })
+  );
+  _sectionsCache = cache;
+  return cache;
+}
+
+function matchedSectionsFor(entry: CodeSections | undefined, queryKeywords: string[]): MatchedSection[] {
+  if (!entry) return [];
+  const out: MatchedSection[] = [];
+  for (const s of entry.sections) {
+    const low = s.body.toLowerCase();
+    const kw = queryKeywords.find((qk) => low.includes(qk));
+    if (!kw) continue;
+    const idx = low.indexOf(kw);
+    const start = Math.max(0, idx - 40);
+    const snippet = (start > 0 ? '…' : '') + s.body.slice(start, idx + kw.length + 60).replace(/\s+/g, ' ').trim() + '…';
+    out.push({ sec_no: s.sec_no, title: s.title, snippet, keyword: kw });
+    if (out.length >= 6) break;
   }
+  return out;
 }
 
 interface KGSCode {
@@ -79,6 +94,7 @@ export async function POST(request: NextRequest) {
 
     // 각 CODE와 매칭 점수 계산
     const codes = kgsCodesData.codes as KGSCode[];
+    const sectionsCache = await loadSections(codes.map((c) => c.code));
     const scored = codes.map((code) => {
       // 검색 코퍼스: 키워드 + 이름 + 세부분류 + 기준 본문 + 수식 OCR
       // (키워드 목록에 없는 본문 용어 — 예: "농도" — 도 검색되게 확장)
@@ -88,6 +104,7 @@ export async function POST(request: NextRequest) {
         ...code.keywords,
         ...(code.criteria ? Object.values(code.criteria) : []),
         ocrTextByCode(code.code),
+        sectionsCache[code.code]?.full ?? '',
       ].join(' ').toLowerCase();
 
       const matchedKeywords = Array.from(new Set([
@@ -119,12 +136,10 @@ export async function POST(request: NextRequest) {
       .sort((a, b) => b.score - a.score);
 
     // 각 코드에서 키워드가 실제로 등장하는 조항 + 스니펫 추가 (어디에 있는지 표시용)
-    const enriched = await Promise.all(
-      recommended.map(async (item) => ({
-        ...item,
-        matchedSections: await matchedSectionsFor(item.code, queryKeywords),
-      }))
-    );
+    const enriched = recommended.map((item) => ({
+      ...item,
+      matchedSections: matchedSectionsFor(sectionsCache[item.code], queryKeywords),
+    }));
 
     return NextResponse.json({
       query,

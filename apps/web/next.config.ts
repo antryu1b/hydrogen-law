@@ -2,6 +2,10 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  outputFileTracingIncludes: {
+    '/api/kgs/recommend': ['./data/kgs_sections/**', './data/kgs_ocr.json'],
+    '/api/kgs/section-body': ['./data/kgs_sections/**', './data/kgs_ocr.json'],
+  },
   turbopack: {
     rules: {
       '*.svg': {
