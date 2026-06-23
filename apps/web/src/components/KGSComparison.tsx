@@ -129,7 +129,7 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
               </p>
               {selectedCodes.length > 0 && (
                 <Link
-                  href={`/kgs-compare?codes=${selectedCodes.join(',')}`}
+                  href={`/kgs-compare?codes=${selectedCodes.join(',')}&q=${encodeURIComponent(searchQuery)}`}
                   className="text-xs font-medium text-[#0d9488] hover:underline inline-flex items-center gap-1 flex-shrink-0"
                 >
                   <BookOpen className="w-3 h-3" />
@@ -189,26 +189,6 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
                           >
                             {kw}
                           </span>
-                        ))}
-                      </div>
-                    )}
-                    {rec.matchedSections && rec.matchedSections.length > 0 && (
-                      <div className="mt-2 space-y-1.5 border-t border-border/60 pt-2">
-                        <div className="text-[10px] text-muted-foreground">키워드가 나오는 조항</div>
-                        {rec.matchedSections.map((s) => (
-                          <a
-                            key={s.sec_no}
-                            href={`/kgs-compare?codes=${rec.code}&q=${encodeURIComponent(s.keyword)}#sec-${s.sec_no}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="block rounded-md px-2 py-1.5 hover:bg-[#0d9488]/5 transition-colors"
-                          >
-                            <div className="text-xs font-medium text-[#0d9488]">{s.sec_no} · {s.title}</div>
-                            <div className="text-[11px] text-foreground/70 mt-0.5 leading-snug">
-                              {s.snippet.split(s.keyword).map((part, i, arr) => (
-                                <span key={i}>{part}{i < arr.length - 1 && (<mark className="bg-[#0d9488]/25 text-foreground rounded px-0.5">{s.keyword}</mark>)}</span>
-                              ))}
-                            </div>
-                          </a>
                         ))}
                       </div>
                     )}

@@ -297,6 +297,7 @@ function KgsComparePage() {
               selectedCodes={selectedCodes}
               families={tocFamilies}
               activeFamilyId={viewAFamilyId}
+              highlightQuery={searchParams.get('q') ?? ''}
             />
           )}
           {viewMode === 'B' && (

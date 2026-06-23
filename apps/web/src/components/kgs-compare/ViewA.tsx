@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useContext, createContext } from 'react';
 import { Loader2 } from 'lucide-react';
 import type {
   CanonicalFamily,
@@ -16,9 +16,30 @@ interface ViewAProps {
   selectedCodes: string[];
   families: CanonicalFamily[];
   activeFamilyId: string | null;
+  highlightQuery?: string;
 }
 
 // --- Tree Node Component ---
+
+const HighlightCtx = createContext<{ matched: Set<string>; q: string }>({ matched: new Set(), q: '' });
+
+function highlightBody(text: string, q: string): React.ReactNode {
+  if (!q || !text) return text;
+  const ql = q.toLowerCase();
+  const tl = text.toLowerCase();
+  const parts: React.ReactNode[] = [];
+  let i = 0;
+  let idx = tl.indexOf(ql);
+  let key = 0;
+  while (idx !== -1) {
+    if (idx > i) parts.push(text.slice(i, idx));
+    parts.push(<mark key={key++} className="bg-amber-200 dark:bg-amber-700/50 rounded px-0.5">{text.slice(idx, idx + q.length)}</mark>);
+    i = idx + q.length;
+    idx = tl.indexOf(ql, i);
+  }
+  if (i < text.length) parts.push(text.slice(i));
+  return parts;
+}
 
 interface TreeNodeItemProps {
   node: TreeNode;
@@ -41,6 +62,8 @@ function TreeNodeItem({
   const hasChildren = node.children.length > 0;
   const isActive = activeSecNo === node.sec_no;
   const isAppendixGroup = node._appendix_group === true;
+  const { matched } = useContext(HighlightCtx);
+  const isMatched = matched.has(node.sec_no);
 
   // When a descendant becomes active, ensure this node is expanded
   useEffect(() => {
@@ -48,6 +71,12 @@ function TreeNodeItem({
       setExpanded(true);
     }
   }, [activeSecNo, node.sec_no]);
+
+  useEffect(() => {
+    for (const m of matched) {
+      if (m === node.sec_no || m.startsWith(node.sec_no + '.')) { setExpanded(true); break; }
+    }
+  }, [matched, node.sec_no]);
 
   // Synthetic appendix group root — special rendering
   if (isAppendixGroup) {
@@ -88,7 +117,7 @@ function TreeNodeItem({
       <button
         className={[
           'flex items-center gap-1 w-full text-left text-xs py-1 px-1 rounded transition-colors',
-          isActive ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-muted/50 text-foreground',
+          isActive ? 'bg-primary/10 text-primary font-semibold' : isMatched ? 'bg-amber-100 dark:bg-amber-900/30 text-foreground hover:bg-amber-200/70' : 'hover:bg-muted/50 text-foreground',
         ].join(' ')}
         style={{ paddingLeft: `${depth * 12 + 4}px` }}
         onClick={() => onSelect(node.sec_no)}
@@ -151,6 +180,7 @@ interface RecursiveBodyColumnProps {
 }
 
 function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProps) {
+  const { q } = useContext(HighlightCtx);
   const [data, setData] = useState<RecursiveSectionBodyResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -219,7 +249,7 @@ function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProp
           </h4>
           {block.body ? (
             <pre className="text-sm lg:text-xs whitespace-pre-wrap break-words mt-1 text-foreground/80 font-sans leading-relaxed">
-              {block.body}
+              {highlightBody(block.body, q)}
             </pre>
           ) : !block.is_umbrella ? (
             <p className="text-xs text-muted-foreground italic mt-1">(본문 없음)</p>
@@ -240,12 +270,28 @@ function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProp
 
 // --- Main ViewA Component ---
 
-export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
+export function ViewA({ selectedCodes, families, activeFamilyId, highlightQuery }: ViewAProps) {
   const [activeSecNo, setActiveSecNo] = useState<string | null>(null);
   const [treeData, setTreeData] = useState<TreeNode[] | null>(null);
   const [treeLoading, setTreeLoading] = useState(false);
   const prevCodesKey = useRef<string>('');
   const codesKey = selectedCodes.join(',');
+  const [matchedSecNos, setMatchedSecNos] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const code = selectedCodes[0];
+    if (!highlightQuery || !code) { setMatchedSecNos(new Set()); return; }
+    fetch('/api/kgs/recommend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: highlightQuery }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: { recommended?: Array<{ code: string; matchedSections?: Array<{ sec_no: string }> }> }) => {
+        const entry = (d.recommended ?? []).find((x) => x.code === code);
+        setMatchedSecNos(new Set((entry?.matchedSections ?? []).map((s) => s.sec_no)));
+      })
+      .catch(() => setMatchedSecNos(new Set()));
+  }, [highlightQuery, codesKey]);
 
   // Fetch tree for the first selected code whenever selectedCodes changes
   useEffect(() => {
@@ -329,6 +375,7 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
   }
 
   return (
+    <HighlightCtx.Provider value={{ matched: matchedSecNos, q: highlightQuery ?? '' }}>
     <div className="flex flex-col lg:flex-row gap-0 border rounded-lg overflow-hidden lg:min-h-[600px]">
       {/* Sidebar TOC — full tree from primary code */}
       <aside className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r flex-shrink-0 overflow-y-auto bg-muted/20 max-h-64 lg:max-h-none">
@@ -410,5 +457,6 @@ export function ViewA({ selectedCodes, families, activeFamilyId }: ViewAProps) {
         )}
       </div>
     </div>
+    </HighlightCtx.Provider>
   );
 }

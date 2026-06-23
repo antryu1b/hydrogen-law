@@ -48,7 +48,6 @@ function matchedSectionsFor(entry: CodeSections | undefined, queryKeywords: stri
     const start = Math.max(0, idx - 40);
     const snippet = (start > 0 ? '…' : '') + s.body.slice(start, idx + kw.length + 60).replace(/\s+/g, ' ').trim() + '…';
     out.push({ sec_no: s.sec_no, title: s.title, snippet, keyword: kw });
-    if (out.length >= 6) break;
   }
   return out;
 }
