@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { kgsCodesData } from '@/data/kgs-codes-data';
+import kgsOcrRaw from '@/data/kgs_ocr.json';
+
+// 키워드 목록에 없는 본문 용어(예: "농도")도 검색되도록 수식 OCR 코퍼스를 코드별로 평탄화.
+const _ocrByCode: Record<string, string> = {};
+for (const [k, v] of Object.entries(kgsOcrRaw as Record<string, unknown>)) {
+  _ocrByCode[k.toLowerCase()] = JSON.stringify(v).toLowerCase();
+}
+function ocrTextByCode(code: string): string {
+  return _ocrByCode[code.toLowerCase()] ?? '';
+}
 
 interface KGSCode {
   code: string;
@@ -10,6 +20,7 @@ interface KGSCode {
   updated: string;
   pages: number;
   pdfUrl?: string;
+  criteria?: Record<string, string>;
 }
 
 interface RecommendationResult {
@@ -42,13 +53,26 @@ export async function POST(request: NextRequest) {
     // 각 CODE와 매칭 점수 계산
     const codes = kgsCodesData.codes as KGSCode[];
     const scored = codes.map((code) => {
-      const matchedKeywords = code.keywords.filter((keyword) =>
-        queryKeywords.some((qk) =>
-          keyword.toLowerCase().includes(qk) || qk.includes(keyword.toLowerCase())
-        )
-      );
+      // 검색 코퍼스: 키워드 + 이름 + 세부분류 + 기준 본문 + 수식 OCR
+      // (키워드 목록에 없는 본문 용어 — 예: "농도" — 도 검색되게 확장)
+      const haystack = [
+        code.name,
+        code.subcategory,
+        ...code.keywords,
+        ...(code.criteria ? Object.values(code.criteria) : []),
+        ocrTextByCode(code.code),
+      ].join(' ').toLowerCase();
 
-      // 점수: 매칭된 키워드 개수 / 쿼리 키워드 개수
+      const matchedKeywords = Array.from(new Set([
+        ...code.keywords.filter((keyword) =>
+          queryKeywords.some((qk) =>
+            keyword.toLowerCase().includes(qk) || qk.includes(keyword.toLowerCase())
+          )
+        ),
+        ...queryKeywords.filter((qk) => haystack.includes(qk)),
+      ]));
+
+      // 점수: 매칭된 토큰 수 / 쿼리 토큰 수
       const score = matchedKeywords.length / Math.max(queryKeywords.length, 1);
 
       return {

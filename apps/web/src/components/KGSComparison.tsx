@@ -100,7 +100,13 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
 
   // KGS 섹션만 추천 결과에 의존 — 선박 섹션은 표준 2종을 항상 노출
   if (section === 'kgs' && recommendations.length === 0 && !loading) {
-    return null;
+    return (
+      <div className="mt-6 text-center py-12 text-muted-foreground fadeIn">
+        <Wrench className="w-9 h-9 mx-auto mb-3 opacity-30" strokeWidth={1.5} />
+        <p className="text-sm">검색어와 매칭되는 KGS CODE가 없습니다.</p>
+        <p className="text-xs mt-1 opacity-70">다른 키워드로 검색해 보세요.</p>
+      </div>
+    );
   }
 
   return (
