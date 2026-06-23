@@ -200,7 +200,7 @@ export default function KGSComparison({ searchQuery, section = 'kgs' }: KGSCompa
 
           {/* 인라인 본문 비교 */}
           {selectedCodes.length >= 1 && (
-            <InlineBodyCompare selectedCodes={selectedCodes} />
+            <InlineBodyCompare selectedCodes={selectedCodes} highlightQuery={searchQuery} />
           )}
 
           {loading && kgsCodes.length === 0 && (

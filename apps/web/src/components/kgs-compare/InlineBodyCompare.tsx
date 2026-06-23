@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useContext, createContext } from 'react';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import type {
   CanonicalFamily,
@@ -12,8 +12,29 @@ import type {
 import { CODE_TO_FAMILY } from '@/data/kgs-families-display';
 import { EquationImages, PageViewButton } from './EquationImages';
 
+const HighlightCtx = createContext<{ matched: Set<string>; q: string }>({ matched: new Set(), q: '' });
+
+function highlightBody(text: string, q: string): React.ReactNode {
+  if (!q || !text) return text;
+  const ql = q.toLowerCase();
+  const tl = text.toLowerCase();
+  const parts: React.ReactNode[] = [];
+  let i = 0;
+  let idx = tl.indexOf(ql);
+  let key = 0;
+  while (idx !== -1) {
+    if (idx > i) parts.push(text.slice(i, idx));
+    parts.push(<mark key={key++} className="bg-amber-200 dark:bg-amber-700/50 rounded px-0.5">{text.slice(idx, idx + q.length)}</mark>);
+    i = idx + q.length;
+    idx = tl.indexOf(ql, i);
+  }
+  if (i < text.length) parts.push(text.slice(i));
+  return parts;
+}
+
 interface InlineBodyCompareProps {
   selectedCodes: string[];
+  highlightQuery?: string;
 }
 
 // --- Tree Node Item (compact for inline sidebar) ---
@@ -39,12 +60,20 @@ function TreeNodeItem({
   const hasChildren = node.children.length > 0;
   const isActive = activeSecNo === node.sec_no;
   const isAppendixGroup = node._appendix_group === true;
+  const { matched } = useContext(HighlightCtx);
+  const isMatched = matched.has(node.sec_no);
 
   useEffect(() => {
     if (activeSecNo && activeSecNo.startsWith(node.sec_no + '.')) {
       setExpanded(true);
     }
   }, [activeSecNo, node.sec_no]);
+
+  useEffect(() => {
+    for (const m of matched) {
+      if (m === node.sec_no || m.startsWith(node.sec_no + '.')) { setExpanded(true); break; }
+    }
+  }, [matched, node.sec_no]);
 
   // Synthetic appendix group root — special rendering
   if (isAppendixGroup) {
@@ -87,7 +116,7 @@ function TreeNodeItem({
           'flex items-center gap-0.5 w-full text-left text-[11px] py-0.5 px-0.5 rounded transition-colors',
           isActive
             ? 'bg-[#0d9488]/10 text-[#0d9488] font-semibold'
-            : 'hover:bg-muted/50 text-foreground',
+            : isMatched ? 'bg-amber-100 dark:bg-amber-900/30 text-foreground hover:bg-amber-200/70' : 'hover:bg-muted/50 text-foreground',
         ].join(' ')}
         style={{ paddingLeft: `${depth * 10 + 2}px` }}
         onClick={() => onSelect(node.sec_no)}
@@ -146,6 +175,7 @@ interface RecursiveBodyColumnProps {
 }
 
 function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProps) {
+  const { q } = useContext(HighlightCtx);
   const [data, setData] = useState<RecursiveSectionBodyResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -213,7 +243,7 @@ function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProp
           </h4>
           {block.body ? (
             <pre className="text-sm lg:text-[11px] whitespace-pre-wrap break-words mt-0.5 text-foreground/80 font-sans leading-relaxed">
-              {block.body}
+              {highlightBody(block.body, q)}
             </pre>
           ) : !block.is_umbrella ? (
             <p className="text-[11px] text-muted-foreground italic mt-0.5">(본문 없음)</p>
@@ -252,12 +282,28 @@ function detectDominantFamily(codes: string[]): string | null {
 
 // --- Main InlineBodyCompare Component ---
 
-export function InlineBodyCompare({ selectedCodes }: InlineBodyCompareProps) {
+export function InlineBodyCompare({ selectedCodes, highlightQuery }: InlineBodyCompareProps) {
   const [activeSecNo, setActiveSecNo] = useState<string | null>(null);
   const [treeData, setTreeData] = useState<TreeNode[] | null>(null);
   const [treeLoading, setTreeLoading] = useState(false);
   const prevCodesKey = useRef<string>('');
   const codesKey = selectedCodes.join(',');
+  const [matchedSecNos, setMatchedSecNos] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const code = selectedCodes[0];
+    if (!highlightQuery || !code) { setMatchedSecNos(new Set()); return; }
+    fetch('/api/kgs/recommend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: highlightQuery }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: { recommended?: Array<{ code: string; matchedSections?: Array<{ sec_no: string }> }> }) => {
+        const entry = (d.recommended ?? []).find((x) => x.code === code);
+        setMatchedSecNos(new Set((entry?.matchedSections ?? []).map((s) => s.sec_no)));
+      })
+      .catch(() => setMatchedSecNos(new Set()));
+  }, [highlightQuery, codesKey]);
 
   // Fetch tree for primary code whenever selectedCodes changes
   useEffect(() => {
@@ -327,6 +373,7 @@ export function InlineBodyCompare({ selectedCodes }: InlineBodyCompareProps) {
   const primaryCode = selectedCodes[0];
 
   return (
+    <HighlightCtx.Provider value={{ matched: matchedSecNos, q: highlightQuery ?? '' }}>
     <div className="border rounded-lg overflow-hidden text-sm">
       {/* Family indicator + cross-family warning */}
       <div className="px-3 py-2 bg-muted/40 border-b flex items-center gap-2 flex-wrap">
@@ -421,5 +468,6 @@ export function InlineBodyCompare({ selectedCodes }: InlineBodyCompareProps) {
         </div>
       </div>
     </div>
+    </HighlightCtx.Provider>
   );
 }
