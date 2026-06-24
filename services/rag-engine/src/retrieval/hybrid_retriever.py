@@ -164,7 +164,7 @@ class HybridRetriever:
     )
 
     def _tokenize(self, text: str) -> List[str]:
-        """한국어 토큰화 (공백 기반 + 조사 제거)"""
+        """한국어 토큰화 (공백 기반 + 조사 제거 + 공백 무시 변형)"""
         tokens = text.split()
         result = []
         for token in tokens:
@@ -174,6 +174,11 @@ class HybridRetriever:
             stem = self._KO_SUFFIXES.sub('', token)
             if stem and stem != token:
                 result.append(stem)
+        # 공백 무시 매칭: 전체 텍스트에서 공백을 제거한 단일 토큰도 추가하여
+        # "연료 전지" 가 "연료전지" 질의와, 그 반대로도 매칭되도록 한다.
+        nospace = ''.join(tokens)
+        if nospace and nospace not in result:
+            result.append(nospace)
         return result
 
     @staticmethod
@@ -189,18 +194,28 @@ class HybridRetriever:
         return parts
 
     def _substring_search(self, query: str, top_k: int) -> List[Dict]:
-        """단순 부분문자열 검색 (BM25 보완용)"""
+        """단순 부분문자열 검색 (BM25 보완용, 공백 무시)"""
         results = []
         # 원본 키워드 + 복합어 분리 키워드
         raw_keywords = query.split()
         keywords = []
         for kw in raw_keywords:
             keywords.extend(self._split_korean_compound(kw))
+        # 공백 무시 매칭을 위해 질의 전체에서 공백을 제거한 키워드도 추가
+        # ("연료 전지" -> "연료전지"). 이후 비교는 공백 제거된 content 에 대해 수행.
+        nospace_query = ''.join(raw_keywords)
+        if nospace_query:
+            keywords.append(nospace_query)
         # 중복 제거, 길이 1 이하 제외
         keywords = list(dict.fromkeys(kw for kw in keywords if len(kw) >= 2))
+        # 원본 키워드도 공백 제거 형태로 비교 (가중치 판단용)
+        raw_nospace = {kw.replace(' ', '') for kw in raw_keywords}
+        raw_nospace.add(nospace_query)
 
         for doc in self.documents:
-            content = doc['content']
+            # 공백을 제거한 content 에 대해 부분문자열 비교 → "연료 전지" 문서가
+            # "연료전지" 질의와, 그 반대로도 매칭된다.
+            content = doc['content'].replace(' ', '')
             match_count = sum(1 for kw in keywords if kw in content)
             if match_count > 0:
                 # 원본 키워드 매칭에 가중치 부여
@@ -208,11 +223,11 @@ class HybridRetriever:
                 for kw in keywords:
                     cnt = content.count(kw)
                     if cnt > 0:
-                        weight = 3.0 if kw in raw_keywords else 1.0
+                        weight = 3.0 if kw in raw_nospace else 1.0
                         score += cnt * weight
                 results.append({
                     'id': doc['id'],
-                    'content': content,
+                    'content': doc['content'],
                     'metadata': doc.get('metadata', {}),
                     'bm25_score': float(score),
                 })

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { deriveLawType } from '@/lib/utils';
+import { highlightText } from '@/lib/highlight';
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_RESULTS = 100;
@@ -38,28 +39,6 @@ function errorResponse(code: string, message: string, status: number) {
     { error: { code, message } },
     { status }
   );
-}
-
-// Escape regex special chars
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-// Highlight keywords in text
-function highlightText(text: string, keywords: string[]): string {
-  if (!keywords.length) return text;
-  
-  const keywordRegex = new RegExp(`(${keywords.map(escapeRegex).join('|')})`, 'gi');
-  let highlighted = text.replace(
-    keywordRegex,
-    '<mark style="background-color: #fef08a; padding: 2px 4px; border-radius: 2px;">$1</mark>'
-  );
-  
-  // Format newlines for display
-  highlighted = highlighted.replace(/\n\n+/g, '<br><br>');
-  highlighted = highlighted.replace(/\n/g, ' ');
-  
-  return highlighted;
 }
 
 async function searchViaBeopmang(query: string, topK: number): Promise<NextResponse> {
@@ -279,6 +258,23 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
     const supabase = createClient(supabaseUrl, supabaseKey);
     let keywords = query.split(/[\s,]+/).filter((k: string) => k.length > 0).slice(0, 20);
 
+    // Whitespace-insensitive compound bridge: "연료 전지" should return the same
+    // docs as "연료전지". A spaced compound splits into 2 tokens and would skip the
+    // whitespace-insensitive RPC entirely (it only runs on the single-keyword path).
+    // When the space-collapsed query is a short, all-Korean compound (not a law-name
+    // token, no digits/suffixes), route it through the single-keyword path so the RPC
+    // — which strips spaces on both sides — bridges the two spellings. Genuine
+    // multi-word queries like "수소법 제5조" keep digits/suffixes and are left alone.
+    const collapsed = query.replace(/\s+/g, '');
+    if (
+      keywords.length === 2 &&
+      /^[가-힣]+$/.test(collapsed) &&
+      collapsed.length <= 6 &&
+      !isLawNameToken(collapsed)
+    ) {
+      keywords = [collapsed];
+    }
+
     // Strategy:
     // 1. Single keyword: try RPC first, then exact ilike match on full keyword.
     //    Only fall back to 2-char fuzzy expansion when exact search returns 0 results.
@@ -312,7 +308,12 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
       } else {
         // Non-law-name keyword cascade (e.g. "안전기준", "등록신고"):
 
-        // Step 1a: RPC (full-text search, exact by design)
+        // Step 1a: RPC (full-text search). The search_law_articles RPC is
+        // whitespace-insensitive on both sides (see
+        // scripts/supabase-whitespace-insensitive-search.sql), so "연료전지"
+        // matches stored "연료 전지" and vice versa via this path. Guarded:
+        // if the RPC errors (e.g. migration not yet applied) we silently fall
+        // through to the literal ilike steps below.
         const { data: rpcData, error: rpcError } = await supabase.rpc('search_law_articles', {
           search_query: query,
           max_results: topK,
