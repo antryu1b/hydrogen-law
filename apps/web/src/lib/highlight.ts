@@ -11,7 +11,7 @@ export function escapeRegex(str: string): string {
 // between each (escaped) character so a query "연료전지" still matches stored text
 // "연료 전지", and a spaced query "연료 전지" still matches "연료전지". Internal
 // whitespace in the keyword itself is collapsed first so it doesn't force a space.
-function whitespaceInsensitivePattern(keyword: string): string {
+export function whitespaceInsensitivePattern(keyword: string): string {
   const chars = [...keyword.replace(/\s+/g, '')];
   return chars.map(escapeRegex).join('\\s*');
 }

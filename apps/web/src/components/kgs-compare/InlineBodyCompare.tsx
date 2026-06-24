@@ -10,26 +10,32 @@ import type {
   RecursiveSectionBodyResponse,
 } from './types';
 import { CODE_TO_FAMILY } from '@/data/kgs-families-display';
+import { whitespaceInsensitivePattern } from '@/lib/highlight';
 import { EquationImages, PageViewButton } from './EquationImages';
 
 const HighlightCtx = createContext<{ matched: Set<string>; q: string }>({ matched: new Set(), q: '' });
 
+// Whitespace-insensitive body highlight: a query "연료 가스" highlights stored
+// "연료가스" and vice versa. The match length comes from the actual matched text
+// (m[0]), not q.length, since the matched span may differ from the query spacing.
 function highlightBody(text: string, q: string): React.ReactNode {
-  if (!q || !text) return text;
-  const ql = q.toLowerCase();
-  const tl = text.toLowerCase();
+  const collapsed = (q ?? '').replace(/\s+/g, '');
+  if (!collapsed || !text) return text;
+  const re = new RegExp(whitespaceInsensitivePattern(collapsed), 'gi');
   const parts: React.ReactNode[] = [];
   let i = 0;
-  let idx = tl.indexOf(ql);
   let key = 0;
-  while (idx !== -1) {
-    if (idx > i) parts.push(text.slice(i, idx));
-    parts.push(<mark key={key++} className="bg-amber-200 dark:bg-amber-700/50 rounded px-0.5">{text.slice(idx, idx + q.length)}</mark>);
-    i = idx + q.length;
-    idx = tl.indexOf(ql, i);
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    const start = m.index;
+    const end = start + m[0].length;
+    if (start > i) parts.push(text.slice(i, start));
+    parts.push(<mark key={key++} className="bg-amber-200 dark:bg-amber-700/50 rounded px-0.5">{text.slice(start, end)}</mark>);
+    i = end;
+    if (m.index === re.lastIndex) re.lastIndex++; // guard against zero-length match loop
   }
   if (i < text.length) parts.push(text.slice(i));
-  return parts;
+  return parts.length ? parts : text;
 }
 
 interface InlineBodyCompareProps {

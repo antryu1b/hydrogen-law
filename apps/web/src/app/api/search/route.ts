@@ -315,7 +315,11 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
         // if the RPC errors (e.g. migration not yet applied) we silently fall
         // through to the literal ilike steps below.
         const { data: rpcData, error: rpcError } = await supabase.rpc('search_law_articles', {
-          search_query: query,
+          // Pass the normalized keyword (k), not the raw query: for a bridged spaced
+          // compound ("연료 가스") k is the collapsed form, so the RPC's relevance
+          // score is computed on identical input as "연료가스" → byte-identical
+          // ordering for both spellings (not just an identical match set).
+          search_query: k,
           max_results: topK,
         });
         if (!rpcError && rpcData && rpcData.length > 0) data = rpcData;

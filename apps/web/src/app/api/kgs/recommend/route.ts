@@ -3,6 +3,7 @@ import { kgsCodesData } from '@/data/kgs-codes-data';
 import kgsOcrRaw from '@/data/kgs_ocr.json';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { whitespaceInsensitivePattern } from '@/lib/highlight';
 
 // 키워드 목록에 없는 본문 용어(예: "농도")도 검색되도록 수식 OCR 코퍼스를 코드별로 평탄화.
 const _ocrByCode: Record<string, string> = {};
@@ -37,17 +38,24 @@ async function loadSections(codes: string[]): Promise<Record<string, CodeSection
   return cache;
 }
 
-function matchedSectionsFor(entry: CodeSections | undefined, queryKeywords: string[]): MatchedSection[] {
+function matchedSectionsFor(entry: CodeSections | undefined, sectionKeywords: string[]): MatchedSection[] {
   if (!entry) return [];
   const out: MatchedSection[] = [];
+  // Whitespace-insensitive match: "연료 가스" matches stored "연료가스" and vice
+  // versa, and indices come from the actual matched span so snippets stay correct.
+  const patterns = sectionKeywords
+    .filter((qk) => qk.length > 0)
+    .map((qk) => ({ qk, re: new RegExp(whitespaceInsensitivePattern(qk), 'i') }));
   for (const s of entry.sections) {
-    const low = s.body.toLowerCase();
-    const kw = queryKeywords.find((qk) => low.includes(qk));
-    if (!kw) continue;
-    const idx = low.indexOf(kw);
-    const start = Math.max(0, idx - 40);
-    const snippet = (start > 0 ? '…' : '') + s.body.slice(start, idx + kw.length + 60).replace(/\s+/g, ' ').trim() + '…';
-    out.push({ sec_no: s.sec_no, title: s.title, snippet, keyword: kw });
+    let hit: { qk: string; idx: number; len: number } | null = null;
+    for (const { qk, re } of patterns) {
+      const m = re.exec(s.body);
+      if (m) { hit = { qk, idx: m.index, len: m[0].length }; break; }
+    }
+    if (!hit) continue;
+    const start = Math.max(0, hit.idx - 40);
+    const snippet = (start > 0 ? '…' : '') + s.body.slice(start, hit.idx + hit.len + 60).replace(/\s+/g, ' ').trim() + '…';
+    out.push({ sec_no: s.sec_no, title: s.title, snippet, keyword: hit.qk });
   }
   return out;
 }
@@ -90,6 +98,16 @@ export async function POST(request: NextRequest) {
       .replace(/[^\w\s가-힣]/g, ' ')
       .split(/\s+/)
       .filter((k) => k.length > 1);
+
+    // Section-level matching keywords. For an all-Korean spaced compound like
+    // "연료 가스" we match the collapsed compound as ONE whitespace-insensitive
+    // unit so sections that merely contain "연료" alone are not false positives.
+    // Code-level scoring still uses the split queryKeywords (recall preserved).
+    const collapsedQuery = query.toLowerCase().replace(/[^\w가-힣]/g, '');
+    const sectionKeywords =
+      queryKeywords.length > 1 && /^[가-힣]+$/.test(collapsedQuery)
+        ? [collapsedQuery]
+        : queryKeywords;
 
     // 각 CODE와 매칭 점수 계산
     const codes = kgsCodesData.codes as KGSCode[];
@@ -137,7 +155,7 @@ export async function POST(request: NextRequest) {
     // 각 코드에서 키워드가 실제로 등장하는 조항 + 스니펫 추가 (어디에 있는지 표시용)
     const enriched = recommended.map((item) => ({
       ...item,
-      matchedSections: matchedSectionsFor(sectionsCache[item.code], queryKeywords),
+      matchedSections: matchedSectionsFor(sectionsCache[item.code], sectionKeywords),
     }));
 
     return NextResponse.json({
