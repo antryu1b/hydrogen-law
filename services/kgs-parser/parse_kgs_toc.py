@@ -282,7 +282,16 @@ def parse_sections(pages: List[Tuple[int, str]]) -> Tuple[List[Dict], List[Dict]
 
         if hdr["type"] == "section":
             level = hdr["level"]
-            is_umbrella = (level <= 2) and (len(body) == 0)
+            # A parent header at ANY level whose own line carries no text is an
+            # umbrella: its content lives in deeper-level children. (Previously
+            # this only flagged level <= 2, leaving 219 L3+ parents mis-marked
+            # as orphaned empty bodies.)
+            has_deeper_child = any(
+                h["type"] == "section"
+                and h["sec_no"].startswith(hdr["sec_no"] + ".")
+                for h in header_positions
+            )
+            is_umbrella = (len(body) == 0) and (level <= 2 or has_deeper_child)
             section = {
                 "sec_no": hdr["sec_no"],
                 "title": hdr["title"],
