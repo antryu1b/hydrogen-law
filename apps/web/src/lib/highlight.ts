@@ -16,6 +16,36 @@ export function whitespaceInsensitivePattern(keyword: string): string {
   return chars.map(escapeRegex).join('\\s*');
 }
 
+// Build a display snippet centered on the FIRST matched query term in `text`.
+// Mirrors KGS `matchedSectionsFor`: find the earliest whitespace-insensitive
+// match across `keywords`, take ~40 chars before to ~80 after the match, collapse
+// internal whitespace, and prefix/suffix with "…" when truncated. Returns null
+// when NO keyword appears in `text` (caller then keeps a lead excerpt).
+export function centeredSnippet(
+  text: string,
+  keywords: string[],
+  before = 40,
+  after = 80
+): string | null {
+  if (!text) return null;
+  const cleaned = keywords.map((k) => k.replace(/\s+/g, '')).filter((k) => k.length > 0);
+  if (!cleaned.length) return null;
+
+  // Earliest match across all terms (whitespace-insensitive).
+  let best: { idx: number; len: number } | null = null;
+  for (const k of cleaned) {
+    const re = new RegExp(whitespaceInsensitivePattern(k), 'i');
+    const m = re.exec(text);
+    if (m && (best === null || m.index < best.idx)) best = { idx: m.index, len: m[0].length };
+  }
+  if (!best) return null;
+
+  const start = Math.max(0, best.idx - before);
+  const end = Math.min(text.length, best.idx + best.len + after);
+  const body = text.slice(start, end).replace(/\s+/g, ' ').trim();
+  return (start > 0 ? '…' : '') + body + (end < text.length ? '…' : '');
+}
+
 // Highlight keywords in text
 export function highlightText(text: string, keywords: string[]): string {
   if (!keywords.length) return text;

@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { deriveLawType } from '@/lib/utils';
-import { highlightText } from '@/lib/highlight';
+import { highlightText, centeredSnippet } from '@/lib/highlight';
 import { parseSearchQuery, allTerms, type OrGroup, type QueryTerm } from '@/lib/search-query';
 
 const MAX_QUERY_LENGTH = 500;
@@ -515,7 +515,16 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
       if (existing) existing.count++;
       else lawGroupMap.set(lawKey, { law_name: row.law_name, law_type: deriveLawType(row.law_name, row.law_type), count: 1 });
 
-      const content = (row.content || '').slice(0, 400);
+      // Build the displayed content snippet CENTERED on the first matched query
+      // term in the row's FULL content (whitespace-insensitive, like KGS
+      // `matchedSectionsFor`), so a row matched deep in its body (e.g. "용어 정의"
+      // far past the lead) still shows — and highlights — the matched term.
+      // If NO keyword appears in the content (matched only via title / law_name),
+      // keep a lead excerpt: the highlighted_title / highlighted_law_name already
+      // shows the user where the match is.
+      const fullContent = row.content || '';
+      const content =
+        centeredSnippet(fullContent, keywords) ?? fullContent.slice(0, 400);
       const title = row.title || '';
       return {
         article_id: row.id,
