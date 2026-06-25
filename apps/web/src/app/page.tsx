@@ -634,6 +634,9 @@ export default function HomePage() {
             <span className="hidden sm:inline">시작화면</span>
           </Button>
         </form>
+        <p className="mt-1.5 text-[11px] text-muted-foreground/80">
+          공백 = 모두 포함(AND) · <span className="font-medium">OR</span> = 둘 중 하나 · <span className="font-medium">&quot;따옴표&quot;</span> = 정확히 그 구절
+        </p>
       </div>
 
       {/* 드릴다운 헤더 */}
