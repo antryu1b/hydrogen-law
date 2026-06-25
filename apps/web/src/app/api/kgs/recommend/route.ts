@@ -4,7 +4,7 @@ import kgsOcrRaw from '@/data/kgs_ocr.json';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { whitespaceInsensitivePattern } from '@/lib/highlight';
-import { parseSearchQuery, allTerms, matchesQuery, type OrGroup } from '@/lib/search-query';
+import { parseSearchQuery, matchesQuery, stemForMatch, type OrGroup } from '@/lib/search-query';
 
 // 키워드 목록에 없는 본문 용어(예: "농도")도 검색되도록 수식 OCR 코퍼스를 코드별로 평탄화.
 const _ocrByCode: Record<string, string> = {};
@@ -98,9 +98,20 @@ export async function POST(request: NextRequest) {
     // present (whitespace-insensitive) in its haystack. This replaces the old
     // collapsed-compound hack — AND-of-whitespace-insensitive-terms subsumes it.
     const orGroups: OrGroup[] = parseSearchQuery(query);
-    // Surface terms (what the user typed) — used for the chip and for the
-    // section/snippet whitespace-insensitive search + highlight.
-    const queryKeywords = allTerms(orGroups);
+    // Surface terms used for the chip and for the section/snippet whitespace-
+    // insensitive search + highlight. Non-quoted Korean terms are reduced to their
+    // STEM (조사/어미 stripped) so "배기가스가" both matches AND highlights the
+    // corpus form "배기가스"; quoted phrases stay verbatim. Deduped in first-seen
+    // order. The chip label is the stem (the root word that actually matched).
+    const queryKeywords = (() => {
+      const seen = new Set<string>();
+      const out: string[] = [];
+      for (const t of orGroups.flat()) {
+        const stem = stemForMatch(t);
+        if (!seen.has(stem)) { seen.add(stem); out.push(stem); }
+      }
+      return out;
+    })();
 
     // 각 CODE와 매칭 점수 계산
     const codes = kgsCodesData.codes as KGSCode[];
@@ -127,7 +138,7 @@ export async function POST(request: NextRequest) {
       const matchedKeywords = matched
         ? Array.from(
             new Set(
-              orGroups.flat().filter((t) => matchesQuery(haystack, [[t]])).map((t) => t.text)
+              orGroups.flat().filter((t) => matchesQuery(haystack, [[t]])).map((t) => stemForMatch(t))
             )
           )
         : [];

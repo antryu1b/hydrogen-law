@@ -11,7 +11,7 @@ import type {
 } from './types';
 import { CODE_TO_FAMILY } from '@/data/kgs-families-display';
 import { whitespaceInsensitivePattern } from '@/lib/highlight';
-import { parseSearchQuery } from '@/lib/search-query';
+import { parseSearchQuery, stripKoreanParticle } from '@/lib/search-query';
 import { EquationImages, PageViewButton } from './EquationImages';
 
 const HighlightCtx = createContext<{ matched: Set<string>; q: string }>({ matched: new Set(), q: '' });
@@ -22,12 +22,42 @@ const HighlightCtx = createContext<{ matched: Set<string>; q: string }>({ matche
 // token. ALL terms (quoted and non-quoted) match whitespace-insensitively
 // ("연료가스"↔"연료 가스", `"로크 아웃"`↔"로크아웃") so a quoted phrase highlights
 // too. Match length comes from the actual matched span.
+//
+// FIX 1: non-quoted Korean terms highlight on their STEM (조사/어미 stripped) so
+// the root word lights up even when the corpus form lacks the particle
+// ("배기가스가" → highlights "배기가스").
+// FIX 2: when a QUOTED phrase isn't present verbatim in `text`, fall back to its
+// COMPONENT words (split on whitespace, particle-stripped) so the user still sees
+// the relevant words highlighted instead of nothing.
+function buildHighlightPatterns(q: string, text: string): string[] {
+  const patterns: string[] = [];
+  for (const t of parseSearchQuery(q).flat()) {
+    if (!t.quoted) {
+      const stem = stripKoreanParticle(t.text);
+      const p = whitespaceInsensitivePattern(stem);
+      if (p.length > 0) patterns.push(p);
+      continue;
+    }
+    // Quoted: prefer the exact contiguous phrase when it's present in the text.
+    const phrasePattern = whitespaceInsensitivePattern(t.text);
+    const present =
+      phrasePattern.length > 0 && new RegExp(phrasePattern, 'i').test(text);
+    if (present) {
+      patterns.push(phrasePattern);
+    } else {
+      // Fall back to component words (particle-stripped) so something highlights.
+      for (const word of t.text.split(/\s+/).filter((w) => w.length > 0)) {
+        const p = whitespaceInsensitivePattern(stripKoreanParticle(word));
+        if (p.length > 0) patterns.push(p);
+      }
+    }
+  }
+  return patterns;
+}
+
 function highlightBody(text: string, q: string): React.ReactNode {
   if (!q || !text) return text;
-  const patterns = parseSearchQuery(q)
-    .flat()
-    .map((t) => whitespaceInsensitivePattern(t.text))
-    .filter((p) => p.length > 0);
+  const patterns = buildHighlightPatterns(q, text).filter((p) => p.length > 0);
   if (!patterns.length) return text;
   const re = new RegExp(`(${patterns.join('|')})`, 'gi');
   const parts: React.ReactNode[] = [];

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { highlightText, whitespaceInsensitivePattern, centeredSnippet } from '@/lib/highlight';
+import {
+  highlightText,
+  whitespaceInsensitivePattern,
+  centeredSnippet,
+  expandKeywordsForText,
+} from '@/lib/highlight';
 
 // Whitespace-insensitive highlighting: searching "연료전지" must highlight
 // stored text that reads "연료 전지", and searching "연료 전지" must highlight
@@ -88,6 +93,48 @@ describe('centeredSnippet', () => {
   it('omits leading ellipsis when match is at the start', () => {
     const snip = centeredSnippet('용어 정의는 다음과 같다', ['용어']);
     expect(snip!.startsWith('…')).toBe(false);
+  });
+});
+
+// FIX 2: when a QUOTED phrase matched a result via the broader index but is NOT
+// present contiguously in the shown text, highlighting the full phrase would mark
+// nothing. expandKeywordsForText / highlightText / centeredSnippet fall back to
+// the phrase's component words so the user still sees the relevant words.
+describe('expandKeywordsForText — quoted-phrase component-word fallback', () => {
+  it('keeps a phrase that IS present verbatim (whitespace-insensitive)', () => {
+    expect(expandKeywordsForText(['연료 가스'], '이 설비의 연료가스 배출')).toEqual(['연료 가스']);
+  });
+
+  it('splits a phrase NOT present into its component words', () => {
+    // "연료 가스" is absent contiguously (only 연료 ... 가스 far apart) → split.
+    expect(expandKeywordsForText(['연료 가스'], '연료 설비와 가스 배관')).toEqual(['연료', '가스']);
+  });
+
+  it('passes single-word keywords through unchanged', () => {
+    expect(expandKeywordsForText(['배기가스', '수소'], '아무 텍스트')).toEqual(['배기가스', '수소']);
+  });
+});
+
+describe('highlightText — component-word fallback for an absent quoted phrase', () => {
+  it('falls back to component words when the full phrase is absent', () => {
+    const out = highlightText('연료 설비와 가스 배관', ['연료 가스']);
+    expect(out).toMatch(/<mark[^>]*>연료<\/mark>/);
+    expect(out).toMatch(/<mark[^>]*>가스<\/mark>/);
+  });
+
+  it('still highlights the full phrase when present (no premature fallback)', () => {
+    const out = highlightText('이 설비의 연료가스 배출', ['연료 가스']);
+    expect(out).toMatch(/<mark[^>]*>연료가스<\/mark>/);
+  });
+});
+
+describe('centeredSnippet — component-word fallback', () => {
+  const lead = '가나다라마바사아자차카타파하'.repeat(8);
+  it('centers on a component word when the full quoted phrase is absent', () => {
+    const txt = `${lead}연료 설비와 ${lead} 가스 배관`;
+    const snip = centeredSnippet(txt, ['연료 가스']);
+    expect(snip).not.toBeNull();
+    expect(snip).toContain('연료'); // earliest component word
   });
 });
 

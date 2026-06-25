@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { deriveLawType } from '@/lib/utils';
 import { highlightText, centeredSnippet } from '@/lib/highlight';
-import { parseSearchQuery, allTerms, type OrGroup, type QueryTerm } from '@/lib/search-query';
+import { parseSearchQuery, allTerms, stemForMatch, type OrGroup, type QueryTerm } from '@/lib/search-query';
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_RESULTS = 100;
@@ -287,8 +287,12 @@ async function resolveSingleTermGroup(
 ): Promise<GroupResult> {
   // All terms are matched whitespace-insensitively → collapse spaces so the RPC
   // (which strips spaces on both sides) gets identical input for both spellings.
-  const k = term.text.replace(/\s+/g, '');
-  const highlightTerms = [term.text];
+  // Non-quoted Korean terms use their STEM (조사/어미 stripped) so a typed
+  // "배기가스가" hits the corpus form "배기가스" in the ILIKE / RPC and is the
+  // term we highlight; quoted phrases stay verbatim (stemForMatch handles both).
+  const stem = stemForMatch(term);
+  const k = stem.replace(/\s+/g, '');
+  const highlightTerms = [stem];
 
   if (!term.quoted && isLawNameToken(k)) {
     const aliased = resolveLawAlias(k);
@@ -300,7 +304,7 @@ async function resolveSingleTermGroup(
     if (lnData && lnData.length > 0) {
       return {
         rows: lnData as SupabaseRow[],
-        highlightTerms: aliased !== k ? [term.text, aliased] : highlightTerms,
+        highlightTerms: aliased !== k ? [stem, aliased] : highlightTerms,
         // Return ALL family articles so per-law UI badge counts match DB totals.
         topKOverride: lnData.length,
       };
@@ -407,8 +411,9 @@ async function resolveMultiTermGroup(
   for (const term of terms) {
     // All terms collapse spaces (whitespace-insensitive). A quoted term is still a
     // single contiguous unit, so it skips the 제N조 / law-name routing and matches
-    // its collapsed literal as a substring.
-    const k = term.text.replace(/\s+/g, '');
+    // its collapsed literal as a substring. Non-quoted Korean terms use their STEM
+    // (조사/어미 stripped) so "배기가스가" ANDs on the corpus form "배기가스".
+    const k = stemForMatch(term).replace(/\s+/g, '');
     if (!term.quoted && /^제\d+조(?:의\d+)?$/.test(k)) {
       q = q.eq('article_no', k);
     } else if (!term.quoted && isLawNameToken(k)) {
@@ -418,7 +423,7 @@ async function resolveMultiTermGroup(
     }
   }
   const { data: andData } = await q.limit(topK * 2);
-  const highlightTerms = terms.map((t) => t.text);
+  const highlightTerms = terms.map((t) => stemForMatch(t));
   return { rows: (andData as SupabaseRow[]) ?? [], highlightTerms };
 }
 

@@ -4,6 +4,8 @@ import {
   allTerms,
   termMatches,
   matchesQuery,
+  stripKoreanParticle,
+  stemForMatch,
 } from '@/lib/search-query';
 
 describe('parseSearchQuery — AND (space)', () => {
@@ -121,6 +123,81 @@ describe('termMatches — whitespace-insensitive', () => {
     // But it stays one contiguous unit: a doc with the chars split far apart
     // (가스 ... 연료, not adjacent) does NOT match the quoted phrase "연료 가스".
     expect(termMatches('가스 안전 연료', { text: '연료 가스', quoted: true })).toBe(false);
+  });
+});
+
+describe('stripKoreanParticle — conservative 조사/어미 stripping', () => {
+  it('strips a trailing 조사 leaving a ≥2-char stem', () => {
+    expect(stripKoreanParticle('배기가스가')).toBe('배기가스'); // 가
+    expect(stripKoreanParticle('수소를')).toBe('수소'); // 를
+    expect(stripKoreanParticle('연료의')).toBe('연료'); // 의
+    expect(stripKoreanParticle('설비에서')).toBe('설비'); // 에서 (multi-char wins over 에)
+    expect(stripKoreanParticle('가스으로')).toBe('가스'); // 으로 wins over 로
+  });
+
+  it('strips light verb/adjective endings when stem stays ≥2 chars', () => {
+    expect(stripKoreanParticle('연결되는')).toBe('연결'); // 되는
+    expect(stripKoreanParticle('설치하여')).toBe('설치'); // 하여
+    expect(stripKoreanParticle('작동하고')).toBe('작동'); // 하고
+  });
+
+  it('falls through a guard-failing long suffix to a shorter valid one', () => {
+    // "통하는": 하는 → stem "통" (1 char) FAILS guard → loop continues → 는 →
+    // stem "통하" (2 chars) PASSES. Result "통하" matches both "통하는" and the
+    // "통하여" stem in the corpus.
+    expect(stripKoreanParticle('통하는')).toBe('통하');
+  });
+
+  it('does NOT strip when EVERY candidate stem would be < 2 Korean chars', () => {
+    // short word legitimately ending in 는 / 가 — stem too short, keep verbatim.
+    expect(stripKoreanParticle('나는')).toBe('나는'); // stem "나" < 2 chars
+    expect(stripKoreanParticle('가가')).toBe('가가'); // stem "가" < 2 chars
+    expect(stripKoreanParticle('는')).toBe('는'); // shorter than suffix
+  });
+
+  it('leaves non-Korean terms untouched', () => {
+    expect(stripKoreanParticle('gas')).toBe('gas');
+    expect(stripKoreanParticle('CO2')).toBe('CO2');
+    expect(stripKoreanParticle('')).toBe('');
+  });
+
+  it('leaves a term without a listed trailing particle untouched', () => {
+    expect(stripKoreanParticle('배기가스')).toBe('배기가스');
+    expect(stripKoreanParticle('수소충전소')).toBe('수소충전소');
+  });
+
+  it('only peels one ending (single pass, conservative)', () => {
+    // "통하여" → 하여 → "통" is 1 char (fails guard); no shorter listed suffix
+    // matches → returns original (no recursive peeling to "통하").
+    expect(stripKoreanParticle('통하여')).toBe('통하여');
+  });
+});
+
+describe('stemForMatch — quoted vs non-quoted', () => {
+  it('strips the particle for a non-quoted term', () => {
+    expect(stemForMatch({ text: '배기가스가', quoted: false })).toBe('배기가스');
+  });
+
+  it('NEVER strips a quoted term (exact-phrase contract)', () => {
+    expect(stemForMatch({ text: '배기가스가', quoted: true })).toBe('배기가스가');
+    expect(stemForMatch({ text: '연료 가스', quoted: true })).toBe('연료 가스');
+  });
+});
+
+describe('termMatches — particle-stripped matching for non-quoted terms', () => {
+  it('"배기가스가" (non-quoted) matches stored "배기가스"', () => {
+    expect(termMatches('이 설비의 배기가스 배출 기준', { text: '배기가스가', quoted: false })).toBe(true);
+  });
+
+  it('"통하는" (stem "통하") matches both "통하는" and the "통하여" stem', () => {
+    // stripKoreanParticle("통하는") = "통하" → substring of both stored forms.
+    expect(termMatches('수소가 통하는 부분', { text: '통하는', quoted: false })).toBe(true);
+    expect(termMatches('수소가 통하여 흐르는 부분', { text: '통하는', quoted: false })).toBe(true);
+  });
+
+  it('a quoted "배기가스가" does NOT strip — only matches the exact form', () => {
+    expect(termMatches('배기가스 배출', { text: '배기가스가', quoted: true })).toBe(false);
+    expect(termMatches('배기가스가 배출', { text: '배기가스가', quoted: true })).toBe(true);
   });
 });
 

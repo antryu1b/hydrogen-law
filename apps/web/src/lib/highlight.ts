@@ -16,6 +16,33 @@ export function whitespaceInsensitivePattern(keyword: string): string {
   return chars.map(escapeRegex).join('\\s*');
 }
 
+// FIX 2: component-word fallback for a multi-word (quoted) keyword that is NOT
+// present verbatim in `text`. A quoted phrase can match a result via the broader
+// index yet not appear contiguously in the displayed body/snippet — in that case
+// highlighting the full phrase marks nothing, so we fall back to its component
+// words (split on whitespace) so the user still sees the relevant words.
+//
+// A keyword is expanded ONLY when it contains internal whitespace (i.e. a phrase)
+// AND its whitespace-insensitive form does not occur in `text`. Single-word
+// keywords (the common case after particle-stripping) pass through unchanged.
+export function expandKeywordsForText(keywords: string[], text: string): string[] {
+  const out: string[] = [];
+  for (const k of keywords) {
+    const trimmed = k.trim();
+    if (!trimmed) continue;
+    const hasSpace = /\s/.test(trimmed);
+    if (!hasSpace) { out.push(trimmed); continue; }
+    const pat = whitespaceInsensitivePattern(trimmed);
+    const present = pat.length > 0 && new RegExp(pat, 'i').test(text);
+    if (present) {
+      out.push(trimmed);
+    } else {
+      for (const w of trimmed.split(/\s+/)) if (w.length > 0) out.push(w);
+    }
+  }
+  return out;
+}
+
 // Build a display snippet centered on the FIRST matched query term in `text`.
 // Mirrors KGS `matchedSectionsFor`: find the earliest whitespace-insensitive
 // match across `keywords`, take ~40 chars before to ~80 after the match, collapse
@@ -28,7 +55,11 @@ export function centeredSnippet(
   after = 80
 ): string | null {
   if (!text) return null;
-  const cleaned = keywords.map((k) => k.replace(/\s+/g, '')).filter((k) => k.length > 0);
+  // Fall back to component words for any quoted phrase not present verbatim, so the
+  // snippet can still center on a component word when the full phrase is absent.
+  const cleaned = expandKeywordsForText(keywords, text)
+    .map((k) => k.replace(/\s+/g, ''))
+    .filter((k) => k.length > 0);
   if (!cleaned.length) return null;
 
   // Earliest match across all terms (whitespace-insensitive).
@@ -50,7 +81,9 @@ export function centeredSnippet(
 export function highlightText(text: string, keywords: string[]): string {
   if (!keywords.length) return text;
 
-  const patterns = keywords
+  // Component-word fallback: a quoted phrase not present verbatim in `text` would
+  // otherwise highlight nothing — expand it to its component words instead.
+  const patterns = expandKeywordsForText(keywords, text)
     .map((k) => k.replace(/\s+/g, ''))
     .filter((k) => k.length > 0)
     .map(whitespaceInsensitivePattern);

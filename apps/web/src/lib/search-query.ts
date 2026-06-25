@@ -89,6 +89,60 @@ export function parseSearchQuery(query: string): OrGroup[] {
   return groups;
 }
 
+// Conservative Korean particle / ending stripper for NON-QUOTED terms.
+//
+// Natural-language queries carry 조사/어미 that don't appear in the corpus form:
+// the corpus has "배기가스" but a typed term "배기가스가" only matches the rarer
+// rows that keep the particle. Stripping the trailing 조사/어미 lets the term
+// match its stem ("배기가스가" → "배기가스").
+//
+// Rules (deliberately conservative — under-strip rather than create false hits):
+//   • Only Korean terms are touched (a term with no 가-힣 char is returned as-is).
+//   • Try the LONGEST matching suffix first (so "으로" wins over "로", "에서" over
+//     "에") and strip it ONLY IF the remaining stem is ≥ 2 Korean chars.
+//   • Never strip a quoted term — callers must skip quoted terms (exact-phrase
+//     contract). This function itself just operates on a raw string.
+//   • One pass only — we don't recursively peel multiple endings.
+//
+// The suffix list covers the frequent 조사 and a few safe light verb/adjective
+// endings. Order matters: longer/compound forms precede their shorter substrings.
+const KR_PARTICLE_SUFFIXES = [
+  // light verb / adjective endings (longer compounds first)
+  '하는', '되는', '하여', '되어', '하고', '되고',
+  // 조사 (multi-char first so they win over their tail)
+  '으로', '에서', '에게', '부터', '까지', '라는',
+  '한', '된', '하',
+  '이', '가', '은', '는', '을', '를', '의', '에', '와', '과', '도', '만', '로',
+];
+
+// Count leading-to-trailing Korean syllable chars in a string (한글 음절 only).
+function koreanCharCount(s: string): number {
+  let n = 0;
+  for (const ch of s) if (/[가-힣]/.test(ch)) n++;
+  return n;
+}
+
+// Strip a trailing Korean particle / ending from a term, returning the stem.
+// Returns the term unchanged when it is non-Korean, when no listed suffix applies,
+// or when stripping would leave a stem of < 2 Korean chars.
+export function stripKoreanParticle(term: string): string {
+  if (!term || !/[가-힣]/.test(term)) return term;
+  for (const suf of KR_PARTICLE_SUFFIXES) {
+    if (term.length > suf.length && term.endsWith(suf)) {
+      const stem = term.slice(0, term.length - suf.length);
+      if (koreanCharCount(stem) >= 2) return stem;
+    }
+  }
+  return term;
+}
+
+// Stem text used for MATCHING / HIGHLIGHTING a query term. Quoted terms are
+// returned verbatim (exact-phrase contract); non-quoted Korean terms get their
+// trailing particle/ending stripped via stripKoreanParticle.
+export function stemForMatch(term: QueryTerm): string {
+  return term.quoted ? term.text : stripKoreanParticle(term.text);
+}
+
 // Flatten OR-groups to the distinct term texts (for chips / highlighting), in
 // first-seen order. Useful when a route only needs the surface terms.
 export function allTerms(groups: OrGroup[]): string[] {
@@ -115,7 +169,10 @@ function collapse(s: string): string {
 //     terms), not in how a single term is compared here.
 export function termMatches(haystack: string, term: QueryTerm): boolean {
   const hay = haystack.toLowerCase();
-  return collapse(hay).includes(collapse(term.text.toLowerCase()));
+  // Non-quoted Korean terms match on their stem (조사/어미 stripped) so a typed
+  // "배기가스가" matches stored "배기가스". Quoted terms stay verbatim.
+  const needle = stemForMatch(term);
+  return collapse(hay).includes(collapse(needle.toLowerCase()));
 }
 
 // Does `haystack` satisfy the parsed query? True if ANY OR-group has ALL its
