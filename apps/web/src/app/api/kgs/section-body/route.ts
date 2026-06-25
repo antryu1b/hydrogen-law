@@ -17,6 +17,8 @@ export interface EquationRegion {
   ocr_good?: boolean;
 }
 
+type BodyStatus = 'has_body' | 'umbrella' | 'deleted' | 'inline_title' | 'artifact';
+
 interface RawSection {
   sec_no: string;
   title: string;
@@ -24,6 +26,7 @@ interface RawSection {
   body?: string;
   body_chars?: number;
   is_umbrella?: boolean;
+  body_status?: BodyStatus;
   is_appendix?: boolean;
   appendix_kind?: string;
   appendix_no?: string;
@@ -49,6 +52,7 @@ export interface SectionBlock {
   level: number;
   body: string;
   is_umbrella: boolean;
+  body_status?: BodyStatus;
   is_appendix?: boolean;
   body_chars: number;
   equation_regions?: EquationRegion[];
@@ -256,6 +260,7 @@ export async function GET(request: NextRequest) {
         is_umbrella: s.is_umbrella ?? false,
         body_chars: body.length,
       };
+      if (s.body_status) block.body_status = s.body_status;
       if (s.equation_regions && s.equation_regions.length > 0) {
         block.equation_regions = enrichRegions(s.equation_regions, codeOcr);
       }

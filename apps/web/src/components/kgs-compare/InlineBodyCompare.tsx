@@ -234,8 +234,20 @@ function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProp
     return <p className="text-xs text-muted-foreground italic">(섹션 없음)</p>;
   }
 
+  // An umbrella parent normally aggregates its descendants' bodies (the blocks
+  // below). When NONE of the aggregated blocks carries body text, the selected
+  // heading is a genuinely-empty umbrella (e.g. "내용 없음"/삭제된 상위 항목) —
+  // surface a note so a high-level 목차 click never shows a blank body.
+  const hasAnyBody = blocks.some((b) => b.body.length > 0);
+  const rootIsUmbrella = data.root.is_umbrella;
+
   return (
     <div className="space-y-2">
+      {rootIsUmbrella && !hasAnyBody && (
+        <p className="text-[11px] text-muted-foreground italic">
+          하위 조항에 본문이 없습니다 (상위 헤더).
+        </p>
+      )}
       {blocks.map((block: SectionBlock) => (
         <section key={block.sec_no} className="border-l-2 border-muted pl-2">
           <h4 className="text-[13px] lg:text-[11px] font-semibold flex items-center gap-1.5 flex-wrap">
@@ -251,9 +263,11 @@ function RecursiveBodyColumn({ code, secNo, isPresent }: RecursiveBodyColumnProp
             <pre className="text-sm lg:text-[11px] whitespace-pre-wrap break-words mt-0.5 text-foreground/80 font-sans leading-relaxed">
               {highlightBody(block.body, q)}
             </pre>
-          ) : !block.is_umbrella ? (
+          ) : block.is_umbrella ? null : block.body_status === 'deleted' ? (
+            <p className="text-[11px] text-muted-foreground italic mt-0.5">(삭제)</p>
+          ) : (
             <p className="text-[11px] text-muted-foreground italic mt-0.5">(본문 없음)</p>
-          ) : null}
+          )}
           {block.equation_regions && block.equation_regions.length > 0 && (
             <EquationImages code={code} equationRegions={block.equation_regions} />
           )}

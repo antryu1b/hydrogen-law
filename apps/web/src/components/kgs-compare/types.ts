@@ -54,12 +54,15 @@ export interface EquationRegion {
   ocr_good?: boolean;
 }
 
+export type BodyStatus = 'has_body' | 'umbrella' | 'deleted' | 'inline_title' | 'artifact';
+
 export interface SectionBlock {
   sec_no: string;
   title: string;
   level: number;
   body: string;
   is_umbrella: boolean;
+  body_status?: BodyStatus;
   body_chars: number;
   equation_regions?: EquationRegion[];
   page_start?: number;
