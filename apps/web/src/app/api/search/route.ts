@@ -97,6 +97,8 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
           title: result.law_name,
           content: `[${deriveLawType(result.law_name, result.law_type)}]`,
           highlighted_content: `[${deriveLawType(result.law_name, result.law_type)}]`,
+          highlighted_title: highlightText(result.law_name, keywords),
+          highlighted_law_name: highlightText(lawName, keywords),
           relevance_score: result.score * 100,
           article_type: 'article' as const,
           related_articles: [],
@@ -124,6 +126,8 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
           title: `${lawName} ${label}`,
           content,
           highlighted_content: highlightText(content, keywords),
+          highlighted_title: highlightText(`${lawName} ${label}`, keywords),
+          highlighted_law_name: highlightText(lawName, keywords),
           relevance_score: result.score * 100,
           article_type: 'article' as const,
           related_articles: [],
@@ -132,18 +136,23 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
     }
 
     // Relevance filter: Beopmang matches at the LAW level, so it can return
-    // articles whose body contains none of the search keywords (no highlight,
-    // e.g. "등록신고" surfacing 가축분뇨 규칙 제7조). Keep only articles where at
-    // least one keyword actually appears — same keywords that drive highlighting,
-    // so "no highlight" == "filtered out". Fall back to raw results if the filter
-    // would empty an otherwise non-empty response (never show nothing).
-    const kwLower = keywords.map((k) => k.toLowerCase());
+    // articles whose displayed fields contain none of the search keywords (no
+    // highlight, e.g. "등록신고" surfacing 가축분뇨 규칙 제7조). Keep an article only
+    // if at least one keyword is VISIBLE in some displayed field (content / title /
+    // law_name / article_number) — same keywords that drive highlighting, so
+    // "nothing highlighted anywhere" == "filtered out". Compared whitespace-
+    // insensitively so a spaced keyword still matches a no-space stored field.
+    // Fall back to raw results if the filter would empty an otherwise non-empty
+    // response (never show nothing).
+    const kwLower = keywords.map((k) => k.replace(/\s+/g, '').toLowerCase()).filter((k) => k.length > 0);
     const relevantArticles =
       kwLower.length === 0
         ? articles
         : (() => {
             const matched = articles.filter((a) => {
-              const hay = `${a.content || ''} ${a.title || ''} ${a.law_name || ''} ${a.article_number || ''}`.toLowerCase();
+              const hay = `${a.content || ''} ${a.title || ''} ${a.law_name || ''} ${a.article_number || ''}`
+                .replace(/\s+/g, '')
+                .toLowerCase();
               return kwLower.some((k) => hay.includes(k));
             });
             return matched.length > 0 ? matched : articles;
@@ -267,16 +276,18 @@ interface GroupResult { rows: SupabaseRow[]; highlightTerms: string[]; topKOverr
 //   law-name token  → law_name ilike (alias-resolved), return whole family
 //   else            → RPC (whitespace-insensitive) → exact ilike → compound AND
 //                     → 2-char fuzzy fallback
-// `term` is whitespace-collapsed for non-quoted terms so the RPC bridges
-// "연료 가스" ↔ "연료가스"; quoted terms keep their literal spacing.
+// Both quoted and non-quoted terms are whitespace-collapsed so the RPC bridges
+// "연료 가스" ↔ "연료가스" and `"로크 아웃"` ↔ "로크아웃". A quoted term is a single
+// contiguous unit, so it still skips compound decomposition / fuzzy expansion
+// (those would split the phrase) — but it IS resolved whitespace-insensitively.
 async function resolveSingleTermGroup(
   supabase: SupabaseClient,
   term: QueryTerm,
   topK: number
 ): Promise<GroupResult> {
-  // Non-quoted terms are matched whitespace-insensitively → collapse spaces so the
-  // RPC (which strips spaces on both sides) gets identical input for both spellings.
-  const k = term.quoted ? term.text : term.text.replace(/\s+/g, '');
+  // All terms are matched whitespace-insensitively → collapse spaces so the RPC
+  // (which strips spaces on both sides) gets identical input for both spellings.
+  const k = term.text.replace(/\s+/g, '');
   const highlightTerms = [term.text];
 
   if (!term.quoted && isLawNameToken(k)) {
@@ -299,9 +310,10 @@ async function resolveSingleTermGroup(
 
   let data: SupabaseRow[] | null = null;
 
-  // Step 1a: RPC full-text search (whitespace-insensitive on both sides). Skip for
-  // quoted terms — the RPC collapses spaces, which would break exact-phrase intent.
-  if (!term.quoted) {
+  // Step 1a: RPC full-text search (whitespace-insensitive on both sides) — used for
+  // quoted AND non-quoted terms so a quoted `"로크 아웃"` (collapsed to "로크아웃")
+  // still matches stored "로크 아웃".
+  {
     const { data: rpcData, error: rpcError } = await supabase.rpc('search_law_articles', {
       search_query: k,
       max_results: topK,
@@ -309,11 +321,10 @@ async function resolveSingleTermGroup(
     if (!rpcError && rpcData && rpcData.length > 0) data = rpcData as SupabaseRow[];
   }
 
-  // Step 1b: exact ilike on the full term (no fragments). For quoted terms this is
-  // the primary path: a literal `%term%` ilike preserves the spacing.
+  // Step 1b: exact ilike on the collapsed term (no fragments). Matches the spelling
+  // stored without spaces ("로크아웃"); the RPC above covers the spaced spelling.
   if (!data || data.length === 0) {
-    const lit = term.quoted ? term.text : k;
-    const exactQuery = `content.ilike.%${lit}%,law_name.ilike.%${lit}%,title.ilike.%${lit}%`;
+    const exactQuery = `content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`;
     const { data: exactData } = await supabase
       .from('law_articles')
       .select('*')
@@ -323,7 +334,7 @@ async function resolveSingleTermGroup(
   }
 
   // Quoted terms stop here: no compound decomposition / fuzzy expansion (those
-  // would defeat the exact-phrase contract).
+  // would split the phrase into fragments and defeat the contiguous-unit contract).
   if (term.quoted) return { rows: data ?? [], highlightTerms };
 
   // Step 1b-2: compound AND — when the literal compound has no exact match, require
@@ -394,15 +405,16 @@ async function resolveMultiTermGroup(
 ): Promise<GroupResult> {
   let q = supabase.from('law_articles').select('*');
   for (const term of terms) {
-    // Non-quoted terms collapse spaces; quoted terms keep literal spacing.
-    const k = term.quoted ? term.text : term.text.replace(/\s+/g, '');
+    // All terms collapse spaces (whitespace-insensitive). A quoted term is still a
+    // single contiguous unit, so it skips the 제N조 / law-name routing and matches
+    // its collapsed literal as a substring.
+    const k = term.text.replace(/\s+/g, '');
     if (!term.quoted && /^제\d+조(?:의\d+)?$/.test(k)) {
       q = q.eq('article_no', k);
     } else if (!term.quoted && isLawNameToken(k)) {
       q = q.ilike('law_name', `%${resolveLawAlias(k)}%`);
     } else {
-      const lit = term.quoted ? term.text : k;
-      q = q.or(`content.ilike.%${lit}%,law_name.ilike.%${lit}%,title.ilike.%${lit}%`);
+      q = q.or(`content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`);
     }
   }
   const { data: andData } = await q.limit(topK * 2);
@@ -476,23 +488,46 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
       });
     }
 
+    // Relevance filter: keep a row only if at least one matched keyword is VISIBLE
+    // in some displayed field (title / law_name / article_number / content). A row
+    // that matched purely via a non-displayed full-text index — nothing for the
+    // user to see — is dropped. Same keywords that drive highlighting, so
+    // "nothing highlighted anywhere" == "filtered out". Fall back to the unfiltered
+    // set if this would empty an otherwise non-empty response (never show nothing).
+    const kwLower = keywords.map((k) => k.replace(/\s+/g, '').toLowerCase()).filter((k) => k.length > 0);
+    const visibleRows =
+      kwLower.length === 0
+        ? (data as SupabaseRow[])
+        : (() => {
+            const matched = (data as SupabaseRow[]).filter((row) => {
+              const hay = `${row.title || ''} ${row.law_name || ''} ${row.article_no || ''} ${row.content || ''}`
+                .replace(/\s+/g, '')
+                .toLowerCase();
+              return kwLower.some((k) => hay.includes(k));
+            });
+            return matched.length > 0 ? matched : (data as SupabaseRow[]);
+          })();
+
     const lawGroupMap = new Map<string, { law_name: string; law_type: string; count: number }>();
-    const articles = (data as SupabaseRow[]).slice(0, topK).map((row, i) => {
+    const articles = visibleRows.slice(0, topK).map((row, i) => {
       const lawKey = row.law_name;
       const existing = lawGroupMap.get(lawKey);
       if (existing) existing.count++;
       else lawGroupMap.set(lawKey, { law_name: row.law_name, law_type: deriveLawType(row.law_name, row.law_type), count: 1 });
 
       const content = (row.content || '').slice(0, 400);
+      const title = row.title || '';
       return {
         article_id: row.id,
         law_name: row.law_name,
         law_id: row.law_id || '',
         law_type: deriveLawType(row.law_name, row.law_type),
         article_number: row.article_no || '',
-        title: row.title || '',
+        title,
         content,
         highlighted_content: highlightText(content, keywords),
+        highlighted_title: highlightText(title, keywords),
+        highlighted_law_name: highlightText(row.law_name, keywords),
         relevance_score: 100 - i,
         article_type: 'article' as const,
         related_articles: [],

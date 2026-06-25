@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { highlightText } from '@/lib/highlight';
+import { highlightText, whitespaceInsensitivePattern } from '@/lib/highlight';
 
 // Whitespace-insensitive highlighting: searching "연료전지" must highlight
 // stored text that reads "연료 전지", and searching "연료 전지" must highlight
@@ -34,5 +34,26 @@ describe('highlightText whitespace-insensitive', () => {
   it('does not over-match unrelated text', () => {
     const out = highlightText('수소 자동차', ['연료전지']);
     expect(out).not.toContain('<mark');
+  });
+
+  it('highlights a quoted phrase whitespace-insensitively', () => {
+    // A quoted phrase "로크 아웃" is highlighted as one contiguous unit ignoring
+    // spaces, so it marks stored "로크아웃" too (mirrors highlightBody using the
+    // same whitespaceInsensitivePattern for ALL terms incl. quoted).
+    const out = highlightText('비상 로크아웃 장치', ['로크 아웃']);
+    expect(out).toMatch(/<mark[^>]*>로크아웃<\/mark>/);
+  });
+});
+
+// whitespaceInsensitivePattern is what InlineBodyCompare.highlightBody uses for
+// ALL terms (quoted + non-quoted) after FIX 1, so a quoted phrase highlights too.
+describe('whitespaceInsensitivePattern', () => {
+  it('collapses internal whitespace and allows optional spaces between chars', () => {
+    const pat = whitespaceInsensitivePattern('로크 아웃');
+    const re = new RegExp(pat);
+    expect(re.test('로크아웃')).toBe(true);
+    expect(re.test('로크 아웃')).toBe(true);
+    expect(re.test('로크\t아웃')).toBe(true);
+    expect(re.test('로크')).toBe(false);
   });
 });

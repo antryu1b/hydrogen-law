@@ -6,8 +6,11 @@
 //                     between terms means either side. The query is parsed into
 //                     OR-groups; within a group, space-separated terms are ANDed.
 //                     A doc matches if ANY group is fully satisfied.
-//   • "..."  = exact phrase — a double-quoted span is one literal term (spaces
-//                     inside preserved, NOT whitespace-collapsed when matched).
+//   • "..."  = contiguous phrase — a double-quoted span is ONE unit matched
+//                     whitespace-insensitively (spaces collapsed on both sides),
+//                     so `"로크 아웃"` matches stored "로크아웃" and "로크 아웃".
+//                     This differs from an unquoted multi-word query, which splits
+//                     into separate AND terms; quotes keep the chars as one unit.
 //
 // Each non-quoted term is matched whitespace-insensitively elsewhere (term
 // "연료가스" matches stored "연료 가스" and vice versa). This subsumes the old
@@ -17,7 +20,8 @@
 export interface QueryTerm {
   // The user-facing text of the term (what to show in chips / highlight).
   text: string;
-  // Whether this term came from a "quoted" span (exact phrase, spaces preserved).
+  // Whether this term came from a "quoted" span (a single contiguous unit,
+  // matched whitespace-insensitively — distinct from unquoted AND-splitting).
   quoted: boolean;
 }
 
@@ -104,14 +108,13 @@ function collapse(s: string): string {
 }
 
 // Does `haystack` contain `term`?
-//   • Non-quoted: whitespace-insensitive — collapse spaces on BOTH sides so
-//     "연료가스" matches "연료 가스" and vice versa.
-//   • Quoted: literal substring (case-insensitive), spaces preserved.
+//   • Both quoted and non-quoted are matched whitespace-insensitively — collapse
+//     spaces on BOTH sides so "연료가스" matches "연료 가스" and `"로크 아웃"`
+//     matches "로크아웃". The difference between quoted and non-quoted is in the
+//     PARSER (quoted = one contiguous unit; unquoted multi-word = separate AND
+//     terms), not in how a single term is compared here.
 export function termMatches(haystack: string, term: QueryTerm): boolean {
   const hay = haystack.toLowerCase();
-  if (term.quoted) {
-    return hay.includes(term.text.toLowerCase());
-  }
   return collapse(hay).includes(collapse(term.text.toLowerCase()));
 }
 

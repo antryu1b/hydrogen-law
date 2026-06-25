@@ -201,6 +201,23 @@ function ArticleCard({ article, index, keywords = [], onSearch }: { article: Sea
   const highlightedFull = cleanFullContent ? highlightKeywords(cleanFullContent, keywords) : null;
   const fullHtml = highlightedFull && onSearch ? linkifyLegalCitations(highlightedFull, onSearch) : highlightedFull;
 
+  // Highlight matched keywords in the title / law_name too, so a result whose only
+  // match is in those fields still shows a visible highlight. Prefer the server's
+  // whitespace-insensitive highlighted_* fields; fall back to client highlighting.
+  const MARK_SANITIZE = { ALLOWED_TAGS: ['mark'], ALLOWED_ATTR: ['class', 'style'] };
+  const lawNameHtml = DOMPurify.sanitize(
+    article.highlighted_law_name ?? highlightKeywords(article.law_name, keywords),
+    MARK_SANITIZE
+  );
+  const articleNumberHtml = DOMPurify.sanitize(
+    highlightKeywords(article.article_number, keywords),
+    MARK_SANITIZE
+  );
+  const titleHtml = DOMPurify.sanitize(
+    article.highlighted_title ?? highlightKeywords(article.title, keywords),
+    MARK_SANITIZE
+  );
+
   const isLong = article.content.length > CONTENT_PREVIEW_LENGTH;
 
   // For appendix: extract a short summary
@@ -230,7 +247,7 @@ function ArticleCard({ article, index, keywords = [], onSearch }: { article: Sea
                   rel="noopener noreferrer"
                   className="hover:text-primary hover:underline inline-flex items-center gap-1"
                 >
-                  {article.law_name} {article.article_number}
+                  <span dangerouslySetInnerHTML={{ __html: `${lawNameHtml} ${articleNumberHtml}` }} />
                   <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 opacity-50" />
                 </a>
               </CardTitle>
@@ -240,9 +257,10 @@ function ArticleCard({ article, index, keywords = [], onSearch }: { article: Sea
                 </Badge>
               )}
             </div>
-            <CardDescription className="text-xs sm:text-sm font-semibold text-foreground/80">
-              {article.title}
-            </CardDescription>
+            <CardDescription
+              className="text-xs sm:text-sm font-semibold text-foreground/80"
+              dangerouslySetInnerHTML={{ __html: titleHtml }}
+            />
             {/* Appendix: show summary when collapsed */}
             {appendix && !expanded && summaryText && (
               <p className="text-sm text-muted-foreground mt-2 line-clamp-2">

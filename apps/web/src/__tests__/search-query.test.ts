@@ -58,7 +58,7 @@ describe('parseSearchQuery — 또는', () => {
 });
 
 describe('parseSearchQuery — quotes', () => {
-  it('treats a double-quoted span as one term, spaces preserved', () => {
+  it('treats a double-quoted span as one term (spaces kept in the surface text)', () => {
     const groups = parseSearchQuery('"연료 가스"');
     expect(groups).toHaveLength(1);
     expect(groups[0]).toEqual([{ text: '연료 가스', quoted: true }]);
@@ -114,9 +114,13 @@ describe('termMatches — whitespace-insensitive', () => {
     expect(termMatches('수소 자동차', { text: '연료가스', quoted: false })).toBe(false);
   });
 
-  it('quoted term requires the literal spacing', () => {
-    expect(termMatches('연료 가스', { text: '연료 가스', quoted: true })).toBe(true);
-    expect(termMatches('연료가스', { text: '연료 가스', quoted: true })).toBe(false);
+  it('quoted term is a contiguous unit matched whitespace-insensitively', () => {
+    // New contract: "로크 아웃" matches stored "로크아웃" AND "로크 아웃".
+    expect(termMatches('비상 로크아웃 장치', { text: '로크 아웃', quoted: true })).toBe(true);
+    expect(termMatches('비상 로크 아웃 장치', { text: '로크 아웃', quoted: true })).toBe(true);
+    // But it stays one contiguous unit: a doc with the chars split far apart
+    // (가스 ... 연료, not adjacent) does NOT match the quoted phrase "연료 가스".
+    expect(termMatches('가스 안전 연료', { text: '연료 가스', quoted: true })).toBe(false);
   });
 });
 
@@ -145,6 +149,13 @@ describe('matchesQuery — AND / OR semantics', () => {
   it('"연료가스" matches docs storing "연료 가스"', () => {
     const groups = parseSearchQuery('연료가스');
     expect(matchesQuery('연료 가스 설비', groups)).toBe(true);
+  });
+
+  it('quoted "로크 아웃" matches docs storing "로크아웃" (whitespace-insensitive)', () => {
+    const groups = parseSearchQuery('"로크 아웃"');
+    expect(matchesQuery('비상 로크아웃 장치 작동', groups)).toBe(true);
+    expect(matchesQuery('비상 로크 아웃 장치 작동', groups)).toBe(true);
+    expect(matchesQuery('비상 정지 장치 작동', groups)).toBe(false);
   });
 
   it('empty query matches nothing', () => {

@@ -14,6 +14,8 @@ export interface Article {
   title: string;
   content: string;
   highlighted_content: string;
+  highlighted_title?: string; // title with matched keywords <mark>-wrapped
+  highlighted_law_name?: string; // law_name with matched keywords <mark>-wrapped
   relevance_score: number;
   article_type?: 'article' | 'appendix';
   related_articles?: RelatedArticle[];
