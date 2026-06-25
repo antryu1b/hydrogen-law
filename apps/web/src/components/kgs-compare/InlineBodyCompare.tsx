@@ -10,18 +10,25 @@ import type {
   RecursiveSectionBodyResponse,
 } from './types';
 import { CODE_TO_FAMILY } from '@/data/kgs-families-display';
-import { whitespaceInsensitivePattern } from '@/lib/highlight';
+import { whitespaceInsensitivePattern, escapeRegex } from '@/lib/highlight';
+import { parseSearchQuery } from '@/lib/search-query';
 import { EquationImages, PageViewButton } from './EquationImages';
 
 const HighlightCtx = createContext<{ matched: Set<string>; q: string }>({ matched: new Set(), q: '' });
 
-// Whitespace-insensitive body highlight: a query "연료 가스" highlights stored
-// "연료가스" and vice versa. The match length comes from the actual matched text
-// (m[0]), not q.length, since the matched span may differ from the query spacing.
+// Whitespace-insensitive body highlight. Parses the query into individual terms
+// (so "수소 OR 산소" highlights BOTH 수소 and 산소, and "연료 가스" highlights each
+// term) instead of treating the whole raw query — incl. the OR operator — as one
+// token. Non-quoted terms match whitespace-insensitively ("연료가스"↔"연료 가스");
+// quoted terms match literally. Match length comes from the actual matched span.
 function highlightBody(text: string, q: string): React.ReactNode {
-  const collapsed = (q ?? '').replace(/\s+/g, '');
-  if (!collapsed || !text) return text;
-  const re = new RegExp(whitespaceInsensitivePattern(collapsed), 'gi');
+  if (!q || !text) return text;
+  const patterns = parseSearchQuery(q)
+    .flat()
+    .map((t) => (t.quoted ? escapeRegex(t.text) : whitespaceInsensitivePattern(t.text)))
+    .filter((p) => p.length > 0);
+  if (!patterns.length) return text;
+  const re = new RegExp(`(${patterns.join('|')})`, 'gi');
   const parts: React.ReactNode[] = [];
   let i = 0;
   let key = 0;

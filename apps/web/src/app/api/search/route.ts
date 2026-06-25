@@ -46,10 +46,10 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
   const startTime = Date.now();
   
   try {
-    // Extract keywords for highlighting
-    const keywords = query
-      .split(/[\s,]+/)
-      .filter((k: string) => k.length > 0);
+    // Extract keywords for highlighting — use parsed query terms so the OR/또는
+    // operator is excluded (raw split would highlight the literal "or") and quoted
+    // phrases stay intact.
+    const keywords = allTerms(parseSearchQuery(query));
     
     // Call Beopmang API
     const url = new URL(`${BEOPMANG_API_URL}/law`);
