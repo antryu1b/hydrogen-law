@@ -104,12 +104,13 @@ export async function POST(request: NextRequest) {
     // unit so sections that merely contain "연료" alone are not false positives.
     // Code-level scoring still uses the split queryKeywords (recall preserved).
     const collapsedQuery = query.toLowerCase().replace(/[^\w가-힣]/g, '');
-    // All-Korean spaced compound ("연료 가스"): treat the whole query as ONE
-    // whitespace-insensitive compound term across EVERY layer — code list, chip,
-    // sections, and highlight — so the displayed keyword, 목차, and 본문 stay
-    // consistent (avoids "연료 가스" surfacing codes that only contain "연료").
+    // All-Korean compound term, spaced OR not ("연료 가스" AND "연료가스"): treat the
+    // whole query as ONE whitespace-insensitive compound across EVERY layer — code
+    // list, chip, sections, highlight — so the displayed keyword, 목차, and 본문 stay
+    // consistent. This also avoids the chip showing a sub-keyword: searching
+    // "연료가스" must not surface/label codes by their own "연료" keyword fragment.
     const isCompound =
-      queryKeywords.length > 1 && /^[가-힣]+$/.test(collapsedQuery);
+      /^[가-힣]+$/.test(collapsedQuery) && collapsedQuery.length >= 3;
     const sectionKeywords = isCompound ? [collapsedQuery] : queryKeywords;
     const displayTerm = query.trim();
 
