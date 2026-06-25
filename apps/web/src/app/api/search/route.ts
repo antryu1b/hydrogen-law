@@ -434,19 +434,14 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
     let topKOverride: number | undefined;
 
     for (const group of orGroups) {
-      // A 2-token, all-Korean, short, non-law-name group is most likely ONE compound
-      // word typed with a stray space (e.g. "연료 전지"). Re-route it through the
-      // single-term whitespace-insensitive RPC so it returns the same docs as
-      // "연료전지". Genuine multi-word groups (digits/suffixes/law names) are left as AND.
+      // Space = AND: a multi-term group requires ALL terms (each matched
+      // whitespace-insensitively via substring ILIKE). This naturally bridges a
+      // stray-space compound too — "연료 전지" needs %연료% AND %전지%, both of which
+      // are substrings of stored "연료전지". (The old "collapse 2 short tokens into
+      // one compound" shortcut wrongly turned "용어 정의" into "용어정의", which no
+      // doc contains, returning garbage — removed.)
       let result: GroupResult;
-      if (group.length === 2 && group.every((t) => !t.quoted)) {
-        const collapsed = group.map((t) => t.text).join('').replace(/\s+/g, '');
-        if (/^[가-힣]+$/.test(collapsed) && collapsed.length <= 6 && !isLawNameToken(collapsed)) {
-          result = await resolveSingleTermGroup(supabase, { text: collapsed, quoted: false }, topK);
-        } else {
-          result = await resolveMultiTermGroup(supabase, group, topK);
-        }
-      } else if (group.length === 1) {
+      if (group.length === 1) {
         result = await resolveSingleTermGroup(supabase, group[0], topK);
       } else {
         result = await resolveMultiTermGroup(supabase, group, topK);
