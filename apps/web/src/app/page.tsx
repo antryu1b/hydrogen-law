@@ -418,6 +418,11 @@ export default function HomePage() {
               </Button>
             </div>
 
+            {/* 검색 문법 안내 (subtle) */}
+            <p className="mt-2 px-1 text-[11px] text-muted-foreground/80">
+              공백=AND · OR=둘 중 하나 · &quot;따옴표&quot;=정확히
+            </p>
+
             {/* 자동완성 */}
             {showSuggestions && hasSuggestions && (
               <div

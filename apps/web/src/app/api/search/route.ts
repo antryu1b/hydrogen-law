@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { deriveLawType } from '@/lib/utils';
 import { highlightText } from '@/lib/highlight';
+import { parseSearchQuery, allTerms, type OrGroup, type QueryTerm } from '@/lib/search-query';
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_RESULTS = 100;
@@ -249,178 +250,220 @@ function decomposeCompound(k: string): string[] {
   return [k];
 }
 
+// Supabase client type for helper signatures. Inferred from createClient(url, key)
+// so the generics match the runtime client exactly (createClient with no type args
+// produces a different `never`-schema generic that doesn't accept .rpc/.from calls).
+function makeSupabaseClient(url: string, key: string) {
+  return createClient(url, key);
+}
+type SupabaseClient = ReturnType<typeof makeSupabaseClient>;
+
+// Result of resolving one OR-group: the matched rows plus the surface terms that
+// should drive highlighting for those rows (e.g. a decomposed compound highlights
+// its parts; a law alias also highlights the resolved official-name fragment).
+interface GroupResult { rows: SupabaseRow[]; highlightTerms: string[]; topKOverride?: number; }
+
+// Resolve a SINGLE-term OR-group. Mirrors the original single-keyword cascade:
+//   law-name token  → law_name ilike (alias-resolved), return whole family
+//   else            → RPC (whitespace-insensitive) → exact ilike → compound AND
+//                     → 2-char fuzzy fallback
+// `term` is whitespace-collapsed for non-quoted terms so the RPC bridges
+// "연료 가스" ↔ "연료가스"; quoted terms keep their literal spacing.
+async function resolveSingleTermGroup(
+  supabase: SupabaseClient,
+  term: QueryTerm,
+  topK: number
+): Promise<GroupResult> {
+  // Non-quoted terms are matched whitespace-insensitively → collapse spaces so the
+  // RPC (which strips spaces on both sides) gets identical input for both spellings.
+  const k = term.quoted ? term.text : term.text.replace(/\s+/g, '');
+  const highlightTerms = [term.text];
+
+  if (!term.quoted && isLawNameToken(k)) {
+    const aliased = resolveLawAlias(k);
+    const { data: lnData } = await supabase
+      .from('law_articles')
+      .select('*')
+      .ilike('law_name', `%${aliased}%`)
+      .limit(500);
+    if (lnData && lnData.length > 0) {
+      return {
+        rows: lnData as SupabaseRow[],
+        highlightTerms: aliased !== k ? [term.text, aliased] : highlightTerms,
+        // Return ALL family articles so per-law UI badge counts match DB totals.
+        topKOverride: lnData.length,
+      };
+    }
+    return { rows: [], highlightTerms };
+  }
+
+  let data: SupabaseRow[] | null = null;
+
+  // Step 1a: RPC full-text search (whitespace-insensitive on both sides). Skip for
+  // quoted terms — the RPC collapses spaces, which would break exact-phrase intent.
+  if (!term.quoted) {
+    const { data: rpcData, error: rpcError } = await supabase.rpc('search_law_articles', {
+      search_query: k,
+      max_results: topK,
+    });
+    if (!rpcError && rpcData && rpcData.length > 0) data = rpcData as SupabaseRow[];
+  }
+
+  // Step 1b: exact ilike on the full term (no fragments). For quoted terms this is
+  // the primary path: a literal `%term%` ilike preserves the spacing.
+  if (!data || data.length === 0) {
+    const lit = term.quoted ? term.text : k;
+    const exactQuery = `content.ilike.%${lit}%,law_name.ilike.%${lit}%,title.ilike.%${lit}%`;
+    const { data: exactData } = await supabase
+      .from('law_articles')
+      .select('*')
+      .or(exactQuery)
+      .limit(topK * 2);
+    if (exactData && exactData.length > 0) data = exactData as SupabaseRow[];
+  }
+
+  // Quoted terms stop here: no compound decomposition / fuzzy expansion (those
+  // would defeat the exact-phrase contract).
+  if (term.quoted) return { rows: data ?? [], highlightTerms };
+
+  // Step 1b-2: compound AND — when the literal compound has no exact match, require
+  // ALL meaningful parts (e.g. "등록신고" -> 등록 AND 신고) instead of OR-flooding.
+  let resultHighlight = highlightTerms;
+  if (!data || data.length === 0) {
+    const parts = decomposeCompound(k);
+    if (parts.length > 1) {
+      let q = supabase.from('law_articles').select('*');
+      for (const p of parts) {
+        q = q.or(`content.ilike.%${p}%,law_name.ilike.%${p}%,title.ilike.%${p}%`);
+      }
+      const { data: andData } = await q.limit(topK * 3);
+      if (andData && andData.length > 0) {
+        const lower = parts.map((p) => p.toLowerCase());
+        const strict = (andData as SupabaseRow[]).filter((r) => {
+          const hay = `${r.content || ''} ${r.law_name || ''} ${r.title || ''}`.toLowerCase();
+          return lower.every((p) => hay.includes(p));
+        });
+        if (strict.length > 0) {
+          data = strict;
+          resultHighlight = parts; // highlight the parts the user actually matched on
+        }
+      }
+    }
+  }
+
+  // Step 1c: fuzzy fallback — 2-char compound expansion, only when exact returns 0.
+  if (!data || data.length === 0) {
+    const expansions = new Set<string>([k]);
+    if (/[가-힣]/.test(k) && k.length >= 3) {
+      splitKoreanCompound(k).forEach((t) => expansions.add(t));
+      if (k.length === 4) { expansions.add(k.slice(0, 2)); expansions.add(k.slice(2, 4)); }
+      if (k.length === 5) { expansions.add(k.slice(0, 2)); expansions.add(k.slice(2)); }
+      if (k.length === 6) { expansions.add(k.slice(0, 3)); expansions.add(k.slice(3)); }
+    }
+    const tokens = [...expansions].filter((t) => t.length >= 2).slice(0, 20);
+    const orQuery = tokens
+      .map((t) => `content.ilike.%${t}%,law_name.ilike.%${t}%,title.ilike.%${t}%`)
+      .join(',');
+    const { data: ilikeData } = await supabase
+      .from('law_articles')
+      .select('*')
+      .or(orQuery)
+      .limit(topK * 4);
+    if (ilikeData && ilikeData.length > 0) {
+      const exact = (ilikeData as SupabaseRow[]).filter((r) => rowContainsKeyword(r, k));
+      data = exact.length > 0 ? exact : (ilikeData as SupabaseRow[]);
+    }
+  }
+
+  return { rows: data ?? [], highlightTerms: resultHighlight };
+}
+
+// Resolve a MULTI-term OR-group (AND of its terms). Mirrors the original
+// multi-keyword AND path: each term must match. Per-term routing avoids cross-ref
+// leakage. Residual limitation: PostgREST can't strip spaces from a stored column
+// from JS, so a non-quoted multi-term AND uses per-term `%term%` ILIKE (collapsed),
+// which matches a term as a substring whether the STORED text is spaced or not for
+// that term itself — but it cannot bridge a space that falls INSIDE a single typed
+// term across the stored value when that term is part of a multi-term AND. Single
+// 2-token compounds that are actually one word (e.g. "연료 전지") are handled by the
+// caller, which re-routes them through the single-term whitespace-insensitive RPC.
+async function resolveMultiTermGroup(
+  supabase: SupabaseClient,
+  terms: QueryTerm[],
+  topK: number
+): Promise<GroupResult> {
+  let q = supabase.from('law_articles').select('*');
+  for (const term of terms) {
+    // Non-quoted terms collapse spaces; quoted terms keep literal spacing.
+    const k = term.quoted ? term.text : term.text.replace(/\s+/g, '');
+    if (!term.quoted && /^제\d+조(?:의\d+)?$/.test(k)) {
+      q = q.eq('article_no', k);
+    } else if (!term.quoted && isLawNameToken(k)) {
+      q = q.ilike('law_name', `%${resolveLawAlias(k)}%`);
+    } else {
+      const lit = term.quoted ? term.text : k;
+      q = q.or(`content.ilike.%${lit}%,law_name.ilike.%${lit}%,title.ilike.%${lit}%`);
+    }
+  }
+  const { data: andData } = await q.limit(topK * 2);
+  const highlightTerms = terms.map((t) => t.text);
+  return { rows: (andData as SupabaseRow[]) ?? [], highlightTerms };
+}
+
 async function searchViaSupabase(query: string, topK: number): Promise<NextResponse | null> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !supabaseKey) return null;
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    let keywords = query.split(/[\s,]+/).filter((k: string) => k.length > 0).slice(0, 20);
+    const supabase = makeSupabaseClient(supabaseUrl, supabaseKey);
 
-    // Whitespace-insensitive compound bridge: "연료 전지" should return the same
-    // docs as "연료전지". A spaced compound splits into 2 tokens and would skip the
-    // whitespace-insensitive RPC entirely (it only runs on the single-keyword path).
-    // When the space-collapsed query is a short, all-Korean compound (not a law-name
-    // token, no digits/suffixes), route it through the single-keyword path so the RPC
-    // — which strips spaces on both sides — bridges the two spellings. Genuine
-    // multi-word queries like "수소법 제5조" keep digits/suffixes and are left alone.
-    const collapsed = query.replace(/\s+/g, '');
-    if (
-      keywords.length === 2 &&
-      /^[가-힣]+$/.test(collapsed) &&
-      collapsed.length <= 6 &&
-      !isLawNameToken(collapsed)
-    ) {
-      keywords = [collapsed];
+    // Parse into OR-groups of AND-terms (space=AND, OR/또는=OR, "quotes"=phrase).
+    // Each group is resolved independently; the row sets are UNIONed (dedup by id).
+    const orGroups: OrGroup[] = parseSearchQuery(query);
+    if (orGroups.length === 0) {
+      // Defensive: empty parse (e.g. OR-only). Fall back to the raw split so a
+      // pathological query still hits the DB rather than 503-ing.
+      const fallback = query.split(/[\s,]+/).filter((k) => k.length > 0).slice(0, 20);
+      if (fallback.length === 0) return null;
+      orGroups.push(fallback.map((t) => ({ text: t, quoted: false })));
     }
 
-    // Strategy:
-    // 1. Single keyword: try RPC first, then exact ilike match on full keyword.
-    //    Only fall back to 2-char fuzzy expansion when exact search returns 0 results.
-    //    Fuzzy results are filtered to still contain the full keyword where possible.
-    // 2. Multi-keyword AND: each keyword must match (existing behaviour, already correct).
+    const rowsById = new Map<string, SupabaseRow>();
+    const highlightSet = new Set<string>();
+    let topKOverride: number | undefined;
 
-    let data: SupabaseRow[] | null = null;
-
-    if (keywords.length === 1) {
-      const k = keywords[0];
-
-      if (isLawNameToken(k)) {
-        // Law-name token (e.g. "수소법", "고압가스법", "산업안전보건법"):
-        // Skip RPC + fuzzy entirely — both can leak. Resolve alias and search
-        // law_name ONLY. Return ALL family articles (limit 500) so per-law
-        // counts in the UI badge match real DB totals — was showing 법률 11건
-        // (= top_k slice) when DB had 69건.
-        const aliased = resolveLawAlias(k);
-        const { data: lnData } = await supabase
-          .from('law_articles')
-          .select('*')
-          .ilike('law_name', `%${aliased}%`)
-          .limit(500);
-        if (lnData && lnData.length > 0) {
-          data = lnData as SupabaseRow[];
-          if (aliased !== k) keywords = [k, aliased];
-          // Override slice cap so all family articles are included in the response —
-          // frontend pagination handles display, lawFamilies badge counts are honest.
-          topK = data.length;
-        }
-      } else {
-        // Non-law-name keyword cascade (e.g. "안전기준", "등록신고"):
-
-        // Step 1a: RPC (full-text search). The search_law_articles RPC is
-        // whitespace-insensitive on both sides (see
-        // scripts/supabase-whitespace-insensitive-search.sql), so "연료전지"
-        // matches stored "연료 전지" and vice versa via this path. Guarded:
-        // if the RPC errors (e.g. migration not yet applied) we silently fall
-        // through to the literal ilike steps below.
-        const { data: rpcData, error: rpcError } = await supabase.rpc('search_law_articles', {
-          // Pass the normalized keyword (k), not the raw query: for a bridged spaced
-          // compound ("연료 가스") k is the collapsed form, so the RPC's relevance
-          // score is computed on identical input as "연료가스" → byte-identical
-          // ordering for both spellings (not just an identical match set).
-          search_query: k,
-          max_results: topK,
-        });
-        if (!rpcError && rpcData && rpcData.length > 0) data = rpcData;
-
-        // Step 1b: exact ilike on the full keyword (no fragments)
-        if (!data || data.length === 0) {
-          const exactQuery = `content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`;
-          const { data: exactData } = await supabase
-            .from('law_articles')
-            .select('*')
-            .or(exactQuery)
-            .limit(topK * 2);
-          if (exactData && exactData.length > 0) data = exactData as SupabaseRow[];
-        }
-
-      // Step 1b-2: compound AND — when the literal compound has no exact match,
-      // require ALL meaningful parts (e.g. "등록신고" -> 등록 AND 신고) instead of
-      // OR-flooding 2-char fragments. This keeps 가축분뇨 규칙("신고" only) out and,
-      // by reassigning `keywords` to the parts, makes the matched words highlight.
-      if (!data || data.length === 0) {
-        const parts = decomposeCompound(k);
-        if (parts.length > 1) {
-          let q = supabase.from('law_articles').select('*');
-          for (const p of parts) {
-            q = q.or(`content.ilike.%${p}%,law_name.ilike.%${p}%,title.ilike.%${p}%`);
-          }
-          const { data: andData } = await q.limit(topK * 3);
-          if (andData && andData.length > 0) {
-            const lower = parts.map((p) => p.toLowerCase());
-            const strict = (andData as SupabaseRow[]).filter((r) => {
-              const hay = `${r.content || ''} ${r.law_name || ''} ${r.title || ''}`.toLowerCase();
-              return lower.every((p) => hay.includes(p));
-            });
-            if (strict.length > 0) {
-              data = strict;
-              keywords = parts; // highlight the parts the user actually matched on
-            }
-          }
-        }
-      }
-
-      // Step 1c: fuzzy fallback — 2-char compound expansion, only when exact returns 0.
-      // After fetching, prioritise rows that still contain the full keyword.
-      if (!data || data.length === 0) {
-        const expansions = new Set<string>([k]);
-        if (/[가-힣]/.test(k) && k.length >= 3) {
-          splitKoreanCompound(k).forEach(t => expansions.add(t));
-          if (k.length === 4) { expansions.add(k.slice(0, 2)); expansions.add(k.slice(2, 4)); }
-          if (k.length === 5) { expansions.add(k.slice(0, 2)); expansions.add(k.slice(2)); }
-          if (k.length === 6) { expansions.add(k.slice(0, 3)); expansions.add(k.slice(3)); }
-        }
-        const tokens = [...expansions].filter(t => t.length >= 2).slice(0, 20);
-        const orQuery = tokens.map(t => `content.ilike.%${t}%,law_name.ilike.%${t}%,title.ilike.%${t}%`).join(',');
-        const { data: ilikeData } = await supabase
-          .from('law_articles')
-          .select('*')
-          .or(orQuery)
-          .limit(topK * 4); // fetch more so we can re-sort
-        if (ilikeData && ilikeData.length > 0) {
-          // Prefer rows that contain the full keyword; demote pure-fragment-only rows
-          const exact = (ilikeData as SupabaseRow[]).filter(r => rowContainsKeyword(r, k));
-          data = exact.length > 0 ? exact : ilikeData as SupabaseRow[];
-        }
-      }
-      } // end non-law-name cascade (else of isLawNameToken)
-    } else {
-      // Multi-keyword AND path: each keyword must match somewhere.
-      // Routing per token type to avoid cross-ref leakage:
-      //   • Clean article number "제N조[의M]" → eq on article_no.
-      //   • Special law-form words (시행령/시행규칙/법률/별표/부칙) → law_name ilike.
-      //   • Law-name token (ends in 법/령/규칙/etc) → law_name ilike ONLY (not content) —
-      //     otherwise "선박법 제1조의2제1항" leaks into 수소경제법 etc whose body merely
-      //     references 선박법 by name.
-      //   • Anything else (incl. compound "제1조의2제1항") → broad content/law_name/title OR.
-      //
-      // Safety: if the strict AND returns 0 rows but at least one token IS a law name,
-      // retry with law-name tokens only (never 503 when the law itself exists).
-      const SPECIAL_LAW_WORDS = ['시행령', '시행규칙', '법률', '별표', '부칙'];
-      const LAW_NAME_SUFFIX = /^[가-힣A-Z0-9·]+(?:특례법|기본법|법|령|규칙|지침|고시|규정|준칙|훈령|예규)$/;
-      const isLawNameToken = (k: string) =>
-        SPECIAL_LAW_WORDS.includes(k) || (k.length >= 2 && LAW_NAME_SUFFIX.test(k));
-
-      let q = supabase.from('law_articles').select('*');
-      for (const k of keywords) {
-        if (/^제\d+조(?:의\d+)?$/.test(k)) {
-          q = q.eq('article_no', k);
-        } else if (isLawNameToken(k)) {
-          q = q.ilike('law_name', `%${resolveLawAlias(k)}%`);
+    for (const group of orGroups) {
+      // A 2-token, all-Korean, short, non-law-name group is most likely ONE compound
+      // word typed with a stray space (e.g. "연료 전지"). Re-route it through the
+      // single-term whitespace-insensitive RPC so it returns the same docs as
+      // "연료전지". Genuine multi-word groups (digits/suffixes/law names) are left as AND.
+      let result: GroupResult;
+      if (group.length === 2 && group.every((t) => !t.quoted)) {
+        const collapsed = group.map((t) => t.text).join('').replace(/\s+/g, '');
+        if (/^[가-힣]+$/.test(collapsed) && collapsed.length <= 6 && !isLawNameToken(collapsed)) {
+          result = await resolveSingleTermGroup(supabase, { text: collapsed, quoted: false }, topK);
         } else {
-          q = q.or(`content.ilike.%${k}%,law_name.ilike.%${k}%,title.ilike.%${k}%`);
+          result = await resolveMultiTermGroup(supabase, group, topK);
         }
+      } else if (group.length === 1) {
+        result = await resolveSingleTermGroup(supabase, group[0], topK);
+      } else {
+        result = await resolveMultiTermGroup(supabase, group, topK);
       }
-      const { data: andData } = await q.limit(topK * 2);
-      if (andData && andData.length > 0) {
-        data = andData as SupabaseRow[];
+
+      for (const row of result.rows) rowsById.set(row.id, row);
+      for (const t of result.highlightTerms) highlightSet.add(t);
+      if (result.topKOverride && result.topKOverride > (topKOverride ?? 0)) {
+        topKOverride = result.topKOverride;
       }
-      // No safety fallback here: if the AND of law + keyword returns 0, the honest
-      // answer is "no matches" (empty 200 → frontend shows law.go.kr fallback card).
-      // The previous fallback (drop keyword tokens, show all law-only rows) silently
-      // hid the keyword refinement, making '수소법 안전기준' look like '수소법' (의장 catch).
     }
+
+    const data: SupabaseRow[] | null = rowsById.size > 0 ? [...rowsById.values()] : null;
+    // Highlight terms = the actual surface terms that drove each group's match
+    // (decomposed parts / resolved alias / user terms), deduped across groups.
+    const keywords = highlightSet.size > 0 ? [...highlightSet] : allTerms(orGroups);
+    if (topKOverride) topK = topKOverride;
 
     if (!data || data.length === 0) {
       // 0 results is a CORRECT empty answer (e.g. cross-ref to 선박법 when our DB only

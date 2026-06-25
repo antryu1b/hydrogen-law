@@ -4,6 +4,7 @@ import kgsOcrRaw from '@/data/kgs_ocr.json';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { whitespaceInsensitivePattern } from '@/lib/highlight';
+import { parseSearchQuery, allTerms, matchesQuery, type OrGroup } from '@/lib/search-query';
 
 // 키워드 목록에 없는 본문 용어(예: "농도")도 검색되도록 수식 OCR 코퍼스를 코드별로 평탄화.
 const _ocrByCode: Record<string, string> = {};
@@ -92,27 +93,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 키워드 추출 (간단한 토큰화)
-    const queryKeywords = query
-      .toLowerCase()
-      .replace(/[^\w\s가-힣]/g, ' ')
-      .split(/\s+/)
-      .filter((k) => k.length > 1);
-
-    // Section-level matching keywords. For an all-Korean spaced compound like
-    // "연료 가스" we match the collapsed compound as ONE whitespace-insensitive
-    // unit so sections that merely contain "연료" alone are not false positives.
-    // Code-level scoring still uses the split queryKeywords (recall preserved).
-    const collapsedQuery = query.toLowerCase().replace(/[^\w가-힣]/g, '');
-    // All-Korean compound term, spaced OR not ("연료 가스" AND "연료가스"): treat the
-    // whole query as ONE whitespace-insensitive compound across EVERY layer — code
-    // list, chip, sections, highlight — so the displayed keyword, 목차, and 본문 stay
-    // consistent. This also avoids the chip showing a sub-keyword: searching
-    // "연료가스" must not surface/label codes by their own "연료" keyword fragment.
-    const isCompound =
-      /^[가-힣]+$/.test(collapsedQuery) && collapsedQuery.length >= 3;
-    const sectionKeywords = isCompound ? [collapsedQuery] : queryKeywords;
-    const displayTerm = query.trim();
+    // Parse the query into OR-groups of AND-terms (space=AND, OR/또는=OR,
+    // "quotes"=exact phrase). A code matches if ANY OR-group's terms are ALL
+    // present (whitespace-insensitive) in its haystack. This replaces the old
+    // collapsed-compound hack — AND-of-whitespace-insensitive-terms subsumes it.
+    const orGroups: OrGroup[] = parseSearchQuery(query);
+    // Surface terms (what the user typed) — used for the chip and for the
+    // section/snippet whitespace-insensitive search + highlight.
+    const queryKeywords = allTerms(orGroups);
 
     // 각 CODE와 매칭 점수 계산
     const codes = kgsCodesData.codes as KGSCode[];
@@ -129,26 +117,25 @@ export async function POST(request: NextRequest) {
         sectionsCache[code.code]?.full ?? '',
       ].join(' ').toLowerCase();
 
-      let matchedKeywords: string[];
-      let score: number;
-      if (isCompound) {
-        // Whitespace-insensitive compound match: "연료가스" matches "연료 가스".
-        // Chip shows exactly what the user typed (displayTerm) for consistency.
-        const found = haystack.replace(/\s+/g, '').includes(collapsedQuery);
-        matchedKeywords = found ? [displayTerm] : [];
-        score = found ? 1 : 0;
-      } else {
-        matchedKeywords = Array.from(new Set([
-          ...code.keywords.filter((keyword) =>
-            queryKeywords.some((qk) =>
-              keyword.toLowerCase().includes(qk) || qk.includes(keyword.toLowerCase())
+      // A code matches if ANY OR-group is fully satisfied (all its AND-terms
+      // present, whitespace-insensitive). The chip shows the user's actual terms
+      // that matched in this code's haystack — not code-keyword fragments.
+      const matched = matchesQuery(haystack, orGroups);
+      // Surface terms that actually appear in this code's haystack. We list every
+      // user term present (not just one group's) so the chip reflects what was
+      // found here — and always the user's own terms, never code-keyword fragments.
+      const matchedKeywords = matched
+        ? Array.from(
+            new Set(
+              orGroups.flat().filter((t) => matchesQuery(haystack, [[t]])).map((t) => t.text)
             )
-          ),
-          ...queryKeywords.filter((qk) => haystack.includes(qk)),
-        ]));
-        // 점수: 매칭된 토큰 수 / 쿼리 토큰 수
-        score = matchedKeywords.length / Math.max(queryKeywords.length, 1);
-      }
+          )
+        : [];
+      // Score by how many surface terms are present (more matched terms rank
+      // higher), normalized against the total distinct terms in the query.
+      const score = matched
+        ? matchedKeywords.length / Math.max(queryKeywords.length, 1)
+        : 0;
 
       return {
         code: code.code,
@@ -169,7 +156,7 @@ export async function POST(request: NextRequest) {
     // 각 코드에서 키워드가 실제로 등장하는 조항 + 스니펫 추가 (어디에 있는지 표시용)
     const enriched = recommended.map((item) => ({
       ...item,
-      matchedSections: matchedSectionsFor(sectionsCache[item.code], sectionKeywords),
+      matchedSections: matchedSectionsFor(sectionsCache[item.code], item.matchedKeywords.length > 0 ? item.matchedKeywords : queryKeywords),
     }));
 
     return NextResponse.json({
