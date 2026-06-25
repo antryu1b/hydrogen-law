@@ -104,10 +104,14 @@ export async function POST(request: NextRequest) {
     // unit so sections that merely contain "연료" alone are not false positives.
     // Code-level scoring still uses the split queryKeywords (recall preserved).
     const collapsedQuery = query.toLowerCase().replace(/[^\w가-힣]/g, '');
-    const sectionKeywords =
-      queryKeywords.length > 1 && /^[가-힣]+$/.test(collapsedQuery)
-        ? [collapsedQuery]
-        : queryKeywords;
+    // All-Korean spaced compound ("연료 가스"): treat the whole query as ONE
+    // whitespace-insensitive compound term across EVERY layer — code list, chip,
+    // sections, and highlight — so the displayed keyword, 목차, and 본문 stay
+    // consistent (avoids "연료 가스" surfacing codes that only contain "연료").
+    const isCompound =
+      queryKeywords.length > 1 && /^[가-힣]+$/.test(collapsedQuery);
+    const sectionKeywords = isCompound ? [collapsedQuery] : queryKeywords;
+    const displayTerm = query.trim();
 
     // 각 CODE와 매칭 점수 계산
     const codes = kgsCodesData.codes as KGSCode[];
@@ -124,17 +128,26 @@ export async function POST(request: NextRequest) {
         sectionsCache[code.code]?.full ?? '',
       ].join(' ').toLowerCase();
 
-      const matchedKeywords = Array.from(new Set([
-        ...code.keywords.filter((keyword) =>
-          queryKeywords.some((qk) =>
-            keyword.toLowerCase().includes(qk) || qk.includes(keyword.toLowerCase())
-          )
-        ),
-        ...queryKeywords.filter((qk) => haystack.includes(qk)),
-      ]));
-
-      // 점수: 매칭된 토큰 수 / 쿼리 토큰 수
-      const score = matchedKeywords.length / Math.max(queryKeywords.length, 1);
+      let matchedKeywords: string[];
+      let score: number;
+      if (isCompound) {
+        // Whitespace-insensitive compound match: "연료가스" matches "연료 가스".
+        // Chip shows exactly what the user typed (displayTerm) for consistency.
+        const found = haystack.replace(/\s+/g, '').includes(collapsedQuery);
+        matchedKeywords = found ? [displayTerm] : [];
+        score = found ? 1 : 0;
+      } else {
+        matchedKeywords = Array.from(new Set([
+          ...code.keywords.filter((keyword) =>
+            queryKeywords.some((qk) =>
+              keyword.toLowerCase().includes(qk) || qk.includes(keyword.toLowerCase())
+            )
+          ),
+          ...queryKeywords.filter((qk) => haystack.includes(qk)),
+        ]));
+        // 점수: 매칭된 토큰 수 / 쿼리 토큰 수
+        score = matchedKeywords.length / Math.max(queryKeywords.length, 1);
+      }
 
       return {
         code: code.code,
