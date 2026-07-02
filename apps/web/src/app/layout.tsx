@@ -5,6 +5,7 @@ import { Scale } from 'lucide-react';
 import { BrandLink } from '@/components/BrandLink';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { VisitorCounter } from '@/components/VisitorCounter';
 
 export const metadata: Metadata = {
   title: '수소법령 검색',
@@ -56,6 +57,7 @@ export default function RootLayout({
                   >
                     별표·서식
                   </Link>
+                  <VisitorCounter />
                   <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
                   <ThemeToggle />
                 </nav>
