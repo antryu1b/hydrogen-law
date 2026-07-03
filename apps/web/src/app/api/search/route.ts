@@ -160,16 +160,23 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
 
     // Limit results
     const limitedArticles = relevantArticles.slice(0, topK);
-    
+
+    // Beopmang only returns 조문, never 별표. For laws that actually appear in these
+    // results, surface their keyword-matching 별표 (appendix) rows from Supabase and
+    // append them — additive, so they never push out the 조문 results above.
+    const fullLawNames = beopmangData.data.results.map((r) => r.law_name);
+    const appendixArticles = await fetchMatchingAppendix(keywords, fullLawNames, query);
+    const finalArticles = [...limitedArticles, ...appendixArticles];
+
     const elapsed = Date.now() - startTime;
-    
+
     return NextResponse.json({
       query,
-      total_found: limitedArticles.length,
+      total_found: finalArticles.length,
       keywords,
       relevant_laws: Array.from(lawNames),
       law_groups: lawGroups,
-      articles: limitedArticles,
+      articles: finalArticles,
       metadata: {
         search_time_ms: elapsed,
         llm_used: false,
@@ -180,6 +187,116 @@ async function searchViaBeopmang(query: string, topK: number): Promise<NextRespo
   } catch (error) {
     console.error('Beopmang search error:', error);
     throw error;
+  }
+}
+
+// Given the full law names that appeared in a search result, surface their 별표
+// (appendix) rows from Supabase — Beopmang never returns 별표. Two modes per law:
+//  - BROWSE  (query names the whole law, e.g. "선박안전법", or "고압가스법" via alias):
+//    return ALL of that law's 별표, so browsing a law shows its full appendix set.
+//  - KEYWORD (query is a sub-topic, e.g. "냉동"): return only 별표 whose title/content
+//    match the keyword, capped, so a topical search isn't flooded with 별표.
+async function fetchMatchingAppendix(keywords: string[], fullLawNames: string[], query: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return [];
+  if (fullLawNames.length === 0) return [];
+
+  const norm = (s: string) => (s || '').replace(/\s+/g, '');
+  const baseLaw = (n: string) => n.replace(/\s*(시행규칙|시행령|부칙|별표[\s\S]*)$/g, '').trim();
+
+  // Which result laws is the query "browsing" as a whole law? Expand the query
+  // through the law-name aliases so "고압가스법" resolves to "고압가스 안전관리".
+  const qn = norm(query);
+  const forms = [qn];
+  for (const [k, v] of Object.entries(KR_LAW_ALIASES)) {
+    if (qn.includes(norm(k))) forms.push(norm(v));
+  }
+  const browseBases: string[] = [];
+  for (const ln of fullLawNames) {
+    const base = baseLaw(ln);
+    const bn = norm(base);
+    if (bn.length < 3) continue;
+    // Query covers the whole law name, or an alias fragment sits inside it.
+    if (forms.some((f) => f.length >= 3 && (qn.includes(bn) || bn.includes(f)))) {
+      if (!browseBases.includes(base)) browseBases.push(base);
+    }
+  }
+
+  const wanted = new Set(fullLawNames.map((n) => norm(n)));
+  const OVERALL_CAP = 80;
+
+  const toArticle = (r: SupabaseRow) => {
+    const content = r.content || '';
+    const title = r.title || `${r.law_name} ${r.article_no || ''}`.trim();
+    return {
+      article_id: r.id,
+      law_name: r.law_name,
+      law_id: r.law_id || '',
+      law_type: deriveLawType(r.law_name, r.law_type),
+      article_number: r.article_no || '',
+      title,
+      content,
+      highlighted_content: highlightText(content, keywords),
+      highlighted_title: highlightText(title, keywords),
+      highlighted_law_name: highlightText(r.law_name, keywords),
+      relevance_score: 1,
+      article_type: 'appendix' as const,
+      related_articles: [] as never[],
+    };
+  };
+
+  try {
+    const supabase = makeSupabaseClient(supabaseUrl, supabaseKey);
+    const out = [];
+
+    // BROWSE: every 별표 of the laws the query names as a whole (per-law cap 50).
+    if (browseBases.length > 0) {
+      const orLaw = browseBases.map((b) => `law_name.ilike.%${b}%`).join(',');
+      const { data } = await supabase
+        .from('law_articles')
+        .select('id, law_name, law_id, law_type, article_no, title, content')
+        .ilike('article_no', '별표%')
+        .or(orLaw)
+        .order('article_no', { ascending: true })
+        .limit(400);
+      const perLaw = new Map<string, number>();
+      for (const r of (data || []) as SupabaseRow[]) {
+        const c = perLaw.get(r.law_name) || 0;
+        if (c >= 50) continue;
+        perLaw.set(r.law_name, c + 1);
+        out.push(toArticle(r));
+        if (out.length >= OVERALL_CAP) return out;
+      }
+    }
+
+    // KEYWORD: for laws NOT browsed, only 별표 matching the query keywords (cap 8/law).
+    const kws = keywords.map((k) => norm(k)).filter((k) => k.length >= 2).slice(0, 10);
+    const keywordWanted = new Set(
+      [...wanted].filter((w) => !browseBases.some((b) => w.includes(norm(b)))),
+    );
+    if (kws.length > 0 && keywordWanted.size > 0) {
+      const orQuery = kws.map((k) => `title.ilike.%${k}%,content.ilike.%${k}%`).join(',');
+      const { data } = await supabase
+        .from('law_articles')
+        .select('id, law_name, law_id, law_type, article_no, title, content')
+        .ilike('article_no', '별표%')
+        .or(orQuery)
+        .limit(200);
+      const perLaw = new Map<string, number>();
+      for (const r of (data || []) as SupabaseRow[]) {
+        if (!keywordWanted.has(norm(r.law_name || ''))) continue;
+        const c = perLaw.get(r.law_name) || 0;
+        if (c >= 8) continue; // a 시행규칙 can have 100+ 별표
+        perLaw.set(r.law_name, c + 1);
+        out.push(toArticle(r));
+        if (out.length >= OVERALL_CAP) break;
+      }
+    }
+    return out;
+  } catch (e) {
+    console.error('Appendix injection error:', e);
+    return [];
   }
 }
 
