@@ -660,7 +660,11 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
         highlighted_title: highlightText(title, keywords),
         highlighted_law_name: highlightText(row.law_name, keywords),
         relevance_score: 100 - i,
-        article_type: 'article' as const,
+        // 별표 rows live in law_articles with an article_no like "별표 4"; label them
+        // as appendix so the UI badges/groups them as 별표 (not a plain 조문).
+        article_type: (row.article_no || '').trim().startsWith('별표')
+          ? ('appendix' as const)
+          : ('article' as const),
         related_articles: [],
       };
     });
@@ -672,6 +676,15 @@ async function searchViaSupabase(query: string, topK: number): Promise<NextRespo
       article_count: v.count,
       score: v.count,
     }));
+
+    // Ensure a law-name browse surfaces ALL of that law's 별표 even when the topK cap
+    // truncated them out of the main result set (e.g. 산업안전보건법 has 100s of 조문).
+    // Additive + deduped by id, so it never displaces 조문 already shown.
+    const appendix = await fetchMatchingAppendix(keywords, [...lawGroupMap.keys()], query);
+    const seen = new Set(articles.map((a) => a.article_id));
+    for (const a of appendix) {
+      if (!seen.has(a.article_id)) { articles.push(a); seen.add(a.article_id); }
+    }
 
     return NextResponse.json({
       query,

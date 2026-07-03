@@ -314,17 +314,27 @@ export default function HomePage() {
     return m ? parseInt(m[1], 10) : 9999;
   };
 
-  // 상위 법령(베이스) 단위로 그룹화
+  // 별표 판별: 별표는 law_name(시행규칙 등)이 아니라 article_number/article_type로 구분된다.
+  const isAppendixArticle = (a: { article_type?: string; article_number?: string }) =>
+    a.article_type === 'appendix' || (a.article_number || '').includes('별표');
+  // "별표만" 서브필터 sentinel — selectedSubLaw에 `별표::<베이스법명>` 형태로 담는다.
+  const APPENDIX_SUB = '별표::';
+  const articleRank = (a: { law_name: string; law_type?: string; article_type?: string; article_number?: string }) =>
+    isAppendixArticle(a) ? 3 : getLawTypeRank(a.law_name, a.law_type);
+
+  // 상위 법령(베이스) 단위로 그룹화. 별표는 같은 시행규칙 law_name이라도 별도 멤버로 뺀다.
   const lawFamilies = results
     ? (() => {
-        const map = new Map<string, { baseName: string; members: { name: string; count: number; rank: number }[]; total: number }>();
+        const map = new Map<string, { baseName: string; members: { name: string; count: number; rank: number; isAppendix: boolean }[]; total: number }>();
         for (const a of results.articles) {
           const base = getBaseLawName(a.law_name);
-          const rank = getLawTypeRank(a.law_name, a.law_type);
+          const app = isAppendixArticle(a);
+          const rank = app ? 3 : getLawTypeRank(a.law_name, a.law_type);
+          const memberName = app ? `${base} 별표` : a.law_name;
           if (!map.has(base)) map.set(base, { baseName: base, members: [], total: 0 });
           const fam = map.get(base)!;
-          let m = fam.members.find(m => m.name === a.law_name);
-          if (!m) { m = { name: a.law_name, count: 0, rank }; fam.members.push(m); }
+          let m = fam.members.find(m => m.name === memberName);
+          if (!m) { m = { name: memberName, count: 0, rank, isAppendix: app }; fam.members.push(m); }
           m.count++;
           fam.total++;
         }
@@ -337,19 +347,30 @@ export default function HomePage() {
     const articles = results?.articles ?? [];
     if (!selectedLawFilter) return articles;
 
-    // selectedSubLaw(특정 법령 정확일치) 우선, 없으면 family base 매칭
-    const filtered = articles.filter((a) =>
-      selectedSubLaw ? a.law_name === selectedSubLaw : getBaseLawName(a.law_name) === selectedLawFilter
-    );
+    // selectedSubLaw: `별표::<base>` = 그 법령의 별표만, 그 외 = law_name 정확일치(별표 제외).
+    const filtered = articles.filter((a) => {
+      if (selectedSubLaw) {
+        if (selectedSubLaw.startsWith(APPENDIX_SUB)) {
+          return isAppendixArticle(a) && getBaseLawName(a.law_name) === selectedSubLaw.slice(APPENDIX_SUB.length);
+        }
+        return a.law_name === selectedSubLaw && !isAppendixArticle(a);
+      }
+      return getBaseLawName(a.law_name) === selectedLawFilter;
+    });
     // 정렬: 법률 → 시행령 → 시행규칙 → 별표 → 부칙, 같은 type 안에서는 조문번호 순
     return filtered.sort((a, b) => {
-      const rankDiff = getLawTypeRank(a.law_name, a.law_type) - getLawTypeRank(b.law_name, b.law_type);
+      const rankDiff = articleRank(a) - articleRank(b);
       if (rankDiff !== 0) return rankDiff;
       const nameDiff = a.law_name.localeCompare(b.law_name);
       if (nameDiff !== 0) return nameDiff;
       return getArticleNum(a.article_number) - getArticleNum(b.article_number);
     });
   })();
+
+  // selectedSubLaw이 별표 sentinel이면 사람이 읽는 라벨로 변환해 표시한다.
+  const selectedSubLawLabel = selectedSubLaw?.startsWith(APPENDIX_SUB)
+    ? `${selectedSubLaw.slice(APPENDIX_SUB.length)} 별표`
+    : selectedSubLaw;
 
   const totalItems = filteredArticles.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
@@ -781,14 +802,15 @@ export default function HomePage() {
                             {/* 하위 법령 배지 — 클릭하면 그 법령 조문만 바로가기 */}
                             <div className="flex flex-wrap gap-1.5 mt-1.5">
                               {fam.members.sort((a, b) => a.rank - b.rank).map((m) => {
-                                const label = m.name.replace(fam.baseName, '').trim() || deriveLawType(m.name);
+                                const label = m.isAppendix ? '별표' : (m.name.replace(fam.baseName, '').trim() || deriveLawType(m.name));
+                                const subKey = m.isAppendix ? `${APPENDIX_SUB}${fam.baseName}` : m.name;
                                 return (
                                   <button
                                     key={m.name}
                                     type="button"
-                                    onClick={() => { setSelectedLawFilter(fam.baseName); setSelectedSubLaw(m.name); setCurrentPage(1); }}
-                                    title={`${label} 조문만 보기`}
-                                    className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-[hsl(var(--brass)/0.18)] hover:text-foreground transition-colors cursor-pointer"
+                                    onClick={() => { setSelectedLawFilter(fam.baseName); setSelectedSubLaw(subKey); setCurrentPage(1); }}
+                                    title={`${label} ${m.isAppendix ? '보기' : '조문만 보기'}`}
+                                    className={`text-[11px] px-2 py-0.5 rounded-full transition-colors cursor-pointer ${m.isAppendix ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-300' : 'bg-muted text-muted-foreground hover:bg-[hsl(var(--brass)/0.18)] hover:text-foreground'}`}
                                   >
                                     {label} {m.count}
                                   </button>
@@ -832,7 +854,7 @@ export default function HomePage() {
                       </button>
                     )}
                   </div>
-                  <p className="text-sm font-semibold">{selectedSubLaw || selectedLawFilter}</p>
+                  <p className="text-sm font-semibold">{selectedSubLawLabel || selectedLawFilter}</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {selectedSubLaw ? '이 법령의 조문만 표시' : '법률 → 시행령 → 시행규칙 → 별표 순으로 정렬'}
                   </p>
@@ -844,7 +866,7 @@ export default function HomePage() {
                 <>
                   <div className="text-xs text-muted-foreground mb-3 fadeIn">
                     {submittedQuery && <span className="font-medium">&ldquo;{submittedQuery}&rdquo;</span>}
-                    {(selectedSubLaw || selectedLawFilter) && <span className="ml-1 text-primary font-medium">· {selectedSubLaw || selectedLawFilter}</span>}
+                    {(selectedSubLaw || selectedLawFilter) && <span className="ml-1 text-primary font-medium">· {selectedSubLawLabel || selectedLawFilter}</span>}
                     {' '}{totalItems}건 중 {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}건
                   </div>
                   <SearchResults
