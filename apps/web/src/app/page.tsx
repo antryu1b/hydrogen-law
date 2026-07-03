@@ -496,7 +496,7 @@ export default function HomePage() {
           {/* 주요 법령 — 빠른 검색 (선박 sector: 선박안전법 포함) */}
           <div className="mt-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {['수소법', '고압가스법', '산업안전보건법', '선박안전법'].map((law) => (
+              {['수소법', '고압가스법', '산업안전보건법', '선박안전법', '건설기계관리법', '방위사업법'].map((law) => (
                 <button
                   key={law}
                   type="button"
