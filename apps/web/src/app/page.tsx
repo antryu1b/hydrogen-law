@@ -565,6 +565,18 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* AI 상담 바로가기 */}
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={() => { setViewState('results'); setActiveTab('ai'); setSubmittedQuery(''); setResults(null); }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-primary/30 bg-primary/5 text-sm font-medium text-primary hover:bg-primary/10 hover:border-primary/50 transition-all"
+            >
+              <Sparkles className="w-4 h-4" />
+              AI 법령 상담 바로가기
+            </button>
+          </div>
+
           {/* Gazette divider with § mark */}
           <div className="relative mb-4 mt-9">
             <div className="gazette-rule" />
