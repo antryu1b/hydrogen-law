@@ -10,6 +10,7 @@
     "autoJobCancelation": true
   },
   "buildCommand": "cd apps/web && npm run build",
+  "cleanUrls": true,
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
   "outputDirectory": "apps/web/.next"
