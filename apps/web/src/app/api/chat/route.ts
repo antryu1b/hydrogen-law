@@ -1,10 +1,19 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest } from 'next/server';
 
+export const maxDuration = 60;
+
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
   baseURL: process.env.ANTHROPIC_BASE_URL,
 });
+
+function getInternalBaseUrl(): string {
+  // Vercel 서버리스에서 자기 자신의 API 호출 시 절대 URL 필요
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  return 'http://localhost:3000';
+}
 
 const TOOLS: Anthropic.Tool[] = [
   {
@@ -49,7 +58,7 @@ const TOOLS: Anthropic.Tool[] = [
 ];
 
 async function executeTool(name: string, input: Record<string, unknown>): Promise<string> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+  const baseUrl = getInternalBaseUrl();
 
   if (name === 'hydro_search') {
     const res = await fetch(`${baseUrl}/api/search`, {
@@ -124,23 +133,22 @@ export async function POST(req: NextRequest) {
 
           if (response.stop_reason !== 'tool_use') break;
 
-          // tool use 처리
+          // tool use 처리 — 모든 tool_result를 하나의 user 메시지에 담아야 함
           const toolUseBlocks = response.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
+          const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
           for (const toolUse of toolUseBlocks) {
             send(JSON.stringify({ type: 'tool_start', name: toolUse.name }));
             const result = await executeTool(toolUse.name, toolUse.input as Record<string, unknown>);
             send(JSON.stringify({ type: 'tool_end', name: toolUse.name }));
-
-            currentMessages = [
-              ...currentMessages,
-              { role: 'assistant', content: response.content },
-              {
-                role: 'user',
-                content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: result }],
-              },
-            ];
+            toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: result });
           }
+
+          currentMessages = [
+            ...currentMessages,
+            { role: 'assistant', content: response.content },
+            { role: 'user', content: toolResults },
+          ];
         }
 
         send(JSON.stringify({ type: 'done' }));

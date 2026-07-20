@@ -118,6 +118,10 @@ export function ChatPanel() {
           : m
       ));
     } finally {
+      // 스트림이 done 없이 끊겨도 로딩 버블 제거
+      setMessages(prev => prev.map(m =>
+        m.id === assistantMsg.id && m.loading ? { ...m, loading: false } : m
+      ));
       setLoading(false);
       setActiveTools([]);
       inputRef.current?.focus();
