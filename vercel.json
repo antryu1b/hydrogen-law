@@ -9,9 +9,9 @@
     "silent": false,
     "autoJobCancelation": true
   },
-  "buildCommand": "cd apps/web && npm run build",
+  "buildCommand": "npm run build",
   "cleanUrls": true,
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": null,
-  "outputDirectory": "apps/web/.next"
+  "framework": "nextjs",
+  "outputDirectory": ".next"
 }
