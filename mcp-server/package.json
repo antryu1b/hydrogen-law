@@ -1,0 +1,13 @@
+{
+  "name": "hydrogen-law-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "hydrogen-law-mcp": "index.mjs" },
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
