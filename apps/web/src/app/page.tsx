@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor } from 'lucide-react';
+import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor, Sparkles } from 'lucide-react';
 import type { SearchResponse } from '@/types/search';
 import { SearchResults } from '@/components/SearchResults';
 import KGSComparison from '@/components/KGSComparison';
+import { ChatPanel } from '@/features/chat/ChatPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { deriveLawType } from '@/lib/utils';
@@ -64,7 +65,7 @@ function clearSearchHistory() {
   localStorage.removeItem(SEARCH_HISTORY_KEY);
 }
 
-type TabType = 'law' | 'kgs' | 'marine';
+type TabType = 'law' | 'kgs' | 'marine' | 'ai';
 type ViewState = 'home' | 'results' | 'drilldown';
 
 interface KGSRecommendation {
@@ -752,6 +753,17 @@ export default function HomePage() {
           <Anchor className="w-4 h-4" />
           선박 기술기준
         </button>
+        <button
+          onClick={() => setActiveTab('ai')}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'ai'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          } fadeIn`}
+        >
+          <Sparkles className="w-4 h-4" />
+          AI 상담
+        </button>
       </div>
 
       {/* 에러 */}
@@ -922,6 +934,13 @@ export default function HomePage() {
               <p>관련 KGS CODE가 없습니다.</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* AI 상담 탭 */}
+      {activeTab === 'ai' && (
+        <div className="mt-4 fadeIn">
+          <ChatPanel />
         </div>
       )}
 
