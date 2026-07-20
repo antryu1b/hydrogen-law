@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor, Sparkles } from 'lucide-react';
 import type { SearchResponse } from '@/types/search';
