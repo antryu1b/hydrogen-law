@@ -209,9 +209,13 @@ export function ChatPanel() {
           ))}
 
           {activeTools.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground pl-9 fadeIn">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              {TOOL_LABELS[activeTools[activeTools.length - 1]] ?? '처리 중'}...
+            <div className="pl-9 space-y-1.5 fadeIn">
+              {activeTools.map((tool, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                  <span>{TOOL_LABELS[tool] ?? '처리 중'}...</span>
+                </div>
+              ))}
             </div>
           )}
 
