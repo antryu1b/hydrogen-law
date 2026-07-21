@@ -128,14 +128,15 @@ export async function POST(req: NextRequest) {
             messages: currentMessages,
           });
 
-          // 텍스트 블록 스트리밍
-          for (const block of response.content) {
-            if (block.type === 'text') {
-              send(JSON.stringify({ type: 'text', text: block.text }));
+          // tool_use 중간 텍스트는 보내지 않고 최종 답변만 전송
+          if (response.stop_reason !== 'tool_use') {
+            for (const block of response.content) {
+              if (block.type === 'text') {
+                send(JSON.stringify({ type: 'text', text: block.text }));
+              }
             }
+            break;
           }
-
-          if (response.stop_reason !== 'tool_use') break;
 
           // tool use 처리 — 모든 tool_result를 하나의 user 메시지에 담아야 함
           const toolUseBlocks = response.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');

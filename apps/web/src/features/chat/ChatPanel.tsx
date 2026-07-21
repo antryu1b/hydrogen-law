@@ -178,9 +178,10 @@ export function ChatPanel() {
                   </button>
                 )}
                 {expandedMsgs.has(msg.id) && msg.toolCalls && (
-                  <div className="flex flex-wrap gap-1 fadeIn">
+                  <div className="flex flex-col gap-1 fadeIn">
                     {msg.toolCalls.map((t, i) => (
-                      <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                      <span key={i} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 flex-shrink-0" />
                         {TOOL_LABELS[t] ?? t}
                       </span>
                     ))}
