@@ -1,6 +1,5 @@
 'use client';
 
-
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, Loader2, Search, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
