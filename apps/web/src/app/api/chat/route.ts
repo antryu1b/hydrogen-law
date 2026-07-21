@@ -159,7 +159,12 @@ export async function POST(req: NextRequest) {
 
         send(JSON.stringify({ type: 'done' }));
       } catch (err) {
-        send(JSON.stringify({ type: 'error', message: err instanceof Error ? err.message : '오류가 발생했습니다.' }));
+        const msg = err instanceof Error ? err.message : '오류가 발생했습니다.';
+        const isConnectionError = msg.includes('fetch failed') || msg.includes('ECONNREFUSED') || msg.includes('ENOTFOUND') || msg.includes('connect') || msg.includes('503') || msg.includes('502');
+        const userMsg = isConnectionError
+          ? 'AI 서비스에 연결할 수 없습니다.\n\n현재 사내 AI API 연결이 끊어진 상태입니다. 담당자 PC가 꺼져 있거나 터널이 중단된 경우 이 오류가 발생합니다.\n\n담당자(유성필 책임)에게 문의하거나 잠시 후 다시 시도해주세요.'
+          : msg;
+        send(JSON.stringify({ type: 'error', message: userMsg }));
       } finally {
         controller.close();
       }
