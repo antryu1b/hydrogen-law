@@ -132,9 +132,9 @@ export function ChatPanel() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="flex flex-col gap-3" style={{ minHeight: '60vh' }}>
+    <div className="flex flex-col gap-3">
       {/* 대화 영역 또는 추천 질문 */}
-      <div className="flex-1 overflow-y-auto pr-1" style={{ maxHeight: 'calc(60vh - 80px)' }}>
+      <div className="pr-1">
       {isEmpty && (
         <div className="fadeIn pb-2">
           <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
@@ -223,8 +223,8 @@ export function ChatPanel() {
       )}
       </div>
 
-      {/* 입력창 — 하단 고정 */}
-      <div className="border-t pt-3">
+      {/* 입력창 — 뷰포트 하단 sticky */}
+      <div className="sticky bottom-0 bg-background border-t pt-3 pb-2 mt-4">
         <form
           onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}
           className="flex gap-2"
