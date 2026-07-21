@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
         // tool use 루프
         while (true) {
           const response = await client.messages.create({
-            model: 'claude-sonnet-4-6[1m]',
+            model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5',
             max_tokens: 4096,
             system: `당신은 수소·고압가스 법령 전문 AI 어시스턴트입니다.
 사용자의 질문에 대해 관련 법령을 검색하고 정확한 법적 근거와 함께 답변합니다.
