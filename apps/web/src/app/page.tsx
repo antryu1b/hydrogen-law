@@ -593,8 +593,8 @@ export default function HomePage() {
   // 결과 화면 (검색 결과 or 드릴다운)
   return (
     <div className="min-h-screen bg-background">
-      {/* 결과 페이지 검색바 */}
-      <div className="mb-6 fadeIn">
+      {/* 결과 페이지 검색바 — AI 탭일 때 숨김 */}
+      <div className={`mb-6 fadeIn ${activeTab === 'ai' ? 'hidden' : ''}`}>
         <form onSubmit={handleSearch} className="flex gap-2 max-w-3xl w-full md:w-auto">
           <div className="relative flex-1">
             {/* 법령 한정 badge (same as landing form, 결과 페이지에도 노출) */}
