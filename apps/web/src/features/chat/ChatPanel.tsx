@@ -132,33 +132,11 @@ export function ChatPanel() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* 입력창 — 항상 상단 */}
-      <div>
-        <form
-          onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}
-          className="flex gap-2"
-        >
-          <Input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="법령 관련 질문을 입력하세요..."
-            className="h-11 flex-1"
-            disabled={loading}
-          />
-          <Button type="submit" disabled={loading || !input.trim()} className="h-11 px-4">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          </Button>
-        </form>
-        <p className="text-[11px] text-muted-foreground mt-1.5">
-          AI 답변은 법적 효력이 없습니다. 반드시 원문 조문을 확인하세요.
-        </p>
-      </div>
-
-      {/* 추천 질문 — 대화 없을 때만 */}
+    <div className="flex flex-col gap-3" style={{ minHeight: '60vh' }}>
+      {/* 대화 영역 또는 추천 질문 */}
+      <div className="flex-1 overflow-y-auto pr-1" style={{ maxHeight: 'calc(60vh - 80px)' }}>
       {isEmpty && (
-        <div className="fadeIn">
+        <div className="fadeIn pb-2">
           <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
             <Sparkles className="w-3 h-3" /> 추천 질문
           </p>
@@ -177,9 +155,8 @@ export function ChatPanel() {
         </div>
       )}
 
-      {/* 대화 영역 */}
       {!isEmpty && (
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+        <div className="space-y-4">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-2.5 fadeIn ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'assistant' && (
@@ -244,7 +221,30 @@ export function ChatPanel() {
           <div ref={bottomRef} />
         </div>
       )}
+      </div>
 
+      {/* 입력창 — 하단 고정 */}
+      <div className="border-t pt-3">
+        <form
+          onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}
+          className="flex gap-2"
+        >
+          <Input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="법령 관련 질문을 입력하세요..."
+            className="h-11 flex-1"
+            disabled={loading}
+          />
+          <Button type="submit" disabled={loading || !input.trim()} className="h-11 px-4">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          </Button>
+        </form>
+        <p className="text-[11px] text-muted-foreground mt-1.5">
+          AI 답변은 법적 효력이 없습니다. 반드시 원문 조문을 확인하세요.
+        </p>
+      </div>
     </div>
   );
 }
