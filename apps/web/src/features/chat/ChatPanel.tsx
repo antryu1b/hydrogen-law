@@ -6,6 +6,7 @@ import { Send, Bot, Loader2, Search, ChevronDown, ChevronUp, Sparkles } from 'lu
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -221,7 +222,7 @@ export function ChatPanel() {
                       <span>답변 생성 중...</span>
                     </span>
                   ) : msg.role === 'assistant' ? (
-                    <ReactMarkdown>{msg.text || ''}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text || ''}</ReactMarkdown>
                   ) : (
                     msg.text
                   )}
