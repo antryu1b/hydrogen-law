@@ -132,22 +132,43 @@ export function ChatPanel() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* 추천 질문 — 항상 상단에 표시 */}
+    <div className="flex flex-col gap-3">
+      {/* 입력창 — 항상 상단 */}
+      <div>
+        <form
+          onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}
+          className="flex gap-2"
+        >
+          <Input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="법령 관련 질문을 입력하세요..."
+            className="h-11 flex-1"
+            disabled={loading}
+          />
+          <Button type="submit" disabled={loading || !input.trim()} className="h-11 px-4">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          </Button>
+        </form>
+        <p className="text-[11px] text-muted-foreground mt-1.5">
+          AI 답변은 법적 효력이 없습니다. 반드시 원문 조문을 확인하세요.
+        </p>
+      </div>
+
+      {/* 추천 질문 — 대화 없을 때만 */}
       {isEmpty && (
         <div className="fadeIn">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">AI 법령 어시스턴트</span>
-            <span className="text-xs text-muted-foreground">· 수소·고압가스 법령을 자연어로 질문하세요</span>
-          </div>
+          <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3" /> 추천 질문
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {SUGGESTED_QUESTIONS.map((q) => (
               <button
                 key={q}
                 onClick={() => sendMessage(q)}
                 disabled={loading}
-                className="text-left text-sm px-4 py-2.5 rounded-lg border border-border/80 bg-card/60 hover:border-[hsl(var(--brass)/0.5)] hover:bg-accent transition-all disabled:opacity-50"
+                className="text-left text-sm px-3.5 py-2 rounded-lg border border-border/80 bg-card/60 hover:border-[hsl(var(--brass)/0.5)] hover:bg-accent transition-all disabled:opacity-50"
               >
                 {q}
               </button>
@@ -224,28 +245,6 @@ export function ChatPanel() {
         </div>
       )}
 
-      {/* 입력창 */}
-      <div className={`${isEmpty ? '' : 'border-t pt-4'}`}>
-        <form
-          onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}
-          className="flex gap-2"
-        >
-          <Input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="법령 관련 질문을 입력하세요..."
-            className="h-11 flex-1"
-            disabled={loading}
-          />
-          <Button type="submit" disabled={loading || !input.trim()} className="h-11 px-4">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          </Button>
-        </form>
-        <p className="text-[11px] text-muted-foreground mt-1.5">
-          AI 답변은 법적 효력이 없습니다. 반드시 원문 조문을 확인하세요.
-        </p>
-      </div>
     </div>
   );
 }
