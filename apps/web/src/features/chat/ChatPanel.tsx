@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, Search, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -192,16 +193,18 @@ export function ChatPanel() {
               )}
 
               {/* 메시지 버블 */}
-              <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+              <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                 msg.role === 'user'
-                  ? 'bg-primary text-primary-foreground rounded-tr-sm'
-                  : 'bg-card border border-border/70 rounded-tl-sm'
+                  ? 'bg-primary text-primary-foreground rounded-tr-sm whitespace-pre-wrap'
+                  : 'bg-card border border-border/70 rounded-tl-sm prose prose-sm dark:prose-invert max-w-none'
               }`}>
                 {msg.loading && !msg.text ? (
                   <span className="flex items-center gap-2 text-muted-foreground">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>답변 생성 중...</span>
                   </span>
+                ) : msg.role === 'assistant' ? (
+                  <ReactMarkdown>{msg.text || ''}</ReactMarkdown>
                 ) : (
                   msg.text || <span className="text-muted-foreground italic">응답 없음</span>
                 )}
