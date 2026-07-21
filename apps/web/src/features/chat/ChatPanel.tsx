@@ -192,7 +192,7 @@ export function ChatPanel() {
                     ? 'bg-primary text-primary-foreground rounded-tr-sm whitespace-pre-wrap'
                     : 'bg-card border border-border/70 rounded-tl-sm prose prose-sm dark:prose-invert max-w-none'
                 }`}>
-                  {msg.loading && !msg.text ? (
+                  {msg.loading && !msg.text && activeTools.length === 0 ? (
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       <span>답변 생성 중...</span>
