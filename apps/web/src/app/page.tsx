@@ -566,17 +566,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* AI 상담 바로가기 */}
-          <div className="mt-6 flex justify-center">
-            <button
-              type="button"
-              onClick={() => { setViewState('results'); setActiveTab('ai'); setSubmittedQuery(''); setResults(null); }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-primary/30 bg-primary/5 text-sm font-medium text-primary hover:bg-primary/10 hover:border-primary/50 transition-all"
-            >
-              <Sparkles className="w-4 h-4" />
-              AI 법령 상담 바로가기
-            </button>
-          </div>
+          {/* AI 상담 바로가기 — 비활성화 */}
 
           {/* Gazette divider with § mark */}
           <div className="relative mb-4 mt-9">
@@ -766,17 +756,7 @@ export default function HomePage() {
           <Anchor className="w-4 h-4" />
           선박 기술기준
         </button>
-        <button
-          onClick={() => setActiveTab('ai')}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'ai'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          } fadeIn`}
-        >
-          <Sparkles className="w-4 h-4" />
-          AI 상담
-        </button>
+        {/* AI 상담 탭 — 비활성화 */}
       </div>
 
       {/* 에러 */}
@@ -950,12 +930,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* AI 상담 탭 */}
-      {activeTab === 'ai' && (
-        <div className="mt-4 fadeIn">
-          <ChatPanel />
-        </div>
-      )}
+      {/* AI 상담 탭 — 비활성화 */}
 
       {/* 선박 기술기준 탭 내용 (KGS CODE 아님 — 한국선급·해수부 등 별도 발급기관) */}
       {!loading && activeTab === 'marine' && (
