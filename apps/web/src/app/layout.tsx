@@ -82,6 +82,9 @@ export default function RootLayout({
                     © 2026 수소법령 검색 · 국가법령정보센터 기반
                   </p>
                 </div>
+                <p className="text-xs text-muted-foreground/60">
+                  Built by 유성필 · 수소인프라개발팀
+                </p>
               </div>
             </div>
           </footer>
