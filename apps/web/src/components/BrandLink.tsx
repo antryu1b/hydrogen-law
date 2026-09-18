@@ -1,16 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Scale } from 'lucide-react';
+import Image from 'next/image';
 
-/**
- * Header brand "수소법령 검색" — Client Component so we can
- * attach an onClick that bridges to the SPA state on page.tsx.
- *
- * Link href="/" alone is a no-op when already at /, so the results view stays.
- * Dispatching 'hl-go-home' lets page.tsx reset viewState / results / query /
- * scopeLaw / searchStack back to landing.
- */
 export function BrandLink() {
   return (
     <Link
@@ -22,8 +14,15 @@ export function BrandLink() {
         }
       }}
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-md border border-[hsl(var(--brass)/0.4)] bg-[hsl(var(--brass)/0.12)] text-[hsl(var(--brass))] transition-colors group-hover:bg-[hsl(var(--brass)/0.18)]">
-        <Scale className="h-[18px] w-[18px]" strokeWidth={1.75} />
+      <span className="flex h-8 items-center justify-center rounded-md border border-[hsl(var(--brass)/0.4)] bg-[hsl(var(--brass)/0.12)] px-1.5 transition-colors group-hover:bg-[hsl(var(--brass)/0.18)]">
+        <Image
+          src="/htwo-logo.png"
+          alt="HTWO"
+          width={48}
+          height={24}
+          className="h-5 w-auto dark:brightness-0 dark:invert dark:opacity-90"
+          priority
+        />
       </span>
       <span className="flex flex-col leading-none">
         <span className="font-display text-[15px] font-bold tracking-tight text-foreground sm:text-base">
