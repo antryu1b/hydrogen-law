@@ -16,11 +16,11 @@ export function BrandLink() {
     >
       <span className="flex h-8 items-center justify-center rounded-md border border-[hsl(var(--brass)/0.4)] bg-[hsl(var(--brass)/0.12)] px-1.5 transition-colors group-hover:bg-[hsl(var(--brass)/0.18)]">
         <Image
-          src="/htwo-logo.png"
+          src="/icon.png"
           alt="HTWO"
-          width={48}
+          width={24}
           height={24}
-          className="h-5 w-auto dark:brightness-0 dark:invert dark:opacity-90"
+          className="h-5 w-5"
           priority
         />
       </span>
