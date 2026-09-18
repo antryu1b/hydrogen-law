@@ -8,8 +8,9 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { VisitorCounter } from '@/components/VisitorCounter';
 
 export const metadata: Metadata = {
-  title: '수소법령 검색',
+  title: 'HTWO · 수소법령 검색',
   description: '수소·고압가스 법령 검색 시스템 · 국가법령정보센터',
+  icons: { icon: '/icon.png' },
 };
 
 export default function RootLayout({
