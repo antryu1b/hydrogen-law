@@ -26,10 +26,7 @@ export function BrandLink() {
       </span>
       <span className="flex flex-col leading-none">
         <span className="font-display text-[15px] font-bold tracking-tight text-foreground sm:text-base">
-          HTWO
-        </span>
-        <span className="mt-0.5 hidden text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground sm:block">
-          수소 · 고압가스 안전 법령
+          수소·고압가스 법령 검색
         </span>
       </span>
     </Link>
