@@ -30,10 +30,15 @@ if (!BASE_URL) {
 }
 
 // ── HTTP helpers ────────────────────────────────────────────────────────────
+// The deployed site is behind a login. Set HYDRO_MCP_PROXY_TOKEN to the site's
+// MCP_PROXY_TOKEN so its middleware accepts these calls without a session cookie.
+const PROXY_TOKEN = process.env.HYDRO_MCP_PROXY_TOKEN || '';
+const proxyAuthHeaders = () => (PROXY_TOKEN ? { 'x-mcp-proxy-token': PROXY_TOKEN } : {});
+
 async function postJson(path, body) {
   const res = await fetch(`${BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...proxyAuthHeaders() },
     body: JSON.stringify(body),
   });
   const text = await res.text();
@@ -42,7 +47,7 @@ async function postJson(path, body) {
 }
 
 async function getPath(path) {
-  const res = await fetch(`${BASE_URL}${path}`);
+  const res = await fetch(`${BASE_URL}${path}`, { headers: proxyAuthHeaders() });
   const text = await res.text();
   if (!res.ok) throw new Error(`${path} -> HTTP ${res.status}: ${text.slice(0, 400)}`);
   return text;

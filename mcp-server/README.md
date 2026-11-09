@@ -19,6 +19,9 @@ HYDRO_BASE_URL=https://hydrogen-law.vercel.app node index.mjs
 
 `HYDRO_BASE_URL` = 배포된 Vercel 오리진 (뒤 슬래시 없이). 미설정 시 즉시 종료.
 
+`HYDRO_MCP_PROXY_TOKEN` = 사이트의 `MCP_PROXY_TOKEN` 값. 사이트 전체가 로그인 뒤에 있으므로
+이 값이 없으면 `/api/*` 호출이 401 로 실패한다. 요청 헤더 `x-mcp-proxy-token` 으로 전송된다.
+
 ## 도구 (3개)
 
 - `hydro_search` → `POST /api/search` `{ query, top_k }` — 통합 검색(폴백 체인 그대로)
@@ -35,7 +38,10 @@ HYDRO_BASE_URL=https://hydrogen-law.vercel.app node index.mjs
     "hydrogen-law": {
       "command": "node",
       "args": ["/Users/andrew/PRJs/hydrogen-law/mcp-server/index.mjs"],
-      "env": { "HYDRO_BASE_URL": "https://hydrogen-law.vercel.app" }
+      "env": {
+        "HYDRO_BASE_URL": "https://hydrogen-law.vercel.app",
+        "HYDRO_MCP_PROXY_TOKEN": "<MCP_PROXY_TOKEN 값>"
+      }
     }
   }
 }

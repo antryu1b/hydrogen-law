@@ -73,3 +73,6 @@ htmlcov/
 # data/kgs_sections/ — kept in repo for Vercel serverless runtime access
 services/kgs-parser/.venv/
 services/kgs-parser/__pycache__/
+
+# Intel seed output — contains internal material; repo is public, never commit
+scripts/intel/out/

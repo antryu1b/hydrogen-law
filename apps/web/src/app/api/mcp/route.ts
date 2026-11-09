@@ -14,6 +14,7 @@
 
 import { createMcpHandler } from 'mcp-handler';
 import { z } from 'zod';
+import { MCP_PROXY_HEADER } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -21,10 +22,17 @@ export const maxDuration = 60;
 const BASE = (process.env.HYDRO_SELF_ORIGIN || 'https://hydrogen-law.vercel.app').replace(/\/$/, '');
 
 // ── HTTP helpers ────────────────────────────────────────────────────────────
+// The site is behind a login (middleware.ts). These self-calls carry the shared
+// MCP proxy token so middleware lets them through without a session cookie.
+function proxyAuthHeaders(): Record<string, string> {
+  const token = process.env.MCP_PROXY_TOKEN;
+  return token ? { [MCP_PROXY_HEADER]: token } : {};
+}
+
 async function postJson(path: string, body: unknown): Promise<string> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...proxyAuthHeaders() },
     body: JSON.stringify(body),
   });
   const text = await res.text();
@@ -33,7 +41,7 @@ async function postJson(path: string, body: unknown): Promise<string> {
 }
 
 async function getPath(path: string): Promise<string> {
-  const res = await fetch(`${BASE}${path}`);
+  const res = await fetch(`${BASE}${path}`, { headers: proxyAuthHeaders() });
   const text = await res.text();
   if (!res.ok) throw new Error(`${path} -> HTTP ${res.status}: ${text.slice(0, 400)}`);
   return text;

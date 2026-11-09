@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
-import { Scale } from 'lucide-react';
+import { LogOut, Scale } from 'lucide-react';
 import { BrandLink } from '@/components/BrandLink';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -57,9 +57,25 @@ export default function RootLayout({
                   >
                     별표·서식
                   </Link>
+                  <Link
+                    href="/intel"
+                    className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    수전해 인텔리전스
+                  </Link>
                   <VisitorCounter />
                   <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
                   <ThemeToggle />
+                  <form method="post" action="/api/auth/logout">
+                    <button
+                      type="submit"
+                      title="로그아웃"
+                      aria-label="로그아웃"
+                      className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      <LogOut className="h-4 w-4" strokeWidth={1.75} />
+                    </button>
+                  </form>
                 </nav>
               </div>
             </div>
