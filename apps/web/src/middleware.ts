@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { MCP_PROXY_HEADER, SESSION_COOKIE, safeEqual, verifySessionToken } from '@/lib/auth';
 
-// Site-wide gate. Everything requires a valid session cookie except:
+// Site-wide gate (active only when SITE_PASSWORD is set). Everything requires a valid session cookie except:
 //   /login, /api/auth/*          — the login flow itself
 //   /api/cron/*                  — requires `Authorization: Bearer ${CRON_SECRET}` instead (Vercel Cron)
 //   /api/mcp                     — remote MCP endpoint stays public for existing integrations
@@ -28,6 +28,11 @@ export async function middleware(req: NextRequest) {
   }
 
   const isApi = pathname.startsWith('/api/');
+
+  // Login is optional for now: with SITE_PASSWORD unset the site is public,
+  // except the intel admin/upload paths, which can rewrite or delete data.
+  const isAdmin = pathname.startsWith('/intel/admin') || pathname.startsWith('/api/intel/upload');
+  if (!process.env.SITE_PASSWORD && !isAdmin) return NextResponse.next();
 
   if (isApi) {
     const proxyToken = process.env.MCP_PROXY_TOKEN;
