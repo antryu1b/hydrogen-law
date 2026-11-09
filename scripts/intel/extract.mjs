@@ -286,7 +286,8 @@ const patentRows = [
   ...sectionRows(mustGet('secPatentTriz'), 'triz'),
 ];
 const PATENTS = readConst('PATENTS');
-for (const p of PATENTS) {
+for (const { reviewer: _reviewer, ...p } of PATENTS) {
+  // Reviewer holds an employee's name; never publish it.
   patentRows.push({
     id: `fto:${String(p.no).padStart(4, '0')}`,
     section: 'fto',
