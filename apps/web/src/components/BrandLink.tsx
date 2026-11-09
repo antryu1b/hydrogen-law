@@ -22,13 +22,8 @@ export function BrandLink() {
         style={{ height: '26px', width: 'auto' }}
         priority
       />
-      <span className="flex flex-col leading-none">
-        <span className="font-display text-[15px] font-bold tracking-tight text-foreground sm:text-base">
-          수전해 인텔리전스
-        </span>
-        <span className="mt-0.5 hidden text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground sm:block">
-          수소 법령 · 수전해 동향
-        </span>
+      <span className="font-display text-[15px] font-bold tracking-tight text-foreground sm:text-base">
+        수전해 인텔리전스
       </span>
     </Link>
   );

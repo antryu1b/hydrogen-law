@@ -81,12 +81,12 @@ export function MobileNav() {
             role="dialog"
             aria-modal="true"
             aria-label="내비게이션 메뉴"
-            className="fixed left-0 top-0 z-50 h-screen w-64 bg-background border-r border-border/70 shadow-xl overflow-y-auto"
+            className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col overflow-hidden bg-background border-r border-border/70 shadow-xl"
           >
             {/* Brass accent line */}
             <div className="h-[3px] w-full shrink-0 bg-[hsl(var(--brass))]" aria-hidden="true" />
             {/* Drawer header with close button */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
+            <div className="flex shrink-0 items-center justify-between px-4 py-3 border-b border-border/60">
               <span className="text-sm font-semibold text-foreground">메뉴</span>
               <button
                 type="button"
@@ -98,8 +98,10 @@ export function MobileNav() {
               </button>
             </div>
 
-            {/* Sidebar content */}
-            <Sidebar onItemClick={close} />
+            {/* Sidebar content — fills remaining height; Sidebar itself is flex-col h-full */}
+            <div className="flex-1 overflow-hidden">
+              <Sidebar onItemClick={close} />
+            </div>
           </div>
         </>,
         document.body,

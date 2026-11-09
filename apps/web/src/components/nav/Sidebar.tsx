@@ -109,7 +109,9 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
   };
 
   return (
-    <nav className="flex flex-col py-3 px-2 gap-0.5" aria-label="주 메뉴">
+    <div className="flex h-full flex-col">
+    {/* Scrollable main navigation */}
+    <nav className="flex flex-col flex-1 overflow-y-auto py-3 px-2 gap-0.5" aria-label="주 메뉴">
       {/* Main sections */}
       {NAV_MAIN.map((section) => {
         const Icon = SECTION_ICONS[section.label];
@@ -229,12 +231,10 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
           </Link>
         );
       })}
+    </nav>
 
-      {/* Spacer */}
-      <div className="flex-1 min-h-4" />
-
-      {/* Admin group — collapsible */}
-      <div className="mt-auto pt-2 border-t border-border/60">
+    {/* Admin group — pinned to bottom, collapsible */}
+    <div className="shrink-0 border-t border-border/60 px-2 py-2">
         <button
           type="button"
           aria-expanded={adminOpen}
@@ -279,7 +279,7 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
           </div>
         )}
       </div>
-    </nav>
+    </div>
   );
 }
 

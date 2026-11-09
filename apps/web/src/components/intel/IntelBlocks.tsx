@@ -185,12 +185,32 @@ export function IntelBlockView({ block }: { block: IntelBlock }) {
   }
 }
 
-export function IntelBlockList({ blocks }: { blocks: IntelBlock[] }) {
+/**
+ * Renders a list of intel blocks.
+ * @param sectionLabel - If provided, skip any leading `heading` block whose
+ *   title equals or starts with this label (deduplication when content data
+ *   repeats the section name already shown as the page h1).
+ */
+export function IntelBlockList({
+  blocks,
+  sectionLabel,
+}: {
+  blocks: IntelBlock[];
+  sectionLabel?: string;
+}) {
   return (
     <>
-      {blocks.map((b, i) => (
-        <IntelBlockView key={i} block={b} />
-      ))}
+      {blocks.map((b, i) => {
+        if (
+          sectionLabel &&
+          b.type === 'heading' &&
+          b.title &&
+          b.title.trim().startsWith(sectionLabel.trim())
+        ) {
+          return null;
+        }
+        return <IntelBlockView key={i} block={b} />;
+      })}
     </>
   );
 }

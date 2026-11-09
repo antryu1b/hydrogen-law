@@ -31,10 +31,10 @@ function Empty({ error }: { error: string | null }) {
   );
 }
 
-function Sections({ rows }: { rows: BlockRow[] }) {
+function Sections({ rows, sectionLabel }: { rows: BlockRow[]; sectionLabel?: string }) {
   return (
     <div className="space-y-4">
-      <IntelBlockList blocks={rows.map((r) => r.payload)} />
+      <IntelBlockList blocks={rows.map((r) => r.payload)} sectionLabel={sectionLabel} />
     </div>
   );
 }
@@ -54,7 +54,7 @@ async function CompetitorsTab() {
   return (
     <>
       <UpdatedAt iso={lastUpdated} />
-      {rows.length ? <Sections rows={rows} /> : <Empty error={error} />}
+      {rows.length ? <Sections rows={rows} sectionLabel="경쟁사 비교" /> : <Empty error={error} />}
     </>
   );
 }
@@ -73,7 +73,7 @@ async function PatentsTab() {
   return (
     <>
       <UpdatedAt iso={lastUpdated} />
-      <Sections rows={blocks.rows} />
+      <Sections rows={blocks.rows} sectionLabel="특허 분석" />
       {fto.rows.length > 0 && (
         <div className="space-y-3">
           <div className="mt-8 border-b border-border/70 pb-2">
