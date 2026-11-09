@@ -20,11 +20,12 @@ export interface SubNavItem {
 export const NAV_MAIN: NavSection[] = [
   { label: '수전해 동향', href: '/intel?tab=news', tab: 'news' },
   { label: '경쟁사 비교', href: '/intel?tab=competitors', tab: 'competitors' },
+  { label: '특허 분석', href: '/intel?tab=patents', tab: 'patents' },
   {
     label: '법령 검색',
-    href: '/',
+    href: '/search',
     subItems: [
-      { label: '검색', href: '/' },
+      { label: '검색', href: '/search' },
       { label: '본문 비교', href: '/kgs-compare' },
       { label: '통합 요건', href: '/integrate' },
       { label: '기술기준 분류', href: '/kgs-family' },
@@ -32,7 +33,6 @@ export const NAV_MAIN: NavSection[] = [
       { label: '컴플라이언스 체크', href: '/compliance-check' },
     ],
   },
-  { label: '특허 분석', href: '/intel?tab=patents', tab: 'patents' },
 ];
 
 export const NAV_ADMIN: SubNavItem[] = [
@@ -42,7 +42,7 @@ export const NAV_ADMIN: SubNavItem[] = [
 
 /** True when a sub-item matches the current pathname. */
 export function isSubItemActive(item: SubNavItem, pathname: string): boolean {
-  if (item.href === '/') return pathname === '/';
+  if (item.href === '/search') return pathname === '/search';
   return pathname === item.href || pathname.startsWith(item.href + '/');
 }
 
@@ -64,4 +64,14 @@ export function isSectionActive(
     return section.subItems.some((sub) => isSubItemActive(sub, pathname));
   }
   return pathname === section.href;
+}
+
+/**
+ * Returns true when the law-search section should be auto-expanded.
+ * Pure helper — testable without React.
+ */
+export function shouldExpandLawSection(pathname: string): boolean {
+  const lawSection = NAV_MAIN.find((s) => s.label === '법령 검색');
+  if (!lawSection?.subItems) return false;
+  return lawSection.subItems.some((sub) => isSubItemActive(sub, pathname));
 }

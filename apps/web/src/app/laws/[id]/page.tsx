@@ -61,7 +61,7 @@ export default async function LawDetailPage({
     <div className="min-h-screen px-3 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl mx-auto">
       {/* 뒤로 가기 */}
       <div className="mb-4 sm:mb-6">
-        <Link href="/">
+        <Link href="/search">
           <Button variant="ghost" size="sm" className="gap-1.5 text-xs sm:text-sm">
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             검색으로 돌아가기

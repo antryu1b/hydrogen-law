@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   description: '수전해 · 수소 법령 검색 · 경쟁사 분석 · 특허 동향 · 국가법령정보센터',
 };
 
+// Header height: 3px brass rule + 64px (h-16) = 67px
+// Used for sticky sidebar offset: top-[67px] h-[calc(100vh-67px)]
+const HEADER_H = 67;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,17 +33,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/* Desktop sidebar — fixed left column, hidden on mobile */}
-          <aside className="fixed left-0 top-0 z-30 hidden h-full w-64 flex-col border-r border-border/70 bg-background md:flex overflow-y-auto">
-            {/* Sidebar top accent line */}
-            <div className="h-[3px] w-full shrink-0 bg-[hsl(var(--brass))]" aria-hidden="true" />
-            <Sidebar />
-          </aside>
-
-          {/* Content area — shifted right on desktop to clear the fixed sidebar */}
-          <div className="md:pl-64">
-            {/* Header — gazette masthead with a thin brass top-rule */}
-            <header className="sticky top-0 z-20 w-full border-b border-border/70 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/65">
+          <div className="flex min-h-screen flex-col">
+            {/* Full-width sticky header */}
+            <header className="sticky top-0 z-30 w-full border-b border-border/70 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/65">
               <div className="h-[3px] w-full bg-[hsl(var(--brass))]" aria-hidden="true" />
               <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1.5rem' }}>
                 <div className="flex h-16 items-center justify-between">
@@ -70,25 +66,40 @@ export default function RootLayout({
               </div>
             </header>
 
-            {/* Main Content */}
-            <main className="min-h-screen">
-              <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '2rem 1.5rem' }}>
-                {children}
-              </div>
-            </main>
+            {/* Below header: sidebar + content row */}
+            <div className="flex flex-1">
+              {/* Desktop sidebar — sticky below header, hidden on mobile */}
+              <aside
+                className="hidden md:flex w-64 shrink-0 flex-col border-r border-border/70 bg-background overflow-y-auto"
+                style={{
+                  position: 'sticky',
+                  top: `${HEADER_H}px`,
+                  height: `calc(100vh - ${HEADER_H}px)`,
+                }}
+              >
+                <Sidebar />
+              </aside>
 
-            {/* Footer — restrained gazette colophon */}
-            <footer className="mt-8 border-t border-border/70 bg-secondary/40">
-              <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1.5rem' }}>
-                <div className="flex flex-col items-start justify-between gap-3 py-8 md:flex-row md:items-center">
-                  <div className="flex items-center gap-3">
-                    <p className="text-sm text-muted-foreground">
-                      © 2026 수전해 인텔리전스 · 국가법령정보센터 기반
-                    </p>
+              {/* Page content + footer */}
+              <div className="flex flex-1 flex-col min-w-0">
+                <main className="flex-1">
+                  <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '2rem 1.5rem' }}>
+                    {children}
                   </div>
-                </div>
+                </main>
+
+                {/* Footer — restrained gazette colophon */}
+                <footer className="mt-8 border-t border-border/70 bg-secondary/40">
+                  <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1.5rem' }}>
+                    <div className="flex flex-col items-start justify-between gap-3 py-8 md:flex-row md:items-center">
+                      <p className="text-sm text-muted-foreground">
+                        © 2026 수전해 인텔리전스 · 국가법령정보센터 기반
+                      </p>
+                    </div>
+                  </div>
+                </footer>
               </div>
-            </footer>
+            </div>
           </div>
         </ThemeProvider>
       </body>

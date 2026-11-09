@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect, useId } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
   TrendingUp,
@@ -16,20 +16,22 @@ import {
   ShieldCheck,
   Upload,
   BookOpen,
+  ChevronDown,
+  Settings2,
 } from 'lucide-react';
 import {
   NAV_MAIN,
   NAV_ADMIN,
   isSectionActive,
   isSubItemActive,
-  type NavSection,
+  shouldExpandLawSection,
 } from './navConfig';
 
 const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   '수전해 동향': TrendingUp,
   '경쟁사 비교': BarChart2,
-  '법령 검색': Scale,
   '특허 분석': Award,
+  '법령 검색': Scale,
 };
 
 const SUB_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
@@ -51,26 +53,165 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab');
 
+  const isLawActive = shouldExpandLawSection(pathname);
+
+  // 법령 검색 accordion state
+  const [lawOpen, setLawOpen] = useState(false);
+  // 관리 accordion state
+  const [adminOpen, setAdminOpen] = useState(false);
+
+  const lawSectionId = useId();
+  const adminSectionId = useId();
+
+  // Restore saved accordion state from localStorage (best-effort)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('nav-law-open');
+      if (saved !== null) setLawOpen(saved === '1');
+    } catch {}
+    try {
+      const saved = localStorage.getItem('nav-admin-open');
+      if (saved !== null) setAdminOpen(saved === '1');
+    } catch {}
+  }, []);
+
+  // Auto-expand law section when on a law page
+  useEffect(() => {
+    if (isLawActive) {
+      setLawOpen(true);
+      try { localStorage.setItem('nav-law-open', '1'); } catch {}
+    }
+  }, [isLawActive]);
+
+  const lawExpanded = isLawActive || lawOpen;
+
+  const toggleLaw = () => {
+    // On a law page, don't allow collapsing (would hide active item)
+    if (isLawActive) return;
+    const next = !lawOpen;
+    setLawOpen(next);
+    try { localStorage.setItem('nav-law-open', next ? '1' : '0'); } catch {}
+  };
+
+  const toggleAdmin = () => {
+    const next = !adminOpen;
+    setAdminOpen(next);
+    try { localStorage.setItem('nav-admin-open', next ? '1' : '0'); } catch {}
+  };
+
   const handleLawHomeClick = () => {
+    setLawOpen(true);
+    try { localStorage.setItem('nav-law-open', '1'); } catch {}
     onItemClick?.();
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('hl-go-home'));
     }
   };
 
-  const renderSection = (section: NavSection) => {
-    const Icon = SECTION_ICONS[section.label];
-    const active = isSectionActive(section, pathname, tab);
+  return (
+    <nav className="flex flex-col py-3 px-2 gap-0.5" aria-label="주 메뉴">
+      {/* Main sections */}
+      {NAV_MAIN.map((section) => {
+        const Icon = SECTION_ICONS[section.label];
+        const active = isSectionActive(section, pathname, tab);
 
-    if (section.subItems) {
-      return (
-        <div key={section.label} className="space-y-0.5">
-          {/* Section header (non-clickable label for sections with sub-items) */}
-          <div
-            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+        if (section.subItems) {
+          // Collapsible section (법령 검색)
+          const isOpen = lawExpanded;
+          return (
+            <div key={section.label}>
+              {/* Section row: label navigates, chevron button toggles */}
+              <div
+                className={`flex items-center rounded-lg text-sm transition-colors ${
+                  active
+                    ? 'text-[hsl(var(--brass))]'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Link
+                  href={section.href}
+                  onClick={() => {
+                    setLawOpen(true);
+                    try { localStorage.setItem('nav-law-open', '1'); } catch {}
+                    onItemClick?.();
+                  }}
+                  className="flex flex-1 items-center gap-2 px-3 py-2.5 font-medium"
+                >
+                  {Icon && (
+                    <span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
+                        active
+                          ? 'border-[hsl(var(--brass)/0.4)] bg-[hsl(var(--brass)/0.1)] text-[hsl(var(--brass))]'
+                          : 'border-border/60 bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      <Icon className="h-[13px] w-[13px]" strokeWidth={1.75} />
+                    </span>
+                  )}
+                  {section.label}
+                </Link>
+                {/* Chevron-only toggle button */}
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  aria-controls={lawSectionId}
+                  aria-label={isOpen ? '법령 검색 접기' : '법령 검색 펼치기'}
+                  onClick={toggleLaw}
+                  className="px-2 py-2.5 rounded-r-lg hover:bg-accent transition-colors"
+                >
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${
+                      isOpen ? '' : '-rotate-90'
+                    }`}
+                    strokeWidth={1.75}
+                  />
+                </button>
+              </div>
+
+              {/* Sub-items (collapsible) */}
+              {isOpen && (
+                <div id={lawSectionId} className="pl-3 mt-0.5 space-y-0.5">
+                  {section.subItems.map((sub) => {
+                    const SubIcon = SUB_ICONS[sub.label];
+                    const subActive = isSubItemActive(sub, pathname);
+                    const isLawHome = sub.href === '/search';
+                    return (
+                      <Link
+                        key={sub.href}
+                        href={sub.href}
+                        onClick={isLawHome ? handleLawHomeClick : onItemClick}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                          subActive
+                            ? 'bg-[hsl(var(--brass)/0.1)] text-[hsl(var(--brass))] font-medium'
+                            : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                        }`}
+                      >
+                        {SubIcon && (
+                          <SubIcon
+                            className={`h-3.5 w-3.5 shrink-0 ${subActive ? 'text-[hsl(var(--brass))]' : 'text-muted-foreground/70'}`}
+                            strokeWidth={1.75}
+                          />
+                        )}
+                        {sub.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // Top-level section with direct href (intel tabs)
+        return (
+          <Link
+            key={section.href + section.tab}
+            href={section.href}
+            onClick={onItemClick}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               active
-                ? 'text-[hsl(var(--brass))]'
-                : 'text-muted-foreground'
+                ? 'bg-[hsl(var(--brass)/0.1)] text-[hsl(var(--brass))] font-semibold border border-[hsl(var(--brass)/0.25)]'
+                : 'text-foreground/85 hover:bg-accent hover:text-foreground'
             }`}
           >
             {Icon && (
@@ -85,108 +226,58 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
               </span>
             )}
             {section.label}
-          </div>
-          {/* Sub-items */}
-          <div className="pl-3 space-y-0.5">
-            {section.subItems.map((sub) => {
-              const SubIcon = SUB_ICONS[sub.label];
-              const subActive = isSubItemActive(sub, pathname);
-              const isLawHome = sub.href === '/';
+          </Link>
+        );
+      })}
+
+      {/* Spacer */}
+      <div className="flex-1 min-h-4" />
+
+      {/* Admin group — collapsible */}
+      <div className="mt-auto pt-2 border-t border-border/60">
+        <button
+          type="button"
+          aria-expanded={adminOpen}
+          aria-controls={adminSectionId}
+          onClick={toggleAdmin}
+          className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+        >
+          <Settings2 className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+          <span className="flex-1 text-left font-medium">관리</span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 transition-transform duration-200 ${adminOpen ? '' : '-rotate-90'}`}
+            strokeWidth={1.75}
+          />
+        </button>
+
+        {adminOpen && (
+          <div id={adminSectionId} className="pl-3 mt-0.5 space-y-0.5">
+            {NAV_ADMIN.map((item) => {
+              const Icon = ADMIN_ICONS[item.label];
+              const active = isSubItemActive(item, pathname);
               return (
                 <Link
-                  key={sub.href}
-                  href={sub.href}
-                  onClick={isLawHome ? handleLawHomeClick : onItemClick}
+                  key={item.href}
+                  href={item.href}
+                  onClick={onItemClick}
                   className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
-                    subActive
+                    active
                       ? 'bg-[hsl(var(--brass)/0.1)] text-[hsl(var(--brass))] font-medium'
                       : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                   }`}
                 >
-                  {SubIcon && (
-                    <SubIcon
-                      className={`h-3.5 w-3.5 shrink-0 ${subActive ? 'text-[hsl(var(--brass))]' : 'text-muted-foreground/70'}`}
+                  {Icon && (
+                    <Icon
+                      className={`h-3.5 w-3.5 shrink-0 ${active ? 'text-[hsl(var(--brass))]' : 'text-muted-foreground/70'}`}
                       strokeWidth={1.75}
                     />
                   )}
-                  {sub.label}
+                  {item.label}
                 </Link>
               );
             })}
           </div>
-        </div>
-      );
-    }
-
-    // Top-level section with direct href (intel tabs)
-    return (
-      <Link
-        key={section.href + section.tab}
-        href={section.href}
-        onClick={onItemClick}
-        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-          active
-            ? 'bg-[hsl(var(--brass)/0.1)] text-[hsl(var(--brass))] font-semibold border border-[hsl(var(--brass)/0.25)]'
-            : 'text-foreground/85 hover:bg-accent hover:text-foreground'
-        }`}
-      >
-        {Icon && (
-          <span
-            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
-              active
-                ? 'border-[hsl(var(--brass)/0.4)] bg-[hsl(var(--brass)/0.1)] text-[hsl(var(--brass))]'
-                : 'border-border/60 bg-muted text-muted-foreground'
-            }`}
-          >
-            <Icon className="h-[13px] w-[13px]" strokeWidth={1.75} />
-          </span>
         )}
-        {section.label}
-      </Link>
-    );
-  };
-
-  return (
-    <nav className="flex flex-col h-full py-4 px-3 space-y-1" aria-label="주 메뉴">
-      {/* Main sections */}
-      <div className="space-y-1">
-        {NAV_MAIN.map(renderSection)}
-      </div>
-
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Admin group */}
-      <div className="pt-4 border-t border-border/60">
-        <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">
-          관리
-        </p>
-        <div className="space-y-0.5">
-          {NAV_ADMIN.map((item) => {
-            const Icon = ADMIN_ICONS[item.label];
-            const active = isSubItemActive(item, pathname);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onItemClick}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
-                  active
-                    ? 'bg-[hsl(var(--brass)/0.1)] text-[hsl(var(--brass))] font-medium'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                }`}
-              >
-                {Icon && (
-                  <Icon
-                    className={`h-3.5 w-3.5 shrink-0 ${active ? 'text-[hsl(var(--brass))]' : 'text-muted-foreground/70'}`}
-                    strokeWidth={1.75}
-                  />
-                )}
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
       </div>
     </nav>
   );

@@ -105,7 +105,7 @@ export default function UploadPage() {
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Header */}
         <div className="space-y-4">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/search" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-4 h-4" />
             검색으로 돌아가기
           </Link>
@@ -294,7 +294,7 @@ export default function UploadPage() {
 
               <Separator />
 
-              <Link href="/">
+              <Link href="/search">
                 <Button variant="outline" className="w-full">
                   검색 페이지에서 확인하기
                 </Button>

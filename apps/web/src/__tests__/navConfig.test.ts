@@ -4,6 +4,7 @@ import {
   NAV_ADMIN,
   isSectionActive,
   isSubItemActive,
+  shouldExpandLawSection,
 } from '@/components/nav/navConfig';
 
 describe('navConfig', () => {
@@ -16,9 +17,23 @@ describe('navConfig', () => {
     expect(labels).toContain('특허 분석');
   });
 
+  it('section order: 수전해 동향, 경쟁사 비교, 특허 분석, 법령 검색', () => {
+    const labels = NAV_MAIN.map((s) => s.label);
+    expect(labels[0]).toBe('수전해 동향');
+    expect(labels[1]).toBe('경쟁사 비교');
+    expect(labels[2]).toBe('특허 분석');
+    expect(labels[3]).toBe('법령 검색');
+  });
+
   it('법령 검색 section has 6 sub-items', () => {
     const law = NAV_MAIN.find((s) => s.label === '법령 검색');
     expect(law?.subItems).toHaveLength(6);
+  });
+
+  it('법령 검색 검색 sub-item href is /search', () => {
+    const law = NAV_MAIN.find((s) => s.label === '법령 검색');
+    const searchItem = law?.subItems?.find((s) => s.label === '검색');
+    expect(searchItem?.href).toBe('/search');
   });
 
   it('exports 2 admin items', () => {
@@ -45,7 +60,7 @@ describe('isSectionActive', () => {
   });
 
   it('법령 검색 section active on any sub-item path', () => {
-    expect(isSectionActive(law, '/', null)).toBe(true);
+    expect(isSectionActive(law, '/search', null)).toBe(true);
     expect(isSectionActive(law, '/kgs-compare', null)).toBe(true);
     expect(isSectionActive(law, '/integrate', null)).toBe(true);
     expect(isSectionActive(law, '/kgs-family', null)).toBe(true);
@@ -60,14 +75,33 @@ describe('isSectionActive', () => {
 });
 
 describe('isSubItemActive', () => {
-  it('root "/" item active only at exactly "/"', () => {
-    expect(isSubItemActive({ label: '검색', href: '/' }, '/')).toBe(true);
-    expect(isSubItemActive({ label: '검색', href: '/' }, '/kgs-compare')).toBe(false);
+  it('/search item active only at exactly "/search"', () => {
+    expect(isSubItemActive({ label: '검색', href: '/search' }, '/search')).toBe(true);
+    expect(isSubItemActive({ label: '검색', href: '/search' }, '/kgs-compare')).toBe(false);
+    expect(isSubItemActive({ label: '검색', href: '/search' }, '/')).toBe(false);
   });
 
   it('nested paths match correctly', () => {
     expect(isSubItemActive({ label: '본문 비교', href: '/kgs-compare' }, '/kgs-compare')).toBe(true);
     expect(isSubItemActive({ label: '본문 비교', href: '/kgs-compare' }, '/kgs-compare/detail')).toBe(true);
     expect(isSubItemActive({ label: '본문 비교', href: '/kgs-compare' }, '/kgs')).toBe(false);
+  });
+});
+
+describe('shouldExpandLawSection', () => {
+  it('returns true for law sub-item paths', () => {
+    expect(shouldExpandLawSection('/search')).toBe(true);
+    expect(shouldExpandLawSection('/kgs-compare')).toBe(true);
+    expect(shouldExpandLawSection('/integrate')).toBe(true);
+    expect(shouldExpandLawSection('/kgs-family')).toBe(true);
+    expect(shouldExpandLawSection('/forms/industrial-convergence')).toBe(true);
+    expect(shouldExpandLawSection('/compliance-check')).toBe(true);
+  });
+
+  it('returns false for non-law paths', () => {
+    expect(shouldExpandLawSection('/intel')).toBe(false);
+    expect(shouldExpandLawSection('/')).toBe(false);
+    expect(shouldExpandLawSection('/upload')).toBe(false);
+    expect(shouldExpandLawSection('/intel/admin')).toBe(false);
   });
 });

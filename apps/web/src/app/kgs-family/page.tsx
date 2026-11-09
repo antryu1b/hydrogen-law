@@ -103,7 +103,7 @@ export default function KGSFamilyPage() {
       </section>
 
       <p className="text-center mt-8">
-        <Link href="/" className="text-primary hover:underline">
+        <Link href="/search" className="text-primary hover:underline">
           ← 검색으로 돌아가기
         </Link>
       </p>

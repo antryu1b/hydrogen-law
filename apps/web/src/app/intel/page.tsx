@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { Upload } from 'lucide-react';
 import { IntelBlockList } from '@/components/intel/IntelBlocks';
 import { FtoList } from '@/components/intel/FtoList';
 import { NewsList } from '@/components/intel/NewsList';
@@ -95,35 +93,9 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">수전해 인텔리전스</h1>
-          <p className="mt-1 text-sm text-muted-foreground">수전해 동향 · 경쟁사 비교 · 특허 분석</p>
-        </div>
-        <Link
-          href="/intel/admin"
-          className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <Upload className="h-3.5 w-3.5" /> 데이터 업로드
-        </Link>
-      </div>
-
-      <nav className="flex flex-wrap gap-1 border-b border-border/70" aria-label="인텔리전스 탭">
-        {TABS.map((t) => (
-          <Link
-            key={t.key}
-            href={`/intel?tab=${t.key}`}
-            aria-current={active === t.key ? 'page' : undefined}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${
-              active === t.key
-                ? 'border-[hsl(var(--brass))] text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </nav>
+      <h1 className="font-display text-2xl font-bold tracking-tight">
+        {TABS.find((t) => t.key === active)?.label}
+      </h1>
 
       <div className="space-y-4">
         {active === 'news' && <NewsTab />}

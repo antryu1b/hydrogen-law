@@ -230,7 +230,7 @@ export default function IntegratePage() {
       )}
 
       <p className="mt-10 text-center">
-        <Link href="/" className="text-primary hover:underline">
+        <Link href="/search" className="text-primary hover:underline">
           ← 검색으로 돌아가기
         </Link>
       </p>
