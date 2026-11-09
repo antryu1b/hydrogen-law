@@ -387,7 +387,7 @@ export default function HomePage() {
         {/* 마스트헤드 */}
         <div className="mb-9 text-center">
           <h1 className="font-display mb-3 text-[2.1rem] font-bold leading-[1.12] tracking-tight text-foreground md:text-[2.75rem] rise-in" style={{ animationDelay: '90ms' }}>
-            수전해 인텔리전스
+            수소·고압가스 법령 검색
           </h1>
         </div>
 
