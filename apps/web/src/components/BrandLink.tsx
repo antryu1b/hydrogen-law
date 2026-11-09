@@ -11,9 +11,8 @@ import Image from 'next/image';
  * Dispatching 'hl-go-home' lets page.tsx reset viewState / results / query /
  * scopeLaw / searchStack back to landing.
  *
- * Logo: HTWO (Hyundai Motor Group) official SVG.
- * Light theme → htwo-logo-black.svg (dark text on light bg).
- * Dark theme  → htwo-logo-white.svg (white text on dark bg).
+ * Logo: blue HTWO mark only (cut from the official SVG, no wordmark);
+ * the brand blue reads on both light and dark themes.
  */
 export function BrandLink() {
   return (
@@ -26,24 +25,12 @@ export function BrandLink() {
         }
       }}
     >
-      {/* Light theme logo */}
       <Image
-        src="/htwo-logo-black.svg"
+        src="/htwo-mark.svg"
         alt="HTWO"
-        width={96}
-        height={30}
-        className="block dark:hidden"
-        style={{ height: '30px', width: 'auto' }}
-        priority
-      />
-      {/* Dark theme logo */}
-      <Image
-        src="/htwo-logo-white.svg"
-        alt="HTWO"
-        width={96}
-        height={30}
-        className="hidden dark:block"
-        style={{ height: '30px', width: 'auto' }}
+        width={37}
+        height={29}
+        style={{ height: '26px', width: 'auto' }}
         priority
       />
       <span className="flex flex-col leading-none">
