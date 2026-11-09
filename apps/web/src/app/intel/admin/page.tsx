@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { UploadForm } from './UploadForm';
 
-export const metadata: Metadata = { title: '인텔리전스 데이터 업로드 · 수소법령 검색' };
+export const metadata: Metadata = { title: '인텔리전스 데이터 업로드 · 수전해 인텔리전스' };
 
 export default function IntelAdminPage() {
   return (

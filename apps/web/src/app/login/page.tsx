@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Lock } from 'lucide-react';
 import { safeNextPath } from '@/lib/auth';
 
-export const metadata: Metadata = { title: '로그인 · 수소법령 검색' };
+export const metadata: Metadata = { title: '로그인 · 수전해 인텔리전스' };
 
 const ERRORS: Record<string, string> = {
   invalid: '비밀번호가 올바르지 않습니다.',

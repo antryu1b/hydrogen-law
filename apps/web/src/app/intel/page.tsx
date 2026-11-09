@@ -6,7 +6,7 @@ import { FtoList } from '@/components/intel/FtoList';
 import { NewsList } from '@/components/intel/NewsList';
 import { formatKst, loadBlocks, loadFto, loadNews, type BlockRow } from '@/lib/intel';
 
-export const metadata: Metadata = { title: '수전해 인텔리전스 · 수소법령 검색' };
+export const metadata: Metadata = { title: '수전해 인텔리전스' };
 export const dynamic = 'force-dynamic';
 
 const TABS = [
