@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
-import { LogOut, Scale } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { BrandLink } from '@/components/BrandLink';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VisitorCounter } from '@/components/VisitorCounter';
 
 export const metadata: Metadata = {
-  title: '수소법령 검색',
-  description: '수소·고압가스 법령 검색 시스템 · 국가법령정보센터',
+  title: '수전해 인텔리전스',
+  description: '수전해 · 수소 법령 검색 · 경쟁사 분석 · 특허 동향 · 국가법령정보센터',
 };
 
 export default function RootLayout({
@@ -17,6 +17,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const loginEnabled = !!process.env.SITE_PASSWORD;
+
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="antialiased bg-background">
@@ -66,16 +68,18 @@ export default function RootLayout({
                   <VisitorCounter />
                   <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
                   <ThemeToggle />
-                  <form method="post" action="/api/auth/logout">
-                    <button
-                      type="submit"
-                      title="로그아웃"
-                      aria-label="로그아웃"
-                      className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                    >
-                      <LogOut className="h-4 w-4" strokeWidth={1.75} />
-                    </button>
-                  </form>
+                  {loginEnabled && (
+                    <form method="post" action="/api/auth/logout">
+                      <button
+                        type="submit"
+                        title="로그아웃"
+                        aria-label="로그아웃"
+                        className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <LogOut className="h-4 w-4" strokeWidth={1.75} />
+                      </button>
+                    </form>
+                  )}
                 </nav>
               </div>
             </div>
@@ -93,9 +97,8 @@ export default function RootLayout({
             <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1.5rem' }}>
               <div className="flex flex-col items-start justify-between gap-3 py-8 md:flex-row md:items-center">
                 <div className="flex items-center gap-3">
-                  <Scale className="h-4 w-4 text-[hsl(var(--brass))]" strokeWidth={1.75} />
                   <p className="text-sm text-muted-foreground">
-                    © 2026 수소법령 검색 · 국가법령정보센터 기반
+                    © 2026 수전해 인텔리전스 · 국가법령정보센터 기반
                   </p>
                 </div>
               </div>

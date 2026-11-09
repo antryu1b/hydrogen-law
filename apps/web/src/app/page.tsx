@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor } from 'lucide-react';
+import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor, Columns2, Network, FolderTree, TrendingUp, BarChart2, Award } from 'lucide-react';
+import Link from 'next/link';
 import type { SearchResponse } from '@/types/search';
 import { SearchResults } from '@/components/SearchResults';
 import KGSComparison from '@/components/KGSComparison';
@@ -386,7 +387,7 @@ export default function HomePage() {
         {/* 마스트헤드 */}
         <div className="mb-9 text-center">
           <h1 className="font-display mb-3 text-[2.1rem] font-bold leading-[1.12] tracking-tight text-foreground md:text-[2.75rem] rise-in" style={{ animationDelay: '90ms' }}>
-            수소·고압가스 법령 검색
+            수전해 인텔리전스
           </h1>
         </div>
 
@@ -565,11 +566,38 @@ export default function HomePage() {
           </div>
 
           {/* Gazette divider with § mark */}
-          <div className="relative mb-4 mt-9">
+          <div className="relative mb-6 mt-9">
             <div className="gazette-rule" />
             <span className="font-display absolute -top-3.5 left-1/2 -translate-x-1/2 bg-background px-3 text-base text-[hsl(var(--brass))]">
               §
             </span>
+          </div>
+
+          {/* Quick-access menu grid — all major sections visible on first screen */}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 rise-in" style={{ animationDelay: '280ms' }}>
+            {([
+              { href: '/kgs-compare',                  icon: Columns2,   label: '본문 비교',            desc: '조문 나란히 비교' },
+              { href: '/integrate',                    icon: Network,    label: '통합 요건',             desc: '교차참조' },
+              { href: '/kgs-family',                   icon: FolderTree, label: '기술기준 분류',         desc: 'KGS 체계' },
+              { href: '/forms/industrial-convergence', icon: FileText,   label: '별표·서식',             desc: '산업융합' },
+              { href: '/intel?tab=news',               icon: TrendingUp, label: '수전해 동향',           desc: '최신 뉴스' },
+              { href: '/intel?tab=competitors',        icon: BarChart2,  label: '경쟁사 비교',           desc: '인텔리전스' },
+              { href: '/intel?tab=patents',            icon: Award,      label: '특허 분석',             desc: 'FTO 검토' },
+            ] as const).map(({ href, icon: Icon, label, desc }) => (
+              <Link
+                key={href}
+                href={href}
+                className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-card/60 px-3 py-3 text-left transition-all hover:border-[hsl(var(--brass)/0.45)] hover:bg-accent"
+              >
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[hsl(var(--brass)/0.3)] bg-[hsl(var(--brass)/0.08)] text-[hsl(var(--brass))]">
+                  <Icon className="h-[15px] w-[15px]" strokeWidth={1.75} />
+                </span>
+                <span className="flex flex-col leading-none">
+                  <span className="text-[13px] font-semibold text-foreground">{label}</span>
+                  <span className="mt-0.5 text-[11px] text-muted-foreground">{desc}</span>
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       </div>
