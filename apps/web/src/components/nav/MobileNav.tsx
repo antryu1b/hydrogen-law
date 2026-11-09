@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Menu, X } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 
@@ -62,12 +63,13 @@ export function MobileNav() {
         <Menu className="h-5 w-5" strokeWidth={1.75} />
       </button>
 
-      {/* Drawer + overlay */}
-      {isOpen && (
+      {/* Drawer + overlay — portaled to document.body so fixed height is not
+          constrained by the header's backdrop-filter containing block */}
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            className="fixed inset-0 z-40 bg-black/50"
             aria-hidden="true"
             onClick={close}
           />
@@ -79,8 +81,10 @@ export function MobileNav() {
             role="dialog"
             aria-modal="true"
             aria-label="내비게이션 메뉴"
-            className="fixed left-0 top-0 z-50 h-full w-64 bg-background border-r border-border/70 shadow-xl md:hidden overflow-y-auto"
+            className="fixed left-0 top-0 z-50 h-screen w-64 bg-background border-r border-border/70 shadow-xl overflow-y-auto"
           >
+            {/* Brass accent line */}
+            <div className="h-[3px] w-full shrink-0 bg-[hsl(var(--brass))]" aria-hidden="true" />
             {/* Drawer header with close button */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
               <span className="text-sm font-semibold text-foreground">메뉴</span>
@@ -97,7 +101,8 @@ export function MobileNav() {
             {/* Sidebar content */}
             <Sidebar onItemClick={close} />
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </>
   );
