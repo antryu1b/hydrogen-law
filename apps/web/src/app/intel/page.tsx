@@ -31,10 +31,22 @@ function Empty({ error }: { error: string | null }) {
   );
 }
 
-function Sections({ rows, sectionLabel }: { rows: BlockRow[]; sectionLabel?: string }) {
+function Sections({
+  rows,
+  sectionLabel,
+  stripWords,
+}: {
+  rows: BlockRow[];
+  sectionLabel?: string;
+  stripWords?: string[];
+}) {
   return (
     <div className="space-y-4">
-      <IntelBlockList blocks={rows.map((r) => r.payload)} sectionLabel={sectionLabel} />
+      <IntelBlockList
+        blocks={rows.map((r) => r.payload)}
+        sectionLabel={sectionLabel}
+        stripWords={stripWords}
+      />
     </div>
   );
 }
@@ -54,7 +66,11 @@ async function CompetitorsTab() {
   return (
     <>
       <UpdatedAt iso={lastUpdated} />
-      {rows.length ? <Sections rows={rows} sectionLabel="경쟁사 비교" /> : <Empty error={error} />}
+      {rows.length ? (
+        <Sections rows={rows} sectionLabel="경쟁사 비교" stripWords={['경쟁사', '비교']} />
+      ) : (
+        <Empty error={error} />
+      )}
     </>
   );
 }

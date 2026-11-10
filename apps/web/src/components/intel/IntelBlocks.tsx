@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 import { safeHref, type IntelBlock, type IntelLink, type TableCell } from '@/lib/intel';
 import { IntelTabs } from './IntelTabs';
+import { stripSectionWords } from '@/lib/intel-utils';
 
 // Renders the generic content blocks stored in intel_competitors / intel_patents.
 // Everything is rendered as text (no raw HTML), so uploaded JSON cannot inject markup.
@@ -57,12 +58,21 @@ function Cell({ cell, header, hlCol, col }: { cell: TableCell; header?: boolean;
   );
 }
 
-export function IntelBlockView({ block }: { block: IntelBlock }) {
+export function IntelBlockView({
+  block,
+  stripWords,
+}: {
+  block: IntelBlock;
+  stripWords?: string[];
+}) {
+  const st = (title: string) =>
+    stripWords?.length ? stripSectionWords(title, stripWords) : title;
+
   switch (block.type) {
     case 'heading':
       return (
         <div className="mt-8 border-b border-border/70 pb-2 first:mt-0">
-          <h2 className="font-display text-lg font-bold tracking-tight">{block.title}</h2>
+          <h2 className="font-display text-lg font-bold tracking-tight">{st(block.title)}</h2>
           {block.desc && <p className="mt-1 text-sm text-muted-foreground">{block.desc}</p>}
         </div>
       );
@@ -153,7 +163,7 @@ export function IntelBlockView({ block }: { block: IntelBlock }) {
       if (!block.blocks?.length) return null;
       return (
         <div className="space-y-2 rounded-lg border border-border/80 bg-card p-5">
-          <IntelBlockList blocks={block.blocks} />
+          <IntelBlockList blocks={block.blocks} stripWords={stripWords} />
         </div>
       );
     case 'details':
@@ -161,21 +171,21 @@ export function IntelBlockView({ block }: { block: IntelBlock }) {
         <details className="group rounded-lg border border-border/80 bg-card">
           <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold">
             {block.badges?.map((b, i) => <Badge key={b + i}>{b}</Badge>)}
-            <span className="flex-1">{block.title}</span>
+            <span className="flex-1">{st(block.title)}</span>
             <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
           </summary>
           <div className="space-y-2 border-t border-border/60 px-4 py-3">
-            <IntelBlockList blocks={block.blocks} />
+            <IntelBlockList blocks={block.blocks} stripWords={stripWords} />
           </div>
         </details>
       );
     case 'tabs':
       return (
         <IntelTabs
-          labels={block.tabs.map((t) => t.label)}
+          labels={block.tabs.map((t) => st(t.label))}
           panels={block.tabs.map((t, i) => (
             <div key={i} className="space-y-3">
-              <IntelBlockList blocks={t.blocks} />
+              <IntelBlockList blocks={t.blocks} stripWords={stripWords} />
             </div>
           ))}
         />
@@ -194,9 +204,13 @@ export function IntelBlockView({ block }: { block: IntelBlock }) {
 export function IntelBlockList({
   blocks,
   sectionLabel,
+  stripWords,
 }: {
   blocks: IntelBlock[];
+  /** Skip any heading whose title starts with this label (data-side deduplication). */
   sectionLabel?: string;
+  /** Strip these words from headings and sub-tab labels (competitors section). */
+  stripWords?: string[];
 }) {
   return (
     <>
@@ -209,7 +223,7 @@ export function IntelBlockList({
         ) {
           return null;
         }
-        return <IntelBlockView key={i} block={b} />;
+        return <IntelBlockView key={i} block={b} stripWords={stripWords} />;
       })}
     </>
   );
