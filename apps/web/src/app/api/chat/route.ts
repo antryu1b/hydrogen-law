@@ -102,6 +102,10 @@ async function executeTool(name: string, input: Record<string, unknown>): Promis
 }
 
 export async function POST(req: NextRequest) {
+  // Chat is disabled in the UI; keep the endpoint closed unless explicitly re-enabled.
+  if (process.env.CHAT_ENABLED !== 'true') {
+    return new Response('Not Found', { status: 404 });
+  }
   const { messages } = await req.json();
 
   const encoder = new TextEncoder();
