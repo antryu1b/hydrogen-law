@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor } from 'lucide-react';
+import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import type { SearchResponse } from '@/types/search';
 import { SearchResults } from '@/components/SearchResults';
 import KGSComparison from '@/components/KGSComparison';
+import { ChatPanel } from '@/features/chat/ChatPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { deriveLawType } from '@/lib/utils';
@@ -65,7 +66,7 @@ function clearSearchHistory() {
   localStorage.removeItem(SEARCH_HISTORY_KEY);
 }
 
-type TabType = 'law' | 'kgs' | 'marine';
+type TabType = 'law' | 'kgs' | 'marine' | 'ai';
 type ViewState = 'home' | 'results' | 'drilldown';
 
 interface KGSRecommendation {
@@ -543,6 +544,8 @@ export default function SearchPage() {
             </div>
           </div>
 
+          {/* AI 상담 바로가기 — 비활성화 */}
+
           {/* Gazette divider */}
           <div className="relative mb-6 mt-9">
             <div className="gazette-rule" />
@@ -558,8 +561,8 @@ export default function SearchPage() {
   // 결과 화면
   return (
     <div className="min-h-screen bg-background">
-      {/* 결과 페이지 검색바 */}
-      <div className="mb-6 fadeIn">
+      {/* 결과 페이지 검색바 — AI 탭일 때 숨김 */}
+      <div className={`mb-6 fadeIn ${activeTab === 'ai' ? 'hidden' : ''}`}>
         <form onSubmit={handleSearch} className="flex gap-2 max-w-3xl w-full md:w-auto">
           <div className="relative flex-1">
             {scopeLaw && (
@@ -729,6 +732,7 @@ export default function SearchPage() {
           <Anchor className="w-4 h-4" />
           선박 기술기준
         </button>
+        {/* AI 상담 탭 — 비활성화 */}
       </div>
 
       {/* 에러 */}
@@ -895,6 +899,8 @@ export default function SearchPage() {
           )}
         </div>
       )}
+
+      {/* AI 상담 탭 — 비활성화 */}
 
       {/* 선박 기술기준 탭 */}
       {!loading && activeTab === 'marine' && (
