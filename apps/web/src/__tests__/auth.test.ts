@@ -88,11 +88,41 @@ describe('session auth', () => {
     expect(await checkPassword('test-password')).toBeNull();
   });
 
+  it('checkPassword with only ADMIN_PASSWORD set returns null for non-admin passwords', async () => {
+    delete process.env.SITE_PASSWORD;
+    process.env.ADMIN_PASSWORD = 'admin-only-secret';
+    expect(await checkPassword('admin-only-secret')).toBe('admin');
+    // SITE_PASSWORD is unset, so any other password → null (no site role available)
+    expect(await checkPassword('anything')).toBeNull();
+  });
+
+  it('checkPassword admin takes precedence when SITE_PASSWORD equals ADMIN_PASSWORD', async () => {
+    // Both passwords are identical — 'admin' is returned (not 'site').
+    // See comment in checkPassword: "Admin takes precedence when both passwords happen to be identical."
+    process.env.ADMIN_PASSWORD = 'test-password'; // matches SITE_PASSWORD set in beforeEach
+    expect(await checkPassword('test-password')).toBe('admin');
+  });
+
+  it('rejects malformed token shapes: empty role, unknown role, extra dot', async () => {
+    // "1..sig" — empty role segment (secondDot <= firstDot + 1)
+    expect(await verifySessionToken('1..sig')).toBeNull();
+    // "exp.user.sig" — unknown role
+    const exp = Date.now() + 86400_000;
+    expect(await verifySessionToken(`${exp}.user.anysig`)).toBeNull();
+    // valid token + ".extra" — four dot-separated segments
+    const valid = await createSessionToken('site');
+    expect(await verifySessionToken(`${valid}.extra`)).toBeNull();
+  });
+
   it('only allows same-site relative redirect targets', () => {
     expect(safeNextPath('/intel?tab=news')).toBe('/intel?tab=news');
     expect(safeNextPath('//evil.example')).toBe('/');
     expect(safeNextPath('https://evil.example')).toBe('/');
     expect(safeNextPath('/\\evil.example')).toBe('/');
     expect(safeNextPath(undefined)).toBe('/');
+    // Control characters — URL parser strips tab/newline, turning the path
+    // into a protocol-relative URL (e.g. //evil.com) which fails origin check
+    expect(safeNextPath('/\t/evil.com')).toBe('/');
+    expect(safeNextPath('/\n/evil.com')).toBe('/');
   });
 });

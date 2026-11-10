@@ -4,18 +4,9 @@ import { NextRequest } from 'next/server';
 import { middleware } from '@/middleware';
 import { MCP_PROXY_HEADER, SESSION_COOKIE, createSessionToken } from '@/lib/auth';
 
-const req = (path: string, opts?: { cookie?: string; headers?: Record<string, string> }) => {
+const req = (path: string, opts?: { cookie?: string }) => {
   const r = new NextRequest(new URL(path, 'https://example.test'));
   if (opts?.cookie) r.cookies.set(SESSION_COOKIE, opts.cookie);
-  if (opts?.headers) {
-    for (const [k, v] of Object.entries(opts.headers)) {
-      // NextRequest headers are immutable after construction; use the Headers override pattern
-      Object.defineProperty(r, 'headers', {
-        value: new Headers({ ...Object.fromEntries(r.headers), [k]: v }),
-        configurable: true,
-      });
-    }
-  }
   return r;
 };
 
@@ -74,8 +65,8 @@ describe('middleware with SITE_PASSWORD unset (login off)', () => {
     expect((await middleware(req('/api/intel/upload'))).status).toBe(401);
   });
 
-  it('admin-role session passes admin path', async () => {
-    // With ADMIN_PASSWORD unset, site-role session also passes (backward compat)
+  it('site-role session passes admin path when ADMIN_PASSWORD unset (backward compat)', async () => {
+    // With ADMIN_PASSWORD unset a site-role session is accepted on admin paths
     const r = await reqWithSession('/intel/admin', 'site');
     expect((await middleware(r)).headers.get('x-middleware-next')).toBe('1');
   });
@@ -115,6 +106,34 @@ describe('middleware with SITE_PASSWORD unset (login off)', () => {
   it('public paths still open without session', async () => {
     expect((await middleware(req('/intel'))).headers.get('x-middleware-next')).toBe('1');
     expect((await middleware(req('/api/search'))).headers.get('x-middleware-next')).toBe('1');
+  });
+
+  it('gates subpaths of admin routes', async () => {
+    // /intel/admin/x and /api/kgs/upload/file must be treated as admin paths
+    expect((await middleware(req('/intel/admin/x'))).status).toBe(307);
+    expect((await middleware(req('/api/kgs/upload/file'))).status).toBe(401);
+  });
+
+  it('segment match: /uploads-foo is not an admin path', async () => {
+    // /uploads-foo starts with /upload but is a different path segment — must be public
+    expect((await middleware(req('/uploads-foo'))).headers.get('x-middleware-next')).toBe('1');
+  });
+
+  it('normalizes percent-encoded paths to admin paths', async () => {
+    // /api/%75pload → /api/upload (admin API path) → 401
+    expect((await middleware(req('/api/%75pload'))).status).toBe(401);
+    // /%75pload → /upload (admin non-API path) → 307
+    expect((await middleware(req('/%75pload'))).status).toBe(307);
+    // /intel/%61dmin → /intel/admin → 307
+    expect((await middleware(req('/intel/%61dmin'))).status).toBe(307);
+    // /API/upload — uppercase lowercased to /api/upload → admin
+    // (raw isApi check is case-sensitive so response is 307 not 401)
+    expect((await middleware(req('/API/upload'))).status).toBe(307);
+    // /api//upload — double slash collapses to /api/upload (admin API) → 401
+    const doubleSlash = new NextRequest(new URL('https://example.test/api//upload'));
+    expect((await middleware(doubleSlash)).status).toBe(401);
+    // malformed percent-encoding → fail closed (treat as admin path)
+    expect((await middleware(req('/api/upload/%E0%A4%A'))).status).toBe(401);
   });
 });
 

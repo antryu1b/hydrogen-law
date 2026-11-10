@@ -119,8 +119,22 @@ export async function checkPassword(input: string): Promise<'admin' | 'site' | n
   return null;
 }
 
-/** Only allow same-site relative redirect targets. */
+/**
+ * Only allow same-site relative redirect targets.
+ *
+ * Uses the WHATWG URL parser so that control characters (tab, newline),
+ * backslashes, and protocol-relative `//host` paths are all correctly
+ * rejected — a simple string-prefix check can be bypassed via these.
+ */
 export function safeNextPath(next: string | null | undefined): string {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return '/';
-  return next;
+  if (!next) return '/';
+  try {
+    // Parse relative to a fixed sentinel origin so we can verify the result
+    // stays on the same (fictional) host.
+    const url = new URL(next, 'http://x');
+    if (url.origin !== 'http://x') return '/';
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return '/';
+  }
 }

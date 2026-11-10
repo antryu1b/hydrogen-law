@@ -19,14 +19,37 @@ import { MCP_PROXY_HEADER, SESSION_COOKIE, safeEqual, verifySessionToken } from 
 //   /api/cron/*                  — requires `Authorization: Bearer ${CRON_SECRET}` instead
 //   /api/mcp, /api/mcp/*         — remote MCP endpoint stays public
 
-/** Prefix-match patterns for paths that require admin role. */
-function isAdminPath(pathname: string): boolean {
+/**
+ * Returns true when the given raw (possibly percent-encoded) pathname refers
+ * to an admin-only resource.
+ *
+ * Normalisation before matching:
+ *  - decodeURIComponent  — prevents `/api/%75pload` from bypassing the check
+ *  - toLowerCase         — prevents `/API/upload` from bypassing the check
+ *  - collapse `//+` → `/`— prevents `//api//upload` tricks
+ *  - strip trailing `/`  — treats `/upload/` the same as `/upload`
+ *
+ * On malformed percent-encoding, fail closed (treat as admin path).
+ *
+ * Segment matching (`=== base || startsWith(base + '/')`) ensures that
+ * `/uploads-foo` is not admin while `/upload/x` is.
+ */
+function isAdminPath(raw: string): boolean {
+  let p: string;
+  try {
+    p = decodeURIComponent(raw).toLowerCase().replace(/\/+/g, '/');
+    if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
+  } catch {
+    // Malformed percent-encoding — fail closed
+    return true;
+  }
+  const eq = (base: string) => p === base || p.startsWith(base + '/');
   return (
-    pathname.startsWith('/intel/admin') ||
-    pathname.startsWith('/api/intel/upload') ||
-    pathname.startsWith('/upload') ||
-    pathname.startsWith('/api/upload') ||
-    pathname.startsWith('/api/kgs/upload')
+    eq('/intel/admin') ||
+    eq('/api/intel/upload') ||
+    eq('/upload') ||
+    eq('/api/upload') ||
+    eq('/api/kgs/upload')
   );
 }
 
