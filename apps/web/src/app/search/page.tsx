@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Scale, Clock, History, X, FileText, BookOpen, ChevronRight, Home, ChevronLeft, AlertCircle, Pin, ArrowLeft, Anchor } from 'lucide-react';
+import Link from 'next/link';
 import type { SearchResponse } from '@/types/search';
 import { SearchResults } from '@/components/SearchResults';
 import KGSComparison from '@/components/KGSComparison';
@@ -926,6 +927,19 @@ export default function SearchPage() {
           )}
         </div>
       )}
+
+      {/* Reference guides moved out of the sidebar */}
+      <div className="mt-10 border-t border-border pt-4 text-xs text-muted-foreground">
+        <span className="font-medium text-foreground/80">참고 안내</span>
+        <span className="mx-2">·</span>
+        <Link href="/kgs-family" className="underline-offset-2 hover:underline hover:text-foreground">
+          기술기준(KGS CODE) 분류 체계
+        </Link>
+        <span className="mx-2">·</span>
+        <Link href="/forms/industrial-convergence" className="underline-offset-2 hover:underline hover:text-foreground">
+          산업융합 촉진법 별표·서식
+        </Link>
+      </div>
     </div>
   );
 }

@@ -10,6 +10,8 @@ export interface NavSection {
   /** Intel tab key when this section maps to /intel?tab=<key> */
   tab?: string;
   subItems?: SubNavItem[];
+  /** Pages reachable from this section but not listed in the sidebar */
+  relatedPaths?: string[];
 }
 
 export interface SubNavItem {
@@ -28,10 +30,8 @@ export const NAV_MAIN: NavSection[] = [
       { label: '검색', href: '/search' },
       { label: '본문 비교', href: '/kgs-compare' },
       { label: '통합 요건', href: '/integrate' },
-      { label: '기술기준 분류', href: '/kgs-family' },
-      { label: '별표·서식', href: '/forms/industrial-convergence' },
-      { label: '컴플라이언스 체크', href: '/compliance-check' },
     ],
+    relatedPaths: ['/kgs-family', '/forms/industrial-convergence'],
   },
 ];
 
@@ -39,6 +39,12 @@ export const NAV_ADMIN: SubNavItem[] = [
   { label: '법령 업로드', href: '/upload' },
   { label: '인텔 업로드', href: '/intel/admin' },
 ];
+
+function matchesRelatedPath(section: NavSection, pathname: string): boolean {
+  return (section.relatedPaths ?? []).some(
+    (p) => pathname === p || pathname.startsWith(p + '/'),
+  );
+}
 
 /** True when a sub-item matches the current pathname. */
 export function isSubItemActive(item: SubNavItem, pathname: string): boolean {
@@ -49,7 +55,7 @@ export function isSubItemActive(item: SubNavItem, pathname: string): boolean {
 /**
  * True when a nav section is the active section.
  * - For intel tab sections: requires pathname === '/intel' AND tab matches.
- * - For sections with subItems: active when any sub-item is active.
+ * - For sections with subItems: active when any sub-item or related path is active.
  * - For plain href sections: pathname equality.
  */
 export function isSectionActive(
@@ -61,7 +67,10 @@ export function isSectionActive(
     return pathname === '/intel' && tab === section.tab;
   }
   if (section.subItems) {
-    return section.subItems.some((sub) => isSubItemActive(sub, pathname));
+    return (
+      section.subItems.some((sub) => isSubItemActive(sub, pathname)) ||
+      matchesRelatedPath(section, pathname)
+    );
   }
   return pathname === section.href;
 }
@@ -73,5 +82,8 @@ export function isSectionActive(
 export function shouldExpandLawSection(pathname: string): boolean {
   const lawSection = NAV_MAIN.find((s) => s.label === '법령 검색');
   if (!lawSection?.subItems) return false;
-  return lawSection.subItems.some((sub) => isSubItemActive(sub, pathname));
+  return (
+    lawSection.subItems.some((sub) => isSubItemActive(sub, pathname)) ||
+    matchesRelatedPath(lawSection, pathname)
+  );
 }

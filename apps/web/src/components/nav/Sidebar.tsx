@@ -11,9 +11,6 @@ import {
   Search,
   Columns2,
   Network,
-  FolderTree,
-  FileText,
-  ShieldCheck,
   Upload,
   BookOpen,
   ChevronDown,
@@ -38,9 +35,6 @@ const SUB_ICONS: Record<string, React.ComponentType<{ className?: string; stroke
   '검색': Search,
   '본문 비교': Columns2,
   '통합 요건': Network,
-  '기술기준 분류': FolderTree,
-  '별표·서식': FileText,
-  '컴플라이언스 체크': ShieldCheck,
 };
 
 const ADMIN_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {

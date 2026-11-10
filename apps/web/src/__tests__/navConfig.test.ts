@@ -25,9 +25,9 @@ describe('navConfig', () => {
     expect(labels[3]).toBe('법령 검색');
   });
 
-  it('법령 검색 section has 6 sub-items', () => {
+  it('법령 검색 section has 3 sub-items', () => {
     const law = NAV_MAIN.find((s) => s.label === '법령 검색');
-    expect(law?.subItems).toHaveLength(6);
+    expect(law?.subItems).toHaveLength(3);
   });
 
   it('법령 검색 검색 sub-item href is /search', () => {
@@ -65,7 +65,7 @@ describe('isSectionActive', () => {
     expect(isSectionActive(law, '/integrate', null)).toBe(true);
     expect(isSectionActive(law, '/kgs-family', null)).toBe(true);
     expect(isSectionActive(law, '/forms/industrial-convergence', null)).toBe(true);
-    expect(isSectionActive(law, '/compliance-check', null)).toBe(true);
+    expect(isSectionActive(law, '/compliance-check', null)).toBe(false);
   });
 
   it('법령 검색 section inactive on intel or unknown path', () => {
@@ -95,7 +95,7 @@ describe('shouldExpandLawSection', () => {
     expect(shouldExpandLawSection('/integrate')).toBe(true);
     expect(shouldExpandLawSection('/kgs-family')).toBe(true);
     expect(shouldExpandLawSection('/forms/industrial-convergence')).toBe(true);
-    expect(shouldExpandLawSection('/compliance-check')).toBe(true);
+    expect(shouldExpandLawSection('/compliance-check')).toBe(false);
   });
 
   it('returns false for non-law paths', () => {
