@@ -1,13 +1,34 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { MCP_PROXY_HEADER, SESSION_COOKIE, safeEqual, verifySessionToken } from '@/lib/auth';
 
-// Site-wide gate (active only when SITE_PASSWORD is set). Everything requires a valid session cookie except:
+// Site-wide gate. Behaviour depends on which env vars are set:
+//
+//   SITE_PASSWORD unset → site is public, except admin paths (see below)
+//   SITE_PASSWORD set   → all pages require a valid session
+//
+// Admin paths (/intel/admin, /api/intel/upload, /upload, /api/upload, /api/kgs/upload)
+// always require a session. When ADMIN_PASSWORD is set they require an admin-role
+// session specifically. When ADMIN_PASSWORD is unset a site-role session is also
+// accepted (backward compat with the previous single-password setup).
+//
+// The MCP proxy token bypasses non-admin API paths only. It does NOT grant
+// access to admin paths regardless of ADMIN_PASSWORD.
+//
+// Always-open paths:
 //   /login, /api/auth/*          — the login flow itself
-//   /api/cron/*                  — requires `Authorization: Bearer ${CRON_SECRET}` instead (Vercel Cron)
-//   /api/mcp                     — remote MCP endpoint stays public for existing integrations
-//   static assets                — excluded via `config.matcher`
-// /api/* also accepts `x-mcp-proxy-token: ${MCP_PROXY_TOKEN}` so the MCP proxies
-// (mcp-server/ and /api/mcp itself) can keep calling the deployed API routes.
+//   /api/cron/*                  — requires `Authorization: Bearer ${CRON_SECRET}` instead
+//   /api/mcp, /api/mcp/*         — remote MCP endpoint stays public
+
+/** Prefix-match patterns for paths that require admin role. */
+function isAdminPath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/intel/admin') ||
+    pathname.startsWith('/api/intel/upload') ||
+    pathname.startsWith('/upload') ||
+    pathname.startsWith('/api/upload') ||
+    pathname.startsWith('/api/kgs/upload')
+  );
+}
 
 function unauthorized() {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -28,19 +49,34 @@ export async function middleware(req: NextRequest) {
   }
 
   const isApi = pathname.startsWith('/api/');
+  const sessionRole = await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value);
 
-  // Login is optional for now: with SITE_PASSWORD unset the site is public,
-  // except the intel admin/upload paths, which can rewrite or delete data.
-  const isAdmin = pathname.startsWith('/intel/admin') || pathname.startsWith('/api/intel/upload');
-  if (!process.env.SITE_PASSWORD && !isAdmin) return NextResponse.next();
+  if (isAdminPath(pathname)) {
+    // The MCP proxy token is NOT accepted on admin paths.
+    // When ADMIN_PASSWORD is unset, a site-role session is sufficient (backward compat).
+    const adminPasswordConfigured = Boolean(process.env.ADMIN_PASSWORD);
+    const hasAccess =
+      sessionRole === 'admin' || (!adminPasswordConfigured && sessionRole === 'site');
+    if (hasAccess) return NextResponse.next();
+    if (isApi) return unauthorized();
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    loginUrl.search = '';
+    loginUrl.searchParams.set('next', `${pathname}${search}`);
+    return NextResponse.redirect(loginUrl);
+  }
 
+  // Non-admin paths: public when SITE_PASSWORD is unset.
+  if (!process.env.SITE_PASSWORD) return NextResponse.next();
+
+  // SITE_PASSWORD is set: require any valid session.
   if (isApi) {
     const proxyToken = process.env.MCP_PROXY_TOKEN;
     const sent = req.headers.get(MCP_PROXY_HEADER);
     if (proxyToken && sent && safeEqual(sent, proxyToken)) return NextResponse.next();
   }
 
-  if (await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.next();
+  if (sessionRole) return NextResponse.next();
 
   if (isApi) return unauthorized();
 

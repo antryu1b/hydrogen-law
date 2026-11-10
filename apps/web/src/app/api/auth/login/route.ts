@@ -24,10 +24,11 @@ export async function POST(req: NextRequest) {
   };
 
   if (!authConfigured()) return back('config');
-  if (!password || !(await checkPassword(password))) return back('invalid');
+  const role = await checkPassword(password);
+  if (!role) return back('invalid');
 
   const res = NextResponse.redirect(new URL(next, req.url), 303);
-  res.cookies.set(SESSION_COOKIE, await createSessionToken(), {
+  res.cookies.set(SESSION_COOKIE, await createSessionToken(role), {
     httpOnly: true,
     sameSite: 'lax',
     secure: req.nextUrl.protocol === 'https:',

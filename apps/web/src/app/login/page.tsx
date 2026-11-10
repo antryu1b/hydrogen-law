@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: '로그인 · 수전해 인텔리전�
 
 const ERRORS: Record<string, string> = {
   invalid: '비밀번호가 올바르지 않습니다.',
-  config: '서버 인증 설정(SITE_PASSWORD / SESSION_SECRET)이 없습니다. 관리자에게 문의하세요.',
+  config: '서버 인증 설정(SESSION_SECRET + SITE_PASSWORD 또는 ADMIN_PASSWORD)이 없습니다. 관리자에게 문의하세요.',
 };
 
 export default async function LoginPage({
