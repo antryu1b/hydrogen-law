@@ -9,8 +9,9 @@ import { Sidebar } from '@/components/nav/Sidebar';
 import { MobileNav } from '@/components/nav/MobileNav';
 
 export const metadata: Metadata = {
-  title: '수소법령 검색',
+  title: '수전해 인텔리전스',
   description: '수전해 · 수소 법령 검색 · 경쟁사 분석 · 특허 동향 · 국가법령정보센터',
+  openGraph: { siteName: '수전해 인텔리전스' },
 };
 
 // Header height: 3px brass rule + 53px content = 56px total
@@ -92,7 +93,7 @@ export default function RootLayout({
                       <div className="flex items-center gap-3">
                         <Scale className="h-4 w-4 text-[hsl(var(--brass))]" strokeWidth={1.75} />
                         <p className="text-sm text-muted-foreground">
-                          © 2026 수소법령 검색 · 국가법령정보센터 기반
+                          © 2026 수전해 인텔리전스 · 국가법령정보센터 기반
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground/60">

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import snapshot from '@/data/industrial-convergence-forms.json';
 
 export const metadata: Metadata = {
-  title: '산업융합 촉진법 별표·서식 다운로드',
+  title: '산업융합 촉진법 별표·서식 다운로드 · 수전해 인텔리전스',
   description:
     '산업융합 촉진법 시행령·시행규칙의 별표 및 서식(HWP) 다운로드 · 출처 국가법령정보센터(law.go.kr)',
 };

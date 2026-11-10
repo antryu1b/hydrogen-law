@@ -19,7 +19,7 @@ export function BrandLink() {
       </span>
       <span className="flex flex-col leading-none">
         <span className="font-display text-[15px] font-bold tracking-tight text-foreground sm:text-base">
-          수소·고압가스 법령 검색
+          수전해 인텔리전스
         </span>
         <span className="mt-0.5 hidden text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground sm:block">
           수소 · 고압가스 안전 법령
