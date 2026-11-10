@@ -38,7 +38,7 @@ export default function RootLayout({
               <div className="h-[3px] w-full bg-[hsl(var(--brass))]" aria-hidden="true" />
               <div className="flex h-[53px] items-center">
                 {/* Left zone: matches sidebar width on desktop; logo aligns with sidebar items */}
-                <div className="flex items-center gap-2 pl-3 pr-2 md:w-64 md:shrink-0">
+                <div className="flex items-center gap-2 pl-3 pr-2 md:w-64 md:shrink-0 md:pl-5">
                   <MobileNav />
                   <BrandLink />
                 </div>

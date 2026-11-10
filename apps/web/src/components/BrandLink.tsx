@@ -12,17 +12,17 @@ export function BrandLink() {
   return (
     <Link
       href="/"
-      className="group flex items-center gap-2.5 transition-opacity hover:opacity-80"
+      className="group flex items-center gap-2 transition-opacity hover:opacity-80"
     >
       <Image
         src="/htwo-mark.svg"
         alt="HTWO"
         width={37}
         height={29}
-        style={{ height: '26px', width: 'auto' }}
+        style={{ width: '24px', height: 'auto' }}
         priority
       />
-      <span className="font-display text-[15px] font-bold tracking-tight text-foreground sm:text-base">
+      <span className="font-display text-sm font-bold tracking-tight text-foreground">
         수전해 인텔리전스
       </span>
     </Link>
