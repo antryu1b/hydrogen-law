@@ -15,6 +15,9 @@ import {
   BookOpen,
   ChevronDown,
   Settings2,
+  Building2,
+  Factory,
+  Lightbulb,
 } from 'lucide-react';
 import {
   NAV_MAIN,
@@ -22,6 +25,7 @@ import {
   isSectionActive,
   isSubItemActive,
   shouldExpandLawSection,
+  shouldExpandPatentSection,
 } from './navConfig';
 
 const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
@@ -35,6 +39,9 @@ const SUB_ICONS: Record<string, React.ComponentType<{ className?: string; stroke
   '검색': Search,
   '본문 비교': Columns2,
   '통합 요건': Network,
+  '경쟁사': Building2,
+  'HMG': Factory,
+  '특허제안리스트': Lightbulb,
 };
 
 const ADMIN_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
@@ -46,15 +53,20 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab');
+  const sec = searchParams.get('sec');
 
   const isLawActive = shouldExpandLawSection(pathname);
+  const isPatentActive = shouldExpandPatentSection(pathname, tab);
 
   // 법령 검색 accordion state
   const [lawOpen, setLawOpen] = useState(false);
+  // 특허 분석 accordion state
+  const [patentOpen, setPatentOpen] = useState(false);
   // 관리 accordion state
   const [adminOpen, setAdminOpen] = useState(false);
 
   const lawSectionId = useId();
+  const patentSectionId = useId();
   const adminSectionId = useId();
 
   // Restore saved accordion state from localStorage (best-effort)
@@ -62,6 +74,10 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
     try {
       const saved = localStorage.getItem('nav-law-open');
       if (saved !== null) setLawOpen(saved === '1');
+    } catch {}
+    try {
+      const saved = localStorage.getItem('nav-patent-open');
+      if (saved !== null) setPatentOpen(saved === '1');
     } catch {}
     try {
       const saved = localStorage.getItem('nav-admin-open');
@@ -77,7 +93,16 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
     }
   }, [isLawActive]);
 
+  // Auto-expand patent section when on a patents view
+  useEffect(() => {
+    if (isPatentActive) {
+      setPatentOpen(true);
+      try { localStorage.setItem('nav-patent-open', '1'); } catch {}
+    }
+  }, [isPatentActive]);
+
   const lawExpanded = isLawActive || lawOpen;
+  const patentExpanded = isPatentActive || patentOpen;
 
   const toggleLaw = () => {
     // On a law page, don't allow collapsing (would hide active item)
@@ -85,6 +110,14 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
     const next = !lawOpen;
     setLawOpen(next);
     try { localStorage.setItem('nav-law-open', next ? '1' : '0'); } catch {}
+  };
+
+  const togglePatent = () => {
+    // On a patents view, don't allow collapsing (would hide active item)
+    if (isPatentActive) return;
+    const next = !patentOpen;
+    setPatentOpen(next);
+    try { localStorage.setItem('nav-patent-open', next ? '1' : '0'); } catch {}
   };
 
   const toggleAdmin = () => {
@@ -112,8 +145,11 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
         const active = isSectionActive(section, pathname, tab);
 
         if (section.subItems) {
-          // Collapsible section (법령 검색)
-          const isOpen = lawExpanded;
+          // Collapsible sections (법령 검색, 특허 분석)
+          const isPatents = section.tab === 'patents';
+          const isOpen = isPatents ? patentExpanded : lawExpanded;
+          const sectionId = isPatents ? patentSectionId : lawSectionId;
+          const toggle = isPatents ? togglePatent : toggleLaw;
           return (
             <div key={section.label}>
               {/* Section row: label navigates, chevron button toggles */}
@@ -127,8 +163,13 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
                 <Link
                   href={section.href}
                   onClick={() => {
-                    setLawOpen(true);
-                    try { localStorage.setItem('nav-law-open', '1'); } catch {}
+                    if (isPatents) {
+                      setPatentOpen(true);
+                      try { localStorage.setItem('nav-patent-open', '1'); } catch {}
+                    } else {
+                      setLawOpen(true);
+                      try { localStorage.setItem('nav-law-open', '1'); } catch {}
+                    }
                     onItemClick?.();
                   }}
                   className="flex flex-1 items-center gap-2 px-3 py-2.5 font-medium"
@@ -150,9 +191,9 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
                 <button
                   type="button"
                   aria-expanded={isOpen}
-                  aria-controls={lawSectionId}
-                  aria-label={isOpen ? '법령 검색 접기' : '법령 검색 펼치기'}
-                  onClick={toggleLaw}
+                  aria-controls={sectionId}
+                  aria-label={isOpen ? `${section.label} 접기` : `${section.label} 펼치기`}
+                  onClick={toggle}
                   className="px-2 py-2.5 rounded-r-lg hover:bg-accent transition-colors"
                 >
                   <ChevronDown
@@ -166,10 +207,10 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
 
               {/* Sub-items (collapsible) */}
               {isOpen && (
-                <div id={lawSectionId} className="pl-3 mt-0.5 space-y-0.5">
+                <div id={sectionId} className="pl-3 mt-0.5 space-y-0.5">
                   {section.subItems.map((sub) => {
                     const SubIcon = SUB_ICONS[sub.label];
-                    const subActive = isSubItemActive(sub, pathname);
+                    const subActive = isSubItemActive(sub, pathname, tab, sec);
                     const isLawHome = sub.href === '/search';
                     return (
                       <Link

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { IntelBlockList } from '@/components/intel/IntelBlocks';
 import { FtoList } from '@/components/intel/FtoList';
 import { NewsList } from '@/components/intel/NewsList';
+import { filterPatentRows, parsePatentSec, type PatentSec } from '@/lib/intel-utils';
 import { formatKst, loadBlocks, loadFto, loadNews, type BlockRow } from '@/lib/intel';
 
 export const metadata: Metadata = { title: '수전해 인텔리전스' };
@@ -75,8 +76,14 @@ async function CompetitorsTab() {
   );
 }
 
-async function PatentsTab() {
-  const [blocks, fto] = await Promise.all([loadBlocks('intel_patents'), loadFto()]);
+// The proposals view drops the methodology name from headings/tab labels (render-level only).
+const PROPOSALS_STRIP_WORDS = ['TRIZ 기반', 'TRIZ'];
+
+async function PatentsTab({ sec }: { sec: PatentSec | null }) {
+  const [allBlocks, allFto] = await Promise.all([loadBlocks('intel_patents'), loadFto()]);
+  const blocks = { ...allBlocks, rows: filterPatentRows(allBlocks.rows, sec) };
+  // FTO 1차 검토 DB is competitor-facing: shown in the all view and the 경쟁사 view only.
+  const fto = !sec || sec === 'competitor' ? allFto : { ...allFto, rows: [] };
   const lastUpdated = [blocks.lastUpdated, fto.lastUpdated].filter(Boolean).sort().pop() ?? null;
   if (!blocks.rows.length && !fto.rows.length) {
     return (
@@ -89,7 +96,11 @@ async function PatentsTab() {
   return (
     <>
       <UpdatedAt iso={lastUpdated} />
-      <Sections rows={blocks.rows} sectionLabel="특허 분석" />
+      <Sections
+        rows={blocks.rows}
+        sectionLabel="특허 분석"
+        stripWords={sec === 'proposals' ? PROPOSALS_STRIP_WORDS : undefined}
+      />
       {fto.rows.length > 0 && (
         <div className="space-y-3">
           <div className="mt-8 border-b border-border/70 pb-2">
@@ -103,8 +114,8 @@ async function PatentsTab() {
   );
 }
 
-export default async function IntelPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const { tab } = await searchParams;
+export default async function IntelPage({ searchParams }: { searchParams: Promise<{ tab?: string; sec?: string }> }) {
+  const { tab, sec } = await searchParams;
   const active: TabKey = TABS.some((t) => t.key === tab) ? (tab as TabKey) : 'news';
 
   return (
@@ -116,7 +127,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
       <div className="space-y-4">
         {active === 'news' && <NewsTab />}
         {active === 'competitors' && <CompetitorsTab />}
-        {active === 'patents' && <PatentsTab />}
+        {active === 'patents' && <PatentsTab sec={parsePatentSec(sec)} />}
       </div>
     </div>
   );

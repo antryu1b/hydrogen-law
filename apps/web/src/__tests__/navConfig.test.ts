@@ -5,6 +5,7 @@ import {
   isSectionActive,
   isSubItemActive,
   shouldExpandLawSection,
+  shouldExpandPatentSection,
 } from '@/components/nav/navConfig';
 
 describe('navConfig', () => {
@@ -103,5 +104,43 @@ describe('shouldExpandLawSection', () => {
     expect(shouldExpandLawSection('/')).toBe(false);
     expect(shouldExpandLawSection('/upload')).toBe(false);
     expect(shouldExpandLawSection('/intel/admin')).toBe(false);
+  });
+});
+
+describe('특허 분석 sub-items', () => {
+  const patents = NAV_MAIN.find((s) => s.label === '특허 분석')!;
+  const [competitor, hmg, proposals] = patents.subItems!;
+
+  it('has 경쟁사, HMG, 특허제안리스트 in order with sec hrefs', () => {
+    expect(patents.subItems!.map((s) => s.label)).toEqual(['경쟁사', 'HMG', '특허제안리스트']);
+    expect(patents.subItems!.map((s) => s.href)).toEqual([
+      '/intel?tab=patents&sec=competitor',
+      '/intel?tab=patents&sec=hmg',
+      '/intel?tab=patents&sec=proposals',
+    ]);
+  });
+
+  it('highlights only the sub-item matching the sec param', () => {
+    expect(isSubItemActive(competitor, '/intel', 'patents', 'competitor')).toBe(true);
+    expect(isSubItemActive(hmg, '/intel', 'patents', 'competitor')).toBe(false);
+    expect(isSubItemActive(proposals, '/intel', 'patents', 'proposals')).toBe(true);
+  });
+
+  it('highlights no sub-item without sec or with an unknown sec', () => {
+    for (const sec of [null, 'bogus']) {
+      expect(patents.subItems!.some((s) => isSubItemActive(s, '/intel', 'patents', sec))).toBe(false);
+    }
+  });
+
+  it('does not highlight on other tabs or paths', () => {
+    expect(isSubItemActive(hmg, '/intel', 'news', 'hmg')).toBe(false);
+    expect(isSubItemActive(hmg, '/search', 'patents', 'hmg')).toBe(false);
+  });
+
+  it('section stays active and expanded on every patents view', () => {
+    expect(isSectionActive(patents, '/intel', 'patents')).toBe(true);
+    expect(shouldExpandPatentSection('/intel', 'patents')).toBe(true);
+    expect(shouldExpandPatentSection('/intel', 'news')).toBe(false);
+    expect(shouldExpandPatentSection('/search', 'patents')).toBe(false);
   });
 });

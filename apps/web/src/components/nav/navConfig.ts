@@ -3,6 +3,8 @@
  * Pure data + pure helper functions — no React, fully testable.
  */
 
+import { parsePatentSec } from '@/lib/intel-utils';
+
 export interface NavSection {
   label: string;
   /** Full href including query string for intel tab links */
@@ -17,12 +19,23 @@ export interface NavSection {
 export interface SubNavItem {
   label: string;
   href: string;
+  /** Patent sub-view key when this item maps to /intel?tab=patents&sec=<key> */
+  sec?: string;
 }
 
 export const NAV_MAIN: NavSection[] = [
   { label: '수전해 동향', href: '/intel?tab=news', tab: 'news' },
   { label: '경쟁사 비교', href: '/intel?tab=competitors', tab: 'competitors' },
-  { label: '특허 분석', href: '/intel?tab=patents', tab: 'patents' },
+  {
+    label: '특허 분석',
+    href: '/intel?tab=patents',
+    tab: 'patents',
+    subItems: [
+      { label: '경쟁사', href: '/intel?tab=patents&sec=competitor', sec: 'competitor' },
+      { label: 'HMG', href: '/intel?tab=patents&sec=hmg', sec: 'hmg' },
+      { label: '특허제안리스트', href: '/intel?tab=patents&sec=proposals', sec: 'proposals' },
+    ],
+  },
   {
     label: '법령 검색',
     href: '/search',
@@ -47,7 +60,15 @@ function matchesRelatedPath(section: NavSection, pathname: string): boolean {
 }
 
 /** True when a sub-item matches the current pathname. */
-export function isSubItemActive(item: SubNavItem, pathname: string): boolean {
+export function isSubItemActive(
+  item: SubNavItem,
+  pathname: string,
+  tab: string | null = null,
+  sec: string | null = null,
+): boolean {
+  if (item.sec !== undefined) {
+    return pathname === '/intel' && tab === 'patents' && parsePatentSec(sec) === item.sec;
+  }
   if (item.href === '/search') return pathname === '/search';
   return pathname === item.href || pathname.startsWith(item.href + '/');
 }
@@ -86,4 +107,9 @@ export function shouldExpandLawSection(pathname: string): boolean {
     lawSection.subItems.some((sub) => isSubItemActive(sub, pathname)) ||
     matchesRelatedPath(lawSection, pathname)
   );
+}
+
+/** True when the 특허 분석 section should be auto-expanded (any /intel?tab=patents view). */
+export function shouldExpandPatentSection(pathname: string, tab: string | null): boolean {
+  return pathname === '/intel' && tab === 'patents';
 }
