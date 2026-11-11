@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { IntelBlockList } from '@/components/intel/IntelBlocks';
 import { FtoList } from '@/components/intel/FtoList';
 import { NewsList } from '@/components/intel/NewsList';
-import { filterPatentRows, parsePatentSec, type PatentSec } from '@/lib/intel-utils';
-import { formatKst, loadBlocks, loadFto, loadNews, type BlockRow } from '@/lib/intel';
+import { filterPatentRows, parsePatentSec, stripSectionWords, type PatentSec } from '@/lib/intel-utils';
+import { formatKst, loadBlocks, loadFto, loadNews, type BlockRow, type IntelBlock } from '@/lib/intel';
 
 export const metadata: Metadata = { title: '수전해 인텔리전스' };
 export const dynamic = 'force-dynamic';
@@ -84,9 +84,26 @@ async function CompetitorsTab() {
 // The proposals view drops the methodology name from headings/tab labels (render-level only).
 const PROPOSALS_STRIP_WORDS = ['TRIZ 기반', 'TRIZ'];
 
+// Heading subtitles (desc) are not covered by stripWords, so clean them here for the proposals view.
+function stripHeadingDescs(block: IntelBlock, words: string[]): IntelBlock {
+  if (block.type === 'heading' && block.desc) return { ...block, desc: stripSectionWords(block.desc, words) };
+  if (block.type === 'card' || block.type === 'details')
+    return { ...block, blocks: block.blocks?.map((b) => stripHeadingDescs(b, words)) } as IntelBlock;
+  if (block.type === 'tabs')
+    return { ...block, tabs: block.tabs.map((tb) => ({ ...tb, blocks: tb.blocks.map((b) => stripHeadingDescs(b, words)) })) };
+  return block;
+}
+
 async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   const [allBlocks, allFto] = await Promise.all([loadBlocks('intel_patents'), loadFto()]);
-  const blocks = { ...allBlocks, rows: filterPatentRows(allBlocks.rows, sec) };
+  const filtered = filterPatentRows(allBlocks.rows, sec);
+  const blocks = {
+    ...allBlocks,
+    rows:
+      sec === 'proposals'
+        ? filtered.map((r) => ({ ...r, payload: stripHeadingDescs(r.payload, PROPOSALS_STRIP_WORDS) }))
+        : filtered,
+  };
   // FTO 1차 검토 DB is competitor-facing: shown in the all view and the 경쟁사 view only.
   const fto = !sec || sec === 'competitor' ? allFto : { ...allFto, rows: [] };
   const lastUpdated = [blocks.lastUpdated, fto.lastUpdated].filter(Boolean).sort().pop() ?? null;
