@@ -18,6 +18,7 @@ import {
   foreignDiag,
   formatAppNo,
   isRelevant,
+  isExcluded,
   isRelevantForeign,
   krStatusTargets,
   normalizeAppNo,
@@ -467,6 +468,21 @@ describe('isRelevantForeign', () => {
     expect(isRelevantForeign('PEM fuel cell having a polymer electrolyte membrane and gas diffusion layers')).toBe(false);
     expect(isRelevantForeign('Solid electrolyte for an all-solid-state battery')).toBe(false);
     expect(isRelevantForeign('Electrolytic capacitor')).toBe(false);
+  });
+
+  it('keeps SOEC ceramic and green-ammonia electrolysis abstracts', () => {
+    expect(isRelevantForeign('Solid oxide electrolysis cell (SOEC) with a ceramic electrolyte layer')).toBe(true);
+    expect(isRelevantForeign('Water electrolyzer plant for green ammonia production')).toBe(true);
+  });
+
+  it('rejects battery abstracts that mention electrolysis', () => {
+    expect(isRelevantForeign('Lithium recovery from battery waste by electrolysis')).toBe(false);
+  });
+});
+
+describe('isExcluded (KR)', () => {
+  it('uses Korean vocabulary only, so English words in KR abstracts do not drop rows', () => {
+    expect(isExcluded('수전해 스택 (lithium-free) 구조')).toBe(false);
   });
 });
 

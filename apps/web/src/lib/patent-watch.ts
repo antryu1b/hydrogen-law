@@ -167,8 +167,9 @@ export function isRelevant(text: string): boolean {
   return RELEVANT.test(text);
 }
 
+/** Off-topic filter for KR records (Korean vocabulary only). */
 export function isExcluded(text: string): boolean {
-  return EXCLUDE_WORDS.some((w) => text.includes(w)) || EXCLUDE_EN.test(text);
+  return EXCLUDE_WORDS.some((w) => text.includes(w));
 }
 
 // English counterpart of RELEVANT for overseas records (applicant searches return whole portfolios).
@@ -176,12 +177,14 @@ export function isExcluded(text: string): boolean {
 // electrolyte / electrolytic, so a PEM *fuel cell* abstract ("polymer electrolyte membrane") fails.
 // PEM / AEM / alkaline only count together with an electrolysis word, which this already requires.
 const RELEVANT_EN = /electroly[sz]|\bSOEC\b|electrolytic\s(?:cell|stack)|water\ssplitting/i;
-// Mirrors EXCLUDE_WORDS for English text.
-const EXCLUDE_EN = /\b(?:lithium|batter(?:y|ies)|redox flow|semiconductor|ceramic|ammonia|capacitor|antenna)\b/i;
+// English off-topic filter for overseas records. Unlike EXCLUDE_WORDS it omits ceramic and
+// ammonia: SOEC abstracts routinely mention a "ceramic electrolyte" and green-ammonia
+// electrolyzer filings are core for the tracked EPC competitors.
+const EXCLUDE_EN = /\b(?:lithium|batter(?:y|ies)|redox flow|semiconductor|capacitor|antenna)\b/i;
 
 /** Water-electrolysis relevance for English (US/EP) title + abstract text. */
 export function isRelevantForeign(text: string): boolean {
-  return RELEVANT_EN.test(text);
+  return RELEVANT_EN.test(text) && !EXCLUDE_EN.test(text);
 }
 
 // ── Competitors ─────────────────────────────────────────────────────────────
@@ -522,8 +525,7 @@ export function rowsFromItems(
     const filed = item.applicationDate.replace(/\D/g, '');
     if (!no || (filed && filed < MIN_FILED)) continue;
     const text = `${item.inventionTitle} ${item.astrtCont}`;
-    if (isExcluded(text)) continue;
-    if (country !== 'KR' && !isRelevantForeign(text)) continue;
+    if (country === 'KR' ? isExcluded(text) : !isRelevantForeign(text)) continue;
     const companies = companiesForApplicant(item.applicantName);
     // Set E: the applicant must actually be the searched competitor.
     if (job.company && !companies.includes(job.company)) continue;
