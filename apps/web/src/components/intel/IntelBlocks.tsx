@@ -183,6 +183,7 @@ export function IntelBlockView({
       return (
         <IntelTabs
           labels={block.tabs.map((t) => st(t.label))}
+          dividers={block.tabs.map((t) => Boolean(t.divider))}
           panels={block.tabs.map((t, i) => (
             <div key={i} className="space-y-3">
               <IntelBlockList blocks={t.blocks} stripWords={stripWords} />

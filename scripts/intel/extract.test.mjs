@@ -39,10 +39,11 @@ test('merges 3 groups into the tabs row and strips trailing rows', () => {
   const result = mergeCompetitorTabs(rows);
   assert.equal(result.length, 1); // only the tabs row remains
   const tabs = result[0].payload.tabs;
-  assert.equal(tabs.length, 4); // 1 pre-existing + 3 merged
+  assert.equal(tabs.length, 4); // 1 pre-existing + 3 merged  assert.equal(tabs[0].divider, undefined); // pre-existing tabs are untouched
   for (let i = 0; i < 3; i++) {
     assert.equal(tabs[1 + i].label, LABELS[i]);
     assert.equal(tabs[1 + i].blocks[0].title, PREFIXES[i]);
+    assert.equal(tabs[1 + i].divider, i === 0 ? true : undefined); // only the first merged tab starts the new group
   }
 });
 

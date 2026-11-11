@@ -30,7 +30,7 @@ export type IntelBlock =
   | { type: 'table'; headers: string[]; rows: TableCell[][]; hlCol?: number }
   | { type: 'card'; blocks: IntelBlock[] }
   | { type: 'details'; title: string; badges?: string[]; blocks: IntelBlock[] }
-  | { type: 'tabs'; tabs: { label: string; blocks: IntelBlock[] }[] };
+  | { type: 'tabs'; tabs: { label: string; blocks: IntelBlock[]; divider?: boolean }[] };
 
 export interface BlockRow {
   id: string;

@@ -65,7 +65,8 @@ export function mergeCompetitorTabs(rows) {
 
   const tabsRow = rows[tabsIdx];
   for (let i = 0; i < LABEL_MAP.length; i++) {
-    tabsRow.payload.tabs.push({ label: LABEL_MAP[i].label, blocks: groups[i].blocks });
+    // divider marks where the merged tabs start, so the UI can separate them from the originals.
+    tabsRow.payload.tabs.push({ label: LABEL_MAP[i].label, blocks: groups[i].blocks, ...(i === 0 ? { divider: true } : {}) });
   }
   return rows.slice(0, tabsIdx + 1);
 }
