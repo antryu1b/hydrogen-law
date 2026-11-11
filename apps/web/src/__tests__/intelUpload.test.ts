@@ -86,14 +86,13 @@ describe('/api/intel/upload — replace=true section guard', () => {
     }
   });
 
-  it('replace=true on intel_competitors does NOT add the section guard', async () => {
-    // Competitors table has no cron sections to protect.
+  it('replace=true on intel_competitors skips the official-site monitor section', async () => {
+    // competitor-watch rows are written by /api/cron/competitor-sites, not by the report seed.
     const { POST } = await import('@/app/api/intel/upload/route');
     const res = await POST(makeRequest({ table: 'intel_competitors', rows: [sampleRow], replace: true }));
     expect(res.status).toBe(200);
     expect(deleteCalls).toHaveLength(1);
-    // No .not filter — the delete covers all sections.
-    expect(deleteCalls[0].not).toBeUndefined();
+    expect(deleteCalls[0].not).toEqual({ column: 'section', operator: 'in', value: '(competitor-watch)' });
   });
 
   it('replace=false skips the delete entirely', async () => {

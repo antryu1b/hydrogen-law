@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { intelSupabase } from '@/lib/intel';
+import { COMPETITOR_DATA_SECTIONS } from '@/lib/competitor-watch';
 import { PATENT_DATA_SECTIONS } from '@/lib/patent-watch';
 
 // Authenticated (middleware) admin upload for competitor / patent content.
@@ -80,13 +81,17 @@ export async function POST(req: Request) {
   let deleted = 0;
   if (body.replace === true) {
     // Every row in this upload carries `stamp`; anything older was not in the file.
-    // For intel_patents: skip the three cron-owned sections so a re-seed does not wipe
-    // accumulated patent-watch / patent-competitor / patent-cursor rows.
+    // Cron-owned sections are skipped so a re-seed does not wipe them: for intel_patents the
+    // KIPRIS patent-watch / patent-competitor / patent-cursor / patent-status rows, for
+    // intel_competitors the official-site competitor-watch snapshots.
     // Decision: 'fto' rows remain deletable (existing replace behaviour preserved for fto).
-    let del = sb.from(table).delete({ count: 'exact' }).lt('updated_at', stamp);
-    if (table === 'intel_patents') {
-      del = del.not('section', 'in', `(${PATENT_DATA_SECTIONS.join(',')})`);
-    }
+    const protectedSections: readonly string[] =
+      table === 'intel_patents' ? PATENT_DATA_SECTIONS : COMPETITOR_DATA_SECTIONS;
+    const del = sb
+      .from(table)
+      .delete({ count: 'exact' })
+      .lt('updated_at', stamp)
+      .not('section', 'in', `(${protectedSections.join(',')})`);
     const { error, count } = await del;
     if (error) return NextResponse.json({ error: error.message, upserted: rows.length }, { status: 500 });
     deleted = count ?? 0;

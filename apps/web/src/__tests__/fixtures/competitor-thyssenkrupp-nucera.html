@@ -1,0 +1,2839 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<title>thyssenkrupp nucera: Alkaline Water Electrolysis</title>
+</head>
+<body>
+<div>
+  <header>
+    <div>
+      <div>
+        <a href="/">
+          <span>
+  Go to main page
+          </span>
+        </a>
+        <div>
+  <div
+    x-data="{ open: false }"
+    x-id="['dropdown', 'toggle', 'list']"
+    x-on:click.outside="open = false"
+>
+    <button
+        type="button"
+        x-bind:id="$id('toggle')"
+        x-on:click.stop="open = !open"
+        x-bind:aria-expanded="open"
+        x-bind:aria-controls="$id('list')"
+        aria-haspopup="listbox"
+    >
+        English
+    </button>
+    <ul
+        x-show="open"
+        x-on:click.outside="open = false"
+        x-bind:id="$id('list')"
+        role="listbox"
+        x-bind:aria-labelledby="$id('toggle')"
+        x-cloak
+    >
+            <li role="option">
+                <a href="/technologies/alkaline-water-electrolysis">
+                    English
+                </a>
+            </li>
+            <li role="option">
+                <a href="/de/technologien/alkalische-wasserelektrolyse">
+                    Deutsch
+                </a>
+            </li>
+            <li role="option">
+                <a href="/jp/%E6%8A%80%E8%A1%93/%E7%94%A3%E6%A5%AD%E8%A6%8F%E6%A8%A1%E3%81%AE%E3%82%A2%E3%83%AB%E3%82%AB%E3%83%AA%E6%B0%B4%E9%9B%BB%E8%A7%A3">
+                    日本語
+                </a>
+            </li>
+    </ul>
+  </div>
+  <a href="/contact">
+  Contact
+  </a>
+  <a href="/search">
+  Search
+  </a>
+        </div>
+      </div>
+    </div>
+  </header>
+  <nav role="navigation" aria-label="Main navigation">
+    <div>
+      <div>
+        <button type="button" onclick="tknuceraNavigation.openMobileNavigation(this)">
+          <span>Mobile Navigation öffnen</span>
+        </button>
+        <button onclick="tknuceraNavigation.closeMobileNavigation(this)">
+          <span>Mobile Navigation schließen</span>
+        </button>
+      </div>
+      <ul>
+                <li>
+                      <button type="button"
+                                    onclick="tknuceraNavigation.showFlyout('38', this);return false;"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-38">
+                        <span>
+                          Technologies
+                        </span>
+                      </button>
+                      <div id="navigationFlyouts">
+                          <div id="flyout-id-38">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/technologies">
+                                        <span>
+                                                  Overview: Technologies
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="Alkaline Water Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/alkaline-water-electrolysis">
+                                                <span>Alkaline Water Electrolysis</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-55"
+                                                            onclick="tknuceraNavigation.showSubnav('55', this);return false;">
+                                                <span>Chlor-Alkali Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-55">
+                                                  <ul id="flyout-id-55" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/chlor-alkali-electrolysis">
+                                                      <span>
+                                                                Overview: Chlor-Alkali Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Membrane (BM) Single Element Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-membrane-bm">
+                                                            <span>Bipolar Membrane (BM) Single Element Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-ion-exchange-membrane-process-electrolyzer-bitac">
+                                                            <span>Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/oxygen-depolarized-cathode-process-electrolyzer-nacl-odc">
+                                                            <span>Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-606"
+                                                            onclick="tknuceraNavigation.showSubnav('606', this);return false;">
+                                                <span>Hydrochloric Acid Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-606">
+                                                  <ul id="flyout-id-606" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/hydrochloric-acid-electrolysis">
+                                                      <span>
+                                                                Overview: Hydrochloric Acid Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode (HCl-ODC) Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/oxygen-depolarized-cathode-hcl-odc-technology">
+                                                            <span>Oxygen-Depolarized Cathode (HCl-ODC) Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Diaphragm Electrolyzer Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/diaphragm-electrolyzer-technology">
+                                                            <span>Diaphragm Electrolyzer Technology</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-1207"
+                                                            onclick="tknuceraNavigation.showSubnav('1207', this);return false;">
+                                                <span>Future Solutions</span>
+                                              </button>
+                                              <div id="subnav-id-1207">
+                                                  <ul id="flyout-id-1207" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/future-solutions">
+                                                      <span>
+                                                                Overview: Future Solutions
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Carbon2Chem®" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/carbon2chem">
+                                                            <span>Carbon2Chem®</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Skive Test Unit for Pressurized Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/skive-test-unit-for-pressurized-electrolysis">
+                                                            <span>Skive Test Unit for Pressurized Electrolysis</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Gersthofen Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/gersthofen-test-facility">
+                                                            <span>Gersthofen Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="HTEM300" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/htem300">
+                                                            <span>HTEM300</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="SOEC Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/soec-test-facility">
+                                                            <span>SOEC Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                      </div>
+                </li>
+                <li>
+                      <button type="button"
+                                    onclick="tknuceraNavigation.showFlyout('43', this);return false;"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-43">
+                        <span>
+                          Service
+                        </span>
+                      </button>
+                      <div id="navigationFlyouts">
+                          <div id="flyout-id-38">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/technologies">
+                                        <span>
+                                                  Overview: Technologies
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="Alkaline Water Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/alkaline-water-electrolysis">
+                                                <span>Alkaline Water Electrolysis</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-55"
+                                                            onclick="tknuceraNavigation.showSubnav('55', this);return false;">
+                                                <span>Chlor-Alkali Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-55">
+                                                  <ul id="flyout-id-55" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/chlor-alkali-electrolysis">
+                                                      <span>
+                                                                Overview: Chlor-Alkali Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Membrane (BM) Single Element Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-membrane-bm">
+                                                            <span>Bipolar Membrane (BM) Single Element Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-ion-exchange-membrane-process-electrolyzer-bitac">
+                                                            <span>Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/oxygen-depolarized-cathode-process-electrolyzer-nacl-odc">
+                                                            <span>Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-606"
+                                                            onclick="tknuceraNavigation.showSubnav('606', this);return false;">
+                                                <span>Hydrochloric Acid Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-606">
+                                                  <ul id="flyout-id-606" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/hydrochloric-acid-electrolysis">
+                                                      <span>
+                                                                Overview: Hydrochloric Acid Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode (HCl-ODC) Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/oxygen-depolarized-cathode-hcl-odc-technology">
+                                                            <span>Oxygen-Depolarized Cathode (HCl-ODC) Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Diaphragm Electrolyzer Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/diaphragm-electrolyzer-technology">
+                                                            <span>Diaphragm Electrolyzer Technology</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-1207"
+                                                            onclick="tknuceraNavigation.showSubnav('1207', this);return false;">
+                                                <span>Future Solutions</span>
+                                              </button>
+                                              <div id="subnav-id-1207">
+                                                  <ul id="flyout-id-1207" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/future-solutions">
+                                                      <span>
+                                                                Overview: Future Solutions
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Carbon2Chem®" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/carbon2chem">
+                                                            <span>Carbon2Chem®</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Skive Test Unit for Pressurized Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/skive-test-unit-for-pressurized-electrolysis">
+                                                            <span>Skive Test Unit for Pressurized Electrolysis</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Gersthofen Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/gersthofen-test-facility">
+                                                            <span>Gersthofen Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="HTEM300" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/htem300">
+                                                            <span>HTEM300</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="SOEC Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/soec-test-facility">
+                                                            <span>SOEC Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-43">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/service">
+                                        <span>
+                                                  Overview: Service
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="Green Hydrogen Service Solutions" onclick="tknuceraNavigation.hideFlyouts();" href="/service/green-hydrogen-service-solutions">
+                                                <span>Green Hydrogen Service Solutions</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Chlor-Alkali Service Solutions" onclick="tknuceraNavigation.hideFlyouts();" href="/service/chlor-alkali-service-solutions">
+                                                <span>Chlor-Alkali Service Solutions</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                      </div>
+                </li>
+                <li>
+                      <button type="button"
+                                    onclick="tknuceraNavigation.showFlyout('46', this);return false;"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-46">
+                        <span>
+                          Newsroom
+                        </span>
+                      </button>
+                      <div id="navigationFlyouts">
+                          <div id="flyout-id-38">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/technologies">
+                                        <span>
+                                                  Overview: Technologies
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="Alkaline Water Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/alkaline-water-electrolysis">
+                                                <span>Alkaline Water Electrolysis</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-55"
+                                                            onclick="tknuceraNavigation.showSubnav('55', this);return false;">
+                                                <span>Chlor-Alkali Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-55">
+                                                  <ul id="flyout-id-55" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/chlor-alkali-electrolysis">
+                                                      <span>
+                                                                Overview: Chlor-Alkali Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Membrane (BM) Single Element Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-membrane-bm">
+                                                            <span>Bipolar Membrane (BM) Single Element Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-ion-exchange-membrane-process-electrolyzer-bitac">
+                                                            <span>Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/oxygen-depolarized-cathode-process-electrolyzer-nacl-odc">
+                                                            <span>Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-606"
+                                                            onclick="tknuceraNavigation.showSubnav('606', this);return false;">
+                                                <span>Hydrochloric Acid Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-606">
+                                                  <ul id="flyout-id-606" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/hydrochloric-acid-electrolysis">
+                                                      <span>
+                                                                Overview: Hydrochloric Acid Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode (HCl-ODC) Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/oxygen-depolarized-cathode-hcl-odc-technology">
+                                                            <span>Oxygen-Depolarized Cathode (HCl-ODC) Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Diaphragm Electrolyzer Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/diaphragm-electrolyzer-technology">
+                                                            <span>Diaphragm Electrolyzer Technology</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-1207"
+                                                            onclick="tknuceraNavigation.showSubnav('1207', this);return false;">
+                                                <span>Future Solutions</span>
+                                              </button>
+                                              <div id="subnav-id-1207">
+                                                  <ul id="flyout-id-1207" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/future-solutions">
+                                                      <span>
+                                                                Overview: Future Solutions
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Carbon2Chem®" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/carbon2chem">
+                                                            <span>Carbon2Chem®</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Skive Test Unit for Pressurized Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/skive-test-unit-for-pressurized-electrolysis">
+                                                            <span>Skive Test Unit for Pressurized Electrolysis</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Gersthofen Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/gersthofen-test-facility">
+                                                            <span>Gersthofen Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="HTEM300" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/htem300">
+                                                            <span>HTEM300</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="SOEC Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/soec-test-facility">
+                                                            <span>SOEC Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-43">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/service">
+                                        <span>
+                                                  Overview: Service
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="Green Hydrogen Service Solutions" onclick="tknuceraNavigation.hideFlyouts();" href="/service/green-hydrogen-service-solutions">
+                                                <span>Green Hydrogen Service Solutions</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Chlor-Alkali Service Solutions" onclick="tknuceraNavigation.hideFlyouts();" href="/service/chlor-alkali-service-solutions">
+                                                <span>Chlor-Alkali Service Solutions</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-46">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/newsroom">
+                                        <span>
+                                                  Overview: Newsroom
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="News &amp; Press Releases" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/news-press-releases">
+                                                <span>News &amp; Press Releases</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Publications &amp; Media" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/publications-media">
+                                                <span>Publications &amp; Media</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Glossary" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/glossary">
+                                                <span>Glossary</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Events" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/events">
+                                                <span>Events</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                      </div>
+                </li>
+                <li>
+                      <button type="button"
+                                    onclick="tknuceraNavigation.showFlyout('45', this);return false;"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-45">
+                        <span>
+                          Company
+                        </span>
+                      </button>
+                      <div id="navigationFlyouts">
+                          <div id="flyout-id-38">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/technologies">
+                                        <span>
+                                                  Overview: Technologies
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="Alkaline Water Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/alkaline-water-electrolysis">
+                                                <span>Alkaline Water Electrolysis</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-55"
+                                                            onclick="tknuceraNavigation.showSubnav('55', this);return false;">
+                                                <span>Chlor-Alkali Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-55">
+                                                  <ul id="flyout-id-55" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/chlor-alkali-electrolysis">
+                                                      <span>
+                                                                Overview: Chlor-Alkali Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Membrane (BM) Single Element Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-membrane-bm">
+                                                            <span>Bipolar Membrane (BM) Single Element Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-ion-exchange-membrane-process-electrolyzer-bitac">
+                                                            <span>Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/oxygen-depolarized-cathode-process-electrolyzer-nacl-odc">
+                                                            <span>Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-606"
+                                                            onclick="tknuceraNavigation.showSubnav('606', this);return false;">
+                                                <span>Hydrochloric Acid Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-606">
+                                                  <ul id="flyout-id-606" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/hydrochloric-acid-electrolysis">
+                                                      <span>
+                                                                Overview: Hydrochloric Acid Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode (HCl-ODC) Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/oxygen-depolarized-cathode-hcl-odc-technology">
+                                                            <span>Oxygen-Depolarized Cathode (HCl-ODC) Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Diaphragm Electrolyzer Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/diaphragm-electrolyzer-technology">
+                                                            <span>Diaphragm Electrolyzer Technology</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-1207"
+                                                            onclick="tknuceraNavigation.showSubnav('1207', this);return false;">
+                                                <span>Future Solutions</span>
+                                              </button>
+                                              <div id="subnav-id-1207">
+                                                  <ul id="flyout-id-1207" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/future-solutions">
+                                                      <span>
+                                                                Overview: Future Solutions
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Carbon2Chem®" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/carbon2chem">
+                                                            <span>Carbon2Chem®</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Skive Test Unit for Pressurized Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/skive-test-unit-for-pressurized-electrolysis">
+                                                            <span>Skive Test Unit for Pressurized Electrolysis</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Gersthofen Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/gersthofen-test-facility">
+                                                            <span>Gersthofen Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="HTEM300" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/htem300">
+                                                            <span>HTEM300</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="SOEC Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/soec-test-facility">
+                                                            <span>SOEC Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-43">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/service">
+                                        <span>
+                                                  Overview: Service
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="Green Hydrogen Service Solutions" onclick="tknuceraNavigation.hideFlyouts();" href="/service/green-hydrogen-service-solutions">
+                                                <span>Green Hydrogen Service Solutions</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Chlor-Alkali Service Solutions" onclick="tknuceraNavigation.hideFlyouts();" href="/service/chlor-alkali-service-solutions">
+                                                <span>Chlor-Alkali Service Solutions</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-46">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/newsroom">
+                                        <span>
+                                                  Overview: Newsroom
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="News &amp; Press Releases" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/news-press-releases">
+                                                <span>News &amp; Press Releases</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Publications &amp; Media" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/publications-media">
+                                                <span>Publications &amp; Media</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Glossary" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/glossary">
+                                                <span>Glossary</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Events" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/events">
+                                                <span>Events</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-45">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/company">
+                                        <span>
+                                                  Overview: Company
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-62"
+                                                            onclick="tknuceraNavigation.showSubnav('62', this);return false;">
+                                                <span>Management</span>
+                                              </button>
+                                              <div id="subnav-id-62">
+                                                  <ul id="flyout-id-62" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/company/management">
+                                                      <span>
+                                                                Overview: Management
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Management Board" onclick="tknuceraNavigation.hideFlyouts();" href="/company/management/management-board">
+                                                            <span>Management Board</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Supervisory Board" onclick="tknuceraNavigation.hideFlyouts();" href="/company/management/supervisory-board">
+                                                            <span>Supervisory Board</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Sustainability" onclick="tknuceraNavigation.hideFlyouts();" href="/company/sustainability">
+                                                <span>Sustainability</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Careers" onclick="tknuceraNavigation.hideFlyouts();" href="https://new-era-is-you.com/">
+                                                <span>Careers</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Certifications" onclick="tknuceraNavigation.hideFlyouts();" href="/company/certifications">
+                                                <span>Certifications</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-61"
+                                                            onclick="tknuceraNavigation.showSubnav('61', this);return false;">
+                                                <span>Compliance</span>
+                                              </button>
+                                              <div id="subnav-id-61">
+                                                  <ul id="flyout-id-61" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/company/compliance">
+                                                      <span>
+                                                                Overview: Compliance
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Whistleblowing" onclick="tknuceraNavigation.hideFlyouts();" href="/company/compliance/whistleblowing">
+                                                            <span>Whistleblowing</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Corporate Governance" onclick="tknuceraNavigation.hideFlyouts();" href="/company/corporate-governance">
+                                                <span>Corporate Governance</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                      </div>
+                </li>
+                <li>
+                      <button type="button"
+                                    onclick="tknuceraNavigation.showFlyout('48', this);return false;"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-48">
+                        <span>
+                          Investors
+                        </span>
+                      </button>
+                      <div id="navigationFlyouts">
+                          <div id="flyout-id-38">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/technologies">
+                                        <span>
+                                                  Overview: Technologies
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="Alkaline Water Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/alkaline-water-electrolysis">
+                                                <span>Alkaline Water Electrolysis</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-55"
+                                                            onclick="tknuceraNavigation.showSubnav('55', this);return false;">
+                                                <span>Chlor-Alkali Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-55">
+                                                  <ul id="flyout-id-55" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/chlor-alkali-electrolysis">
+                                                      <span>
+                                                                Overview: Chlor-Alkali Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Membrane (BM) Single Element Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-membrane-bm">
+                                                            <span>Bipolar Membrane (BM) Single Element Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/bipolar-ion-exchange-membrane-process-electrolyzer-bitac">
+                                                            <span>Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/chlor-alkali-electrolysis/oxygen-depolarized-cathode-process-electrolyzer-nacl-odc">
+                                                            <span>Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-606"
+                                                            onclick="tknuceraNavigation.showSubnav('606', this);return false;">
+                                                <span>Hydrochloric Acid Electrolysis</span>
+                                              </button>
+                                              <div id="subnav-id-606">
+                                                  <ul id="flyout-id-606" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/hydrochloric-acid-electrolysis">
+                                                      <span>
+                                                                Overview: Hydrochloric Acid Electrolysis
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Oxygen-Depolarized Cathode (HCl-ODC) Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/oxygen-depolarized-cathode-hcl-odc-technology">
+                                                            <span>Oxygen-Depolarized Cathode (HCl-ODC) Technology</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Diaphragm Electrolyzer Technology" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/hydrochloric-acid-electrolysis/diaphragm-electrolyzer-technology">
+                                                            <span>Diaphragm Electrolyzer Technology</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-1207"
+                                                            onclick="tknuceraNavigation.showSubnav('1207', this);return false;">
+                                                <span>Future Solutions</span>
+                                              </button>
+                                              <div id="subnav-id-1207">
+                                                  <ul id="flyout-id-1207" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/technologies/future-solutions">
+                                                      <span>
+                                                                Overview: Future Solutions
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Carbon2Chem®" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/carbon2chem">
+                                                            <span>Carbon2Chem®</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Skive Test Unit for Pressurized Electrolysis" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/skive-test-unit-for-pressurized-electrolysis">
+                                                            <span>Skive Test Unit for Pressurized Electrolysis</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Gersthofen Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/gersthofen-test-facility">
+                                                            <span>Gersthofen Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="HTEM300" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/htem300">
+                                                            <span>HTEM300</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="SOEC Test Facility" onclick="tknuceraNavigation.hideFlyouts();" href="/technologies/future-solutions/soec-test-facility">
+                                                            <span>SOEC Test Facility</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-43">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/service">
+                                        <span>
+                                                  Overview: Service
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="Green Hydrogen Service Solutions" onclick="tknuceraNavigation.hideFlyouts();" href="/service/green-hydrogen-service-solutions">
+                                                <span>Green Hydrogen Service Solutions</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Chlor-Alkali Service Solutions" onclick="tknuceraNavigation.hideFlyouts();" href="/service/chlor-alkali-service-solutions">
+                                                <span>Chlor-Alkali Service Solutions</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-46">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/newsroom">
+                                        <span>
+                                                  Overview: Newsroom
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <a title="News &amp; Press Releases" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/news-press-releases">
+                                                <span>News &amp; Press Releases</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Publications &amp; Media" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/publications-media">
+                                                <span>Publications &amp; Media</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Glossary" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/glossary">
+                                                <span>Glossary</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Events" onclick="tknuceraNavigation.hideFlyouts();" href="/newsroom/events">
+                                                <span>Events</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-45">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="/company">
+                                        <span>
+                                                  Overview: Company
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-62"
+                                                            onclick="tknuceraNavigation.showSubnav('62', this);return false;">
+                                                <span>Management</span>
+                                              </button>
+                                              <div id="subnav-id-62">
+                                                  <ul id="flyout-id-62" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/company/management">
+                                                      <span>
+                                                                Overview: Management
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Management Board" onclick="tknuceraNavigation.hideFlyouts();" href="/company/management/management-board">
+                                                            <span>Management Board</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Supervisory Board" onclick="tknuceraNavigation.hideFlyouts();" href="/company/management/supervisory-board">
+                                                            <span>Supervisory Board</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Sustainability" onclick="tknuceraNavigation.hideFlyouts();" href="/company/sustainability">
+                                                <span>Sustainability</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Careers" onclick="tknuceraNavigation.hideFlyouts();" href="https://new-era-is-you.com/">
+                                                <span>Careers</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Certifications" onclick="tknuceraNavigation.hideFlyouts();" href="/company/certifications">
+                                                <span>Certifications</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-61"
+                                                            onclick="tknuceraNavigation.showSubnav('61', this);return false;">
+                                                <span>Compliance</span>
+                                              </button>
+                                              <div id="subnav-id-61">
+                                                  <ul id="flyout-id-61" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="/company/compliance">
+                                                      <span>
+                                                                Overview: Compliance
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Whistleblowing" onclick="tknuceraNavigation.hideFlyouts();" href="/company/compliance/whistleblowing">
+                                                            <span>Whistleblowing</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Corporate Governance" onclick="tknuceraNavigation.hideFlyouts();" href="/company/corporate-governance">
+                                                <span>Corporate Governance</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                          <div id="flyout-id-48">
+                            <div>
+                              <div>
+                                  <ul role="menu">
+                                    <li role="menuitem">
+                                      <a href="https://investors.thyssenkrupp-nucera.com/">
+                                        <span>
+                                                  Overview: Investors
+                                        </span>
+                                      </a>
+                                    </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-91"
+                                                            onclick="tknuceraNavigation.showSubnav('91', this);return false;">
+                                                <span>thyssenkrupp nucera at a glance</span>
+                                              </button>
+                                              <div id="subnav-id-91">
+                                                  <ul id="flyout-id-91" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="https://investors.thyssenkrupp-nucera.com/investors/thyssenkrupp-nucera-at-a-glance">
+                                                      <span>
+                                                                Overview: thyssenkrupp nucera at a glance
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Reasons to Invest" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/thyssenkrupp-nucera-at-a-glance#reasons">
+                                                            <span>Reasons to Invest</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Factsheet" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/thyssenkrupp-nucera-at-a-glance#factsheet">
+                                                            <span>Factsheet</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Key Figures Comparison" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/thyssenkrupp-nucera-at-a-glance#keyfigures">
+                                                            <span>Key Figures Comparison</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <button type="button"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            aria-controls="flyout-id-95"
+                                                            onclick="tknuceraNavigation.showSubnav('95', this);return false;">
+                                                <span>Share</span>
+                                              </button>
+                                              <div id="subnav-id-95">
+                                                  <ul id="flyout-id-95" role="menu">
+                                                    <li role="menuitem">
+                                                      <a href="https://investors.thyssenkrupp-nucera.com/investors/share">
+                                                      <span>
+                                                                Overview: Share
+                                                      </span></a>
+                                                    </li>
+                                                        <li role="menuitem">
+                                                          <a title="Basic information" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/share#basicinformation">
+                                                            <span>Basic information</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Stock chart" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/share#stockchart">
+                                                            <span>Stock chart</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Shareholder structure" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/share#shareholder">
+                                                            <span>Shareholder structure</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Analyst Coverage" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/share#analyst">
+                                                            <span>Analyst Coverage</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="Consensus" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/share#consensus">
+                                                            <span>Consensus</span>
+                                                          </a>
+                                                        </li>
+                                                        <li role="menuitem">
+                                                          <a title="IPO" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/ipo">
+                                                            <span>IPO</span>
+                                                          </a>
+                                                        </li>
+                                                  </ul>
+                                              </div>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Legal notices" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/legal-notices">
+                                                <span>Legal notices</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Publications" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/publications">
+                                                <span>Publications</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Financial news" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/financial-news">
+                                                <span>Financial news</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Financial calendar and events" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/financial-calendar-and-events">
+                                                <span>Financial calendar and events</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Annual general meeting" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/annual-general-meeting">
+                                                <span>Annual general meeting</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Sustainability" onclick="tknuceraNavigation.hideFlyouts();" href="/company/sustainability">
+                                                <span>Sustainability</span>
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="IR Contact" onclick="tknuceraNavigation.hideFlyouts();" href="https://investors.thyssenkrupp-nucera.com/investors/ir-contact">
+                                                <span>IR Contact</span>
+                                              </a>
+                                        </li>
+                                  </ul>
+                              </div>
+                              <button onclick="tknuceraNavigation.hideFlyouts();return false;" aria-label="Flyout schließen">
+                              </button>
+                            </div>
+                          </div>
+                      </div>
+                </li>
+      </ul>
+    </div>
+  </nav>
+  <main role="main" id="main">
+      <div id="breadcrumbs">
+        <div>
+          <div>
+    <div>
+      <a href="/">
+  Home
+      </a>
+            <a href="/technologies">
+              Technologies
+            </a>
+            <span>
+              Alkaline Water Electrolysis
+            </span>
+    </div>
+          </div>
+        </div>
+      </div>
+          <div id="c2070">
+            <div>
+  <div>
+      <div>
+        <div>
+          <div>
+              <h1>Industrial-Scale Alkaline Water Electrolysis</h1>
+<p>We enable our customers to accelerate the energy transition with scalable alkaline water electrolysis technology for industrial green hydrogen production. Backed by over 60 years of electrochemical expertise and more than 600 successful projects, thyssenkrupp nucera delivers electrolyzers designed for maximum lifetime, high availability, and dynamic operation in demanding industrial environments.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+          <div>
+        <div
+            >
+          <img alt="industrial-scale water electrolyzer manufacturing" title="manufacturing-electrolyzers" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/c/3/csm_NCA_Vietnam_519DJI_0042_f65a9aca05.webp" width="1929" height="1447" />
+        </div>
+            <div></div>
+          </div>
+      </div>
+  </div>
+            </div>
+          </div>
+          <div id="c2321">
+            <div>
+  <div>
+  <div>
+    <p>World-leading electrolysis technologies</p>
+      <div
+      >
+        <p>1.5 GW/yr</p>
+        <p>supply chain established</p>
+      </div>
+      <div
+      >
+        <p>&gt;10 GW</p>
+        <p>of capacity installed</p>
+      </div>
+      <div
+      >
+        <p>&gt;3 GW</p>
+        <p>contracted capacity</p>
+      </div>
+  </div>
+  </div>
+            </div>
+          </div>
+          <div id="c2322">
+            <div>
+  <div>
+      <div>
+            <div>
+              <div><h2>Our Global Green Hydrogen Reference Projects</h2>
+<p>Our alkaline water electrolysis (AWE) technology powers some of the world’s largest industrial green hydrogen projects – from Saudi Arabia to Sweden. With over 3 GW in our order backlog and a total of 2.7 GW delivered across 2024 and 2025, we enable scalable hydrogen production through a fully established gigawatt-scale supply chain.&nbsp;Discover our selected global green hydrogen reference projects.</p></div>
+              <div>
+      <div>
+        <div>
+        <div
+            >
+          <img loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/7/7/csm_employees-at-electrolyzer-plant-2048x1365.jpg_37c9171b61.webp" width="800" height="533" alt="" />
+        </div>
+        </div>
+      </div>
+              </div>
+            </div>
+      </div>
+  </div>
+            </div>
+          </div>
+          <div id="c">
+            <div>
+  <div>
+      <div x-data="WorldMap({&quot;type&quot;:&quot;project&quot;,&quot;items&quot;:[{&quot;id&quot;:&quot;id-0&quot;,&quot;type&quot;:&quot;project&quot;,&quot;name&quot;:&quot;Stegra&quot;,&quot;image&quot;:{},&quot;img&quot;:&quot;https:\/\/files.thyssenkrupp-nucera.com\/tknucera-typo3\/Dateien\/Technology\/AWE\/2025-06_Stegra_Electrolyzer_Installation-4.jpg&quot;,&quot;content&quot;:&quot;\n\t\t\t\t\t\t\u003Cp class=\u0022extrasmall\u0022\u003EGreen Steel Plant\u003Cbr\u003E\nBoden, Sweden\u003Cbr\u003E\n\u0026nbsp;\u003Cbr\u003E\u003C\/p\u003E\n\t\t\t\t\t\t\u003Cp class=\u0022extrasmall\u0022\u003E\n\t\t\t\t\t\t \u003Cbr\u003E\n\t\t\t\t\t\t  \u003Cbr\u003E\u003C\/p\u003E\n\t\t\t\t\t\t  \u003Ca href=\u0022mailto:\u0022\u003E\u003C\/a\u003E\n\n\t\t\t\t&quot;,&quot;category&quot;:&quot;Europe&quot;,&quot;tooltipPlacement&quot;:&quot;right&quot;,&quot;left&quot;:&quot;55%&quot;,&quot;top&quot;:&quot;19%&quot;},{&quot;id&quot;:&quot;id-1&quot;,&quot;type&quot;:&quot;project&quot;,&quot;name&quot;:&quot;Holland Hydrogen 1&quot;,&quot;image&quot;:{},&quot;img&quot;:&quot;https:\/\/files.thyssenkrupp-nucera.com\/tknucera-typo3\/Dateien\/Technology\/AWE\/20250716_Shell_HH1_Electrolyzer_Hall__c__2025_By_Wendel_Broere_-_Shell.jpg&quot;,&quot;content&quot;:&quot;\n\t\t\t\t\t\t\u003Cp class=\u0022extrasmall\u0022\u003EShell\u003Cbr\u003E\nPort of Rotterdam\u003Cbr\u003E\nRotterdam, Netherlands\u003Cbr\u003E\u003C\/p\u003E\n\t\t\t\t\t\t\u003Cp class=\u0022extrasmall\u0022\u003E\n\t\t\t\t\t\t \u003Cbr\u003E\n\t\t\t\t\t\t  \u003Cbr\u003E\u003C\/p\u003E\n\t\t\t\t\t\t  \u003Ca href=\u0022mailto:\u0022\u003E\u003C\/a\u003E\n\n\t\t\t\t&quot;,&quot;category&quot;:&quot;Europe&quot;,&quot;tooltipPlacement&quot;:&quot;right&quot;,&quot;left&quot;:&quot;50%&quot;,&quot;top&quot;:&quot;31%&quot;},{&quot;id&quot;:&quot;id-2&quot;,&quot;type&quot;:&quot;project&quot;,&quot;name&quot;:&quot;NEOM&quot;,&quot;image&quot;:{},&quot;img&quot;:&quot;https:\/\/files.thyssenkrupp-nucera.com\/tknucera-typo3\/Dateien\/Technology\/AWE\/February_2026_NEOM_Green_Hydrogen_Company_Aerial_View_Copyright_Neom_Green_Hydrogen_Company.jpg&quot;,&quot;content&quot;:&quot;\n\t\t\t\t\t\t\u003Cp class=\u0022extrasmall\u0022\u003ETabuk\u003Cbr\u003E\nSaudi Arabia\u003Cbr\u003E\n\u0026nbsp;\u003Cbr\u003E\u003C\/p\u003E\n\t\t\t\t\t\t\u003Cp class=\u0022extrasmall\u0022\u003E\n\t\t\t\t\t\t \u003Cbr\u003E\n\t\t\t\t\t\t  \u003Cbr\u003E\u003C\/p\u003E\n\t\t\t\t\t\t  \u003Ca href=\u0022mailto:\u0022\u003E\u003C\/a\u003E\n\n\t\t\t\t&quot;,&quot;category&quot;:&quot;Middle East&quot;,&quot;tooltipPlacement&quot;:&quot;bottom&quot;,&quot;left&quot;:&quot;60%&quot;,&quot;top&quot;:&quot;45%&quot;},{&quot;id&quot;:&quot;id-3&quot;,&quot;type&quot;:&quot;project&quot;,&quot;name&quot;:&quot;Onuba&quot;,&quot;image&quot;:{},&quot;img&quot;:&quot;https:\/\/files.thyssenkrupp-nucera.com\/tknucera-typo3\/Dateien\/Technology\/AWE\/scalum-unit.jpg&quot;,&quot;content&quot;:&quot;\n\t\t\t\t\t\t\u003Cp class=\u0022extrasmall\u0022\u003EMoeve\u003Cbr\u003E\nHuelva\u003Cbr\u003E\nSpain\u003Cbr\u003E\n\u0026nbsp;\u003Cbr\u003E\u003C\/p\u003E\n\t\t\t\t\t\t\u003Cp class=\u0022extrasmall\u0022\u003E\n\t\t\t\t\t\t \u003Cbr\u003E\n\t\t\t\t\t\t  \u003Cbr\u003E\u003C\/p\u003E\n\t\t\t\t\t\t  \u003Ca href=\u0022mailto:\u0022\u003E\u003C\/a\u003E\n\n\t\t\t\t&quot;,&quot;category&quot;:&quot;Europe&quot;,&quot;tooltipPlacement&quot;:&quot;left&quot;,&quot;left&quot;:&quot;46%&quot;,&quot;top&quot;:&quot;40%&quot;}]})" x-cloak>
+        <div>
+              <section
+                x-data="splide({&quot;options&quot;:false,&quot;style&quot;:&quot;custom1&quot;})"
+                aria-label="Slider section">
+                <div>
+                  <ul>
+                          </div>
+                        </div>
+                      </li>
+                    </template>
+                  </ul>
+                </div>
+                <div>
+                  <button>
+                  </button>
+                  <ul></ul>
+                  <button>
+                  </button>
+                </div>
+              </section>
+            </div>
+          </template>
+        </div>
+          <div>
+            <div>
+              <img loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/Dateien/Styleguide_Example_Pages/Wordmap-Vector.svg" width="854" height="483" alt="" />
+                </div>
+              </template>
+            </div>
+            <div>
+              <div>
+                <div @change="handleCategoryChange($event)">
+                </div>
+              </div>
+            </div>
+            <div x-cloak>
+              <div x-show="isLocation()">
+                <div>
+  <div id="c">
+    <dl>
+    </dl>
+  </div>
+                </div>
+              </div>
+              <div x-show="isProject()">
+                <div>
+  <div id="c">
+    <dl>
+  <dt>
+    Europe
+    <button type="button" aria-label="Akkordeonelement umschalten" aria-expanded="false">
+          <span>
+          </span>
+    </button>
+  </dt>
+  <dd role="region">
+    <div>
+                          <div>
+                              <div>
+                                  <img alt="Stegra" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/4/3/csm_2025-06_Stegra_Electrolyzer_Installation-4_f559e2512b.webp" width="1024" height="768" />
+                                <div>
+                                  <p>Stegra</p>
+                                  <div>
+                                    <p>&nbsp;</p>
+<p>						</p><p>Green Steel Plant<br></p>
+<p>Boden, Sweden<br></p>
+<p>&nbsp;<br></p>
+<p>						</p><p></p>
+<p>						 <br></p>
+<p>						  <br></p>
+<p>						  <a href="mailto:"></a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                  <img alt="Holland Hydrogen 1" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/3/5/csm_20250716_Shell_HH1_Electrolyzer_Hall__c__2025_By_Wendel_Broere_-_Shell_0e6c0df705.webp" width="1024" height="768" />
+                                <div>
+                                  <p>Holland Hydrogen 1</p>
+                                  <div>
+                                    <p>&nbsp;</p>
+<p>						</p><p>Shell<br></p>
+<p>Port of Rotterdam<br></p>
+<p>Rotterdam, Netherlands<br></p>
+<p>						</p><p></p>
+<p>						 <br></p>
+<p>						  <br></p>
+<p>						  <a href="mailto:"></a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                  <img alt="Onuba" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/c/5/csm_scalum-unit_d48d6bdcaf.webp" width="1024" height="768" />
+                                <div>
+                                  <p>Onuba</p>
+                                  <div>
+                                    <p>&nbsp;</p>
+<p>						</p><p>Moeve<br></p>
+<p>Huelva<br></p>
+<p>Spain<br></p>
+<p>&nbsp;<br></p>
+<p>						</p><p></p>
+<p>						 <br></p>
+<p>						  <br></p>
+<p>						  <a href="mailto:"></a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+                                  </div>
+                                </div>
+                              </div>
+                          </div>
+    </div>
+  </dd>
+  <dt>
+    Middle East
+    <button type="button" aria-label="Akkordeonelement umschalten" aria-expanded="false">
+          <span>
+          </span>
+    </button>
+  </dt>
+  <dd role="region">
+    <div>
+                          <div>
+                              <div>
+                                  <img alt="NEOM" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/6/3/csm_February_2026_NEOM_Green_Hydrogen_Company_Aerial_View_Copyright_Neom_Green_Hydrogen_Company_65e81cfc50.webp" width="1024" height="768" />
+                                <div>
+                                  <p>NEOM</p>
+                                  <div>
+                                    <p>&nbsp;</p>
+<p>						</p><p>Tabuk<br></p>
+<p>Saudi Arabia<br></p>
+<p>&nbsp;<br></p>
+<p>						</p><p></p>
+<p>						 <br></p>
+<p>						  <br></p>
+<p>						  <a href="mailto:"></a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+                                  </div>
+                                </div>
+                              </div>
+                          </div>
+    </div>
+  </dd>
+    </dl>
+  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+  </div>
+            </div>
+          </div>
+          <div id="c2309">
+            <div>
+  <div>
+      <div>
+        <h2>Your Hydrogen Project Partner: From Feasibility to Operation&nbsp;</h2>
+<p>We support our customers in developing robust industrial hydrogen projects – from initial feasibility to long-term operation. Our holistic project approach includes feasibility studies, LCOH analyses and FEED studies, laying the foundation for cost-efficient hydrogen projects. In parallel, we place a strong focus on delivering our highly standardized electrolyzers and related services to ensure efficient implementation and long-term performance.&nbsp;We work side by side with our customers – from concept to construction, commissioning and beyond. The result: efficiency, consistency, and technical excellence across the entire lifecycle of your plant.</p>
+<p><a href="https://files.thyssenkrupp-nucera.com/tknucera-typo3/Dateien/Brochures/thyssenkrupp-nucera_green-hydrogen-brochure.pdf">Download Brochure</a></p>
+      </div>
+  </div>
+            </div>
+          </div>
+          <div id="c3368">
+            <div>
+  <div>
+      <div>
+        <h2>scalum® Electrolyzer for Industrial Green Hydrogen Production</h2>
+<p>Our 20 MW scalum®&nbsp;unit&nbsp;is engineered for gigawatt-scale hydrogen production.&nbsp;With modular scalability, high availability, and dynamic operation, the scalum® electrolyzer unit supports industrial hydrogen applications across sectors – including refineries, steel plants, and downstream derivative production such as ammonia, methanol, and e-SAF. scalum® transforms large-scale hydrogen visions into industrial reality.</p>
+      </div>
+  </div>
+            </div>
+          </div>
+          <div id="c5085">
+            <div>
+  <div>
+      <video
+        controls
+        preload="metadata"
+        width="100%"
+        height="400"
+        poster="https://files.thyssenkrupp-nucera.com/tknucera-typo3/Dateien/Technology/AWE/scalum_teaser.jpg"
+      >
+        <source src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/Dateien/Technology/AWE/230504td1749_nucera_scalum_short.mp4" type="video/mp4" />
+        <p>
+          To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+        </p>
+      </video>
+  </div>
+            </div>
+          </div>
+          <div id="c3364">
+            <div>
+  <div>
+  <section
+    x-data="splide({&quot;style&quot;:&quot;custom1&quot;})"
+    aria-label="Slider section">
+    <div>
+        <ul>
+            <li>
+              <div>
+          <div id="c3367">
+            <div>
+  <div>
+      <div>
+            <div>
+              <div><h3>Single Element&nbsp;</h3><ul><li><p>Single-cell design ensures flexibility, high durability, and long cell life – already proven in chlor-alkali electrolysis.</p></li><li><p>Our high-performance cells&nbsp;are&nbsp;based on&nbsp;decades of&nbsp;proven chlor-alkali technology.&nbsp;</p></li><li><p>Each cell is individually removable from the cell rack, allowing for targeted maintenance without dismantling the entire stack. This minimizes downtime and significantly reduces maintenance costs.</p></li><li><p>The cells are designed for multiple reuse cycles and only require refurbishment, not full replacement.</p></li><li><p>Integrated condition monitoring of each single-cell element enhances plant safety and reliability.</p></li></ul></div>
+              <div>
+      <div>
+        <div>
+        <div
+            >
+          <img loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/f/0/csm_Slider-1_4a45abcdfd.webp" width="800" height="533" alt="" />
+        </div>
+        </div>
+      </div>
+              </div>
+            </div>
+      </div>
+  </div>
+            </div>
+          </div>
+              </div>
+            </li>
+            <li>
+              <div>
+          <div id="c3366">
+            <div>
+  <div>
+      <div>
+            <div>
+              <div><h3>scalum® 20 MW Electrolyzer Unit</h3><ul><li><p><strong>Dynamic operation:</strong> Fast dynamics and wide operating range for renewable energy fluctuations, ensuring stability and reliability.</p></li><li><p><strong>Maintainability:</strong> Holistic service portfolio supported by global network to ensure best possible electrolyzer performance</p></li><li><p><strong>Compact footprint:&nbsp;</strong>High current density and modular design enable space-saving installation for industrial green hydrogen plants.</p></li><li><p><strong>Optimization:&nbsp;</strong>Our dedicated R&amp;D roadmap focuses on automating serial production to deliver high capacities at reduced costs and lead times.</p></li><li><p><strong>Service and support:&nbsp;</strong>We offer full lifecycle support through our global service network – ensuring reliable performance and long-term success.</p></li><li><p><strong>Digitalization:&nbsp;</strong>Our digital solutions like nucera evaluator, nucera load balancer and Digital Twins improve safety, optimize energy use and enable predictive maintenance through continuous operational insights.</p></li></ul><p>The foundational design for our scalum<strong>®</strong> has been certified by TÜV Rheinland to meet the requirements of Chapter 4 of ISO 22734:2019. &nbsp;Our continuously ongoing product development will be backed by upgraded certification.</p></div>
+              <div>
+      <div>
+        <div>
+        <div
+            >
+          <img loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/c/0/csm_Slider-2_6ad20558eb.webp" width="800" height="450" alt="" />
+        </div>
+        </div>
+      </div>
+              </div>
+            </div>
+      </div>
+  </div>
+            </div>
+          </div>
+              </div>
+            </li>
+            <li>
+              <div>
+          <div id="c3365">
+            <div>
+  <div>
+      <div>
+            <div>
+              <div><h3>Modular Electrolysis Plant&nbsp;</h3>
+<p>When the world demands hydrogen projects from hundred-megawatt to gigawatt-scale, you need a solution that’s:&nbsp;</p><ul><li><p>modular&nbsp;</p></li><li><p>reliable&nbsp;</p></li><li><p>efficient&nbsp;</p></li><li><p>ready to scale&nbsp;to from megawatt to gigawatt level&nbsp;</p></li></ul><p>Our prefabricated, skid-mounted electrolysis plants enable rapid deployment and scalability. With our deep-rooted EPC expertise, we deliver reliable hydrogen infrastructure for industrial-scale decarbonization.</p></div>
+              <div>
+      <div>
+        <div>
+        <div
+            >
+          <img loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/9/a/csm_Slider-3_47cc78133e.webp" width="800" height="450" alt="" />
+        </div>
+        </div>
+      </div>
+              </div>
+            </div>
+      </div>
+  </div>
+            </div>
+          </div>
+              </div>
+            </li>
+        </ul>
+      </div>
+      <div>
+        <button>
+        </button>
+        <ul></ul>
+        <button>
+        </button>
+      </div>
+    </section>
+  </div>
+            </div>
+          </div>
+          <div id="c5129">
+            <div>
+  <div>
+      <div>
+            <div>
+              <div><h2>Service Portfolio for Alkaline Water Electrolysis</h2>
+<p>Our global service network ensures optimal performance of your alkaline water electrolyzers – from installation to maintenance and upgrades. Benefit from decades of experience and tailored service solutions.</p>
+<p>&nbsp;</p>
+<p><a href="/service/green-hydrogen-service-solutions">Explore Service Solutions</a></p></div>
+              <div>
+      <div>
+        <div>
+        <div
+            >
+          <img alt="an employee of thyssenkrupp nucera in front of an electrolyzer" title="thyssenkrupp nucera employee" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/1/9/csm__NRZ7539_2ffc1d9b70.webp" width="800" height="533" />
+        </div>
+        </div>
+      </div>
+              </div>
+            </div>
+      </div>
+  </div>
+            </div>
+          </div>
+          <div id="c3369">
+            <div>
+  <div>
+        <div>
+          <div>
+              <h2>More on Green Hydrogen</h2>
+<p>Here&nbsp;you’ll&nbsp;find in-depth information on projects, partnerships, and technological developments related to&nbsp;thyssenkrupp&nbsp;nucera&nbsp;and the green hydrogen economy.</p>
+          </div>
+        </div>
+          <div>
+                <section
+                  x-data="splide({&quot;style&quot;:&quot;custom3&quot;,&quot;gap&quot;:&quot;1rem&quot;})"
+                  aria-label="Slider section">
+                  <div>
+                    <ul>
+                          <li>
+                            <div>
+<a href="/newsroom/blog/three-things-europe-needs-to-turn-hydrogen-ambition-into-industrial-reality">
+  <div>
+      <div>
+        <div
+            >
+          <img alt="several alkaline water electrolyzer modules" title="industrial-alkaline-water-electrolyzers" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/c/5/csm_NCA_Vietnam_515DJI_0035_172cb21ef6.webp" width="800" height="600" />
+        </div>
+          <div>CEO Opinion</div>
+      </div>
+    <div>
+      <div>27.10.2026</div>
+      <div>
+        <p>Three Things Europe Needs to Turn Hydrogen Ambition Into Industrial Reality</p>
+      </div>
+        <div>
+            <div># Green Hydrogen</div>
+            <div># Market &amp; Policy</div>
+        </div>
+    </div>
+  </div>
+</a>
+                            </div>
+                          </li>
+                          <li>
+                            <div>
+<a href="/newsroom/events/bharat-renewable-energy-summit-expo-brese-2026">
+  <div>
+      <div>
+        <div
+            >
+          <img alt="Two engineers looking at an electrolysis cell" title="thyssenkrupp-nucera-service" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/b/4/csm_nucera_maintain_5bd9cd6eac.webp" width="800" height="496" />
+        </div>
+      </div>
+    <div>
+      <div>22.10.2026</div>
+      <div>
+        <p>Bharat Renewable Energy Summit &amp; Expo (BRESE) 2026</p>
+      </div>
+        <div>
+            <div># Green Hydrogen</div>
+        </div>
+    </div>
+  </div>
+</a>
+                            </div>
+                          </li>
+                          <li>
+                            <div>
+<a href="/newsroom/news-press-releases/thyssenkrupp-nucera-establishes-its-first-company-operated-electrolyzer-cell-assembly-hub-in-europe">
+  <div>
+      <div>
+        <div
+            >
+          <img alt="scalum 20 MW alkaline water electrolysis unit by thyssenkrupp nucera" title="alkaline-water-electrolysis" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/5/d/csm_AWE_71d5992530.webp" width="800" height="600" />
+        </div>
+          <div>Press Release</div>
+      </div>
+    <div>
+      <div>06.10.2026</div>
+      <div>
+        <p>thyssenkrupp nucera Establishes Its First Company-Operated Electrolyzer Cell Assembly Hub in Europe</p>
+      </div>
+        <div>
+            <div># Green Hydrogen</div>
+        </div>
+    </div>
+  </div>
+</a>
+                            </div>
+                          </li>
+                          <li>
+                            <div>
+<a href="/newsroom/blog/customer-platform-why-critical-plant-information-shouldnt-be-hidden-in-email-chains">
+  <div>
+      <div>
+        <div
+            >
+          <img alt="Service employee is checking alkaline water electrolysis unit scalum by thyssenkrupp nucera" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/c/f/csm_service-employee-at-scalum_c2c2622bc5.webp" width="800" height="533" />
+        </div>
+      </div>
+    <div>
+      <div>05.08.2026</div>
+      <div>
+        <p>„I Need That Spare Part Now” – Why Critical Plant Information Shouldn&#039;t Be Hidden in Email Chains</p>
+      </div>
+        <div>
+            <div># Green Hydrogen</div>
+            <div># Service</div>
+        </div>
+    </div>
+  </div>
+</a>
+                            </div>
+                          </li>
+                          <li>
+                            <div>
+<a href="/newsroom/news-press-releases/thyssenkrupp-nucera-and-bharat-heavy-electricals-limited-sign-strategic-collaboration-to-advance-green-hydrogen-electrolysis-in-india">
+  <div>
+      <div>
+        <div
+            >
+          <img alt="scalum 20 MW alkaline water electrolysis unit by thyssenkrupp nucera" title="alkaline-water-electrolysis" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/5/d/csm_AWE_71d5992530.webp" width="800" height="600" />
+        </div>
+          <div>Press Release</div>
+      </div>
+    <div>
+      <div>07.08.2026</div>
+      <div>
+        <p>thyssenkrupp nucera and Bharat Heavy Electricals Limited Sign Strategic Collaboration to Advance Green Hydrogen Electrolysis in India</p>
+      </div>
+        <div>
+            <div># Green Hydrogen</div>
+        </div>
+    </div>
+  </div>
+</a>
+                            </div>
+                          </li>
+                          <li>
+                            <div>
+<a href="/newsroom/blog/from-energy-shocks-to-energy-resilience-why-europe-must-build-electrolysis-at-scale">
+  <div>
+      <div>
+        <div
+            >
+          <img alt="Werner Ponikwat at the stage at WHS Rotterdam with an audience listening" title="Werner Ponikwar Keynote WHS Rotterdam" loading="lazy" src="https://files.thyssenkrupp-nucera.com/tknucera-typo3/_processed_/f/d/csm_werner-whs_9060191532.webp" width="800" height="534" />
+        </div>
+          <div>CEO Opinion</div>
+      </div>
+    <div>
+      <div>19.05.2026</div>
+      <div>
+        <p>From Energy Shocks to Energy Resilience: Why Europe Must Build Electrolysis at Scale</p>
+      </div>
+        <div>
+            <div># Green Hydrogen</div>
+            <div># Market &amp; Policy</div>
+        </div>
+    </div>
+  </div>
+</a>
+                            </div>
+                          </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <button>
+                    </button>
+                    <ul></ul>
+                    <button>
+                    </button>
+                  </div>
+                </section>
+          </div>
+  </div>
+            </div>
+          </div>
+          <div id="c3370">
+            <div>
+    <div>
+      <div>
+  <div>
+      <h2>Let's Talk</h2>
+<p>Our experts support you with tailored solutions, deep&nbsp;expertise, and years of experience.&nbsp;&nbsp;</p>
+<p><a href="/contact">Get in Touch</a></p>
+  </div>
+      </div>
+    </div>
+            </div>
+          </div>
+          <div id="">
+            <div>
+                <div>
+    <h2>Frequently Asked Questions</h2>
+                </div>
+  <div>
+          <dl>
+  <dt>
+    What are the advantages of alkaline water electrolysis (AWE) compared to proton exchange membrane (PEM) – and which technology is better for industrial green hydrogen production?
+    <button type="button" aria-label="Akkordeonelement umschalten" aria-expanded="false">
+      <span>
+      </span>
+      <span>
+      </span>
+    </button>
+  </dt>
+  <dd role="region">
+    <div>
+          <div id="c3373">
+            <div>
+  <div>
+      <div>
+        <p>At thyssenkrupp nucera, we rely on AWE because it is the most mature and cost-effective technology available today and characterized by high long-term stability. Compared to proton exchange membrane (PEM) electrolysis, AWE offers clear key advantages for large-scale applications:</p><ul><li><p>Lower initial investment</p></li><li><p>Widely used for industrial-scale H<sub>2</sub> production</p></li><li><p>Scalability for large-scale production</p></li><li><p>Dynamic operation capability suitable for fluctuating renewable power input</p></li><li><p>Simpler maintenance and operation</p></li></ul><p>AWE is the only technology currently ready to meet the massive hydrogen demands of the industry at large-scale and has been chosen for projects like NEOM (Saudi Arabia).</p>
+      </div>
+  </div>
+            </div>
+          </div>
+    </div>
+  </dd>
+  <dt>
+    What are the lead times for thyssenkrupp nucera electrolyzers, and how do you reduce them?
+    <button type="button" aria-label="Akkordeonelement umschalten" aria-expanded="false">
+      <span>
+      </span>
+      <span>
+      </span>
+    </button>
+  </dt>
+  <dd role="region">
+    <div>
+          <div id="c3398">
+            <div>
+  <div>
+      <div>
+        <p>We accelerate project execution through modularization and prefabrication. Our standardized, skid-mounted units are prefabricated off-site, minimizing on-site construction time, reducing installation risks, and ensuring consistent quality. This approach delivers faster time-to-operation, greater planning reliability, and scalable solutions that grow with demand.&nbsp;</p>
+      </div>
+  </div>
+            </div>
+          </div>
+    </div>
+  </dd>
+  <dt>
+    Can thyssenkrupp nucera’s alkaline water electrolysis systems operate dynamically with fluctuating power of renewable energy sources?
+    <button type="button" aria-label="Akkordeonelement umschalten" aria-expanded="false">
+      <span>
+      </span>
+      <span>
+      </span>
+    </button>
+  </dt>
+  <dd role="region">
+    <div>
+          <div id="c3400">
+            <div>
+  <div>
+      <div>
+        <p>Yes, our alkaline water electrolysis (AWE) technology is fully capable of dynamic operation. With a minimum load of just 10% of 20&nbsp;MW, our system offers outstanding flexibility to accommodate fluctuating power supply, making it ideally suited for coupling with renewable energy sources such as wind and solar. We successfully demonstrated this capability as early as 2019 in our 2 MW Carbon2Chem® pilot plant.&nbsp;Our scalum® AWE units respond flexibly to variable power input which our proprietary load balancer translates into the optimized production of green hydrogen.</p>
+      </div>
+  </div>
+            </div>
+          </div>
+    </div>
+  </dd>
+  <dt>
+    Can thyssenkrupp nucera’s alkaline water electrolysis technology compete with Chinese electrolyzers?
+    <button type="button" aria-label="Akkordeonelement umschalten" aria-expanded="false">
+      <span>
+      </span>
+      <span>
+      </span>
+    </button>
+  </dt>
+  <dd role="region">
+    <div>
+          <div id="c3403">
+            <div>
+  <div>
+      <div>
+        <p>Absolutely. What differentiates thyssenkrupp nucera’s alkaline water electrolysis technology is:</p><ul><li><p><strong>Single cell technology:</strong></p><ul><li><p>Refurbishment instead of stack replacement</p></li><li><p>Cell monitoring allowing for preventive maintenance on single-cell level</p></li></ul></li><li><p><strong>High operating range between 10-100%,</strong> supporting fluctuating renewable energy usage</p></li><li><p><strong>Low current losses by design,</strong> avoiding leak currents, stray currents, and bypass currents</p></li><li><p><strong>High current densities,</strong> leading to smaller footprints</p></li></ul><p>These features ensure high efficiency, reliability, and long-term cost advantages – enabling thyssenkrupp nucera to compete successfully with Chinese electrolyzers and deliver globally competitive hydrogen production economics.</p>
+      </div>
+  </div>
+            </div>
+          </div>
+    </div>
+  </dd>
+  <dt>
+    What are the advantages of the single cell concept?
+    <button type="button" aria-label="Akkordeonelement umschalten" aria-expanded="false">
+      <span>
+      </span>
+      <span>
+      </span>
+    </button>
+  </dt>
+  <dd role="region">
+    <div>
+          <div id="c3405">
+            <div>
+  <div>
+      <div>
+        <p>The single cell concept is a key differentiator of thyssenkrupp nucera’s alkaline water electrolysis technology. Unlike conventional systems, our design allows each individual unit to be serviced independently – without shutting down the entire plant. This feature significantly increases operational flexibility, reduces downtime, lowers maintenance costs, and increases plant availability. It also enables precise condition monitoring at cell level, enhancing operational safety and long-term performance. For industrial-scale hydrogen production, this means greater reliability, flexibility, and cost efficiency.</p>
+      </div>
+  </div>
+            </div>
+          </div>
+    </div>
+  </dd>
+          </dl>
+  </div>
+            </div>
+          </div>
+  </main>
+  <footer>
+    <div>
+      <div>
+        <div>
+    <div>
+      <p>
+        Social Media  
+      </p>
+  <ul>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/company/thyssenkrupp-nucera/">
+      </a>
+    </li>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="Youtube" title="Youtube" href="https://www.youtube.com/@thyssenkruppnucera">
+      </a>
+    </li>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" href="https://www.instagram.com/thyssenkrupp_nucera/">
+      </a>
+    </li>
+  </ul>
+    </div>
+        </div>
+        <div>
+              <div>
+                    <a title="Technologies" href="/technologies">
+                      Technologies
+                    </a>
+                  <ul>
+                          <li>
+                            <a title="Industrial-Scale Alkaline Water Electrolysis" href="/technologies/alkaline-water-electrolysis">
+                              Industrial-Scale Alkaline Water Electrolysis
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Chlor-Alkali Electrolysis" href="/technologies/chlor-alkali-electrolysis">
+                              Chlor-Alkali Electrolysis
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Hydrochloric Acid Electrolysis" href="/technologies/hydrochloric-acid-electrolysis">
+                              Hydrochloric Acid Electrolysis
+                            </a>
+                          </li>
+                  </ul>
+              </div>
+              <div>
+                    <a title="Our Service Portfolio" href="/service">
+                      Our Service Portfolio
+                    </a>
+                  <ul>
+                          <li>
+                            <a title="Green Hydrogen Service" href="/service/green-hydrogen-service-solutions">
+                              Green Hydrogen Service
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Chlor-Alkali Service" href="/service/chlor-alkali-service-solutions">
+                              Chlor-Alkali Service
+                            </a>
+                          </li>
+                  </ul>
+              </div>
+              <div>
+                    <a title="Newsroom" href="/newsroom">
+                      Newsroom
+                    </a>
+                  <ul>
+                          <li>
+                            <a title="Latest News &amp; Press Releases" href="/newsroom/news-press-releases">
+                              Latest News &amp; Press Releases
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Publications &amp; Media" href="/newsroom/publications-media">
+                              Publications &amp; Media
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Glossary" href="/newsroom/glossary">
+                              Glossary
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Events" href="/newsroom/events">
+                              Events
+                            </a>
+                          </li>
+                  </ul>
+              </div>
+              <div>
+                    <a title="Company" href="/company">
+                      Company
+                    </a>
+                  <ul>
+                          <li>
+                            <a title="Management" href="/company/management">
+                              Management
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Sustainability" href="/company/sustainability">
+                              Sustainability
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Certifications" href="/company/certifications">
+                              Certifications
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Compliance" href="/company/compliance">
+                              Compliance
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Corporate Governance" href="/company/corporate-governance">
+                              Corporate Governance
+                            </a>
+                          </li>
+                  </ul>
+              </div>
+              <div>
+                    <a title="Investors" href="https://investors.thyssenkrupp-nucera.com/">
+                      Investors
+                    </a>
+                  <ul>
+                          <li>
+                            <a title="At a glance" href="https://investors.thyssenkrupp-nucera.com/investors/thyssenkrupp-nucera-at-a-glance">
+                              At a glance
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Share" href="https://investors.thyssenkrupp-nucera.com/investors/share">
+                              Share
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Legal notices" href="https://investors.thyssenkrupp-nucera.com/investors/legal-notices">
+                              Legal notices
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Publications" href="https://investors.thyssenkrupp-nucera.com/investors/publications">
+                              Publications
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Financial calendar and events" href="https://investors.thyssenkrupp-nucera.com/investors/financial-calendar-and-events">
+                              Financial calendar and events
+                            </a>
+                          </li>
+                          <li>
+                            <a title="Annual General Meeting" href="https://investors.thyssenkrupp-nucera.com/investors/annual-general-meeting">
+                              Annual General Meeting
+                            </a>
+                          </li>
+                          <li>
+                            <a title="IR Contact" href="https://investors.thyssenkrupp-nucera.com/investors/ir-contact">
+                              IR Contact
+                            </a>
+                          </li>
+                  </ul>
+              </div>
+        </div>
+        <div>
+    <div>
+      <p>
+        Social Media  
+      </p>
+  <ul>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/company/thyssenkrupp-nucera/">
+      </a>
+    </li>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="Youtube" title="Youtube" href="https://www.youtube.com/@thyssenkruppnucera">
+      </a>
+    </li>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" href="https://www.instagram.com/thyssenkrupp_nucera/">
+      </a>
+    </li>
+  </ul>
+    </div>
+        </div>
+        <div>
+            <div>
+                  <a href="/contact">
+                    Contact
+                  </a>
+                  <a href="/company/compliance">
+                    Compliance
+                  </a>
+                  <a href="/legal-notes">
+                    Legal Notes
+                  </a>
+                  <a href="/imprint">
+                    Imprint
+                  </a>
+                  <a href="/data-protection">
+                    Data Protection
+                  </a>
+                  <a href="/global-procurement">
+                    Global Procurement
+                  </a>
+            </div>
+        </div>
+        <div>
+    <div>
+      <p>
+        Social Media  
+      </p>
+  <ul>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/company/thyssenkrupp-nucera/">
+      </a>
+    </li>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="Youtube" title="Youtube" href="https://www.youtube.com/@thyssenkruppnucera">
+      </a>
+    </li>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" href="https://www.instagram.com/thyssenkrupp_nucera/">
+      </a>
+    </li>
+  </ul>
+    </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <nav role="dialog" aria-modal="true" aria-label="Mobile navigation">
+    <div>
+      <div>
+        <div>
+            <ul id="mobileNav">
+                <li>
+                      <button
+                        type="button"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="flyout-id-38"
+                        onclick="tknucera.mobileNav.openFirstSubmenu(this);"
+                        >
+                        <span>Technologies</span>
+                      </button>
+                        <ul role="menu" id="flyout-id-38">
+                          <li role="menuitem">
+                            <button onclick="tknucera.mobileNav.closeFirstSubmenu(this);">
+                              <span>
+  Back to
+ Technologies</span>
+                            </button>
+                          </li>
+                          <li role="menuitem">
+                          <a href="/technologies">
+                              Overview: Technologies</a>
+                          </li>
+                            <li role="menuitem">
+                                  <a title="Alkaline Water Electrolysis" href="/technologies/alkaline-water-electrolysis">
+                                    Alkaline Water Electrolysis
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <button
+                                     aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-55"
+                                    onclick="tknucera.mobileNav.openSecondSubmenu(this);"
+                                  >
+                                    <span>Chlor-Alkali Electrolysis</span>
+                                  </button>
+                                    <ul role="menu" id="flyout-id-55">
+                                      <li role="menuitem">
+                                        <button onclick="tknucera.mobileNav.closeSecondSubmenu(this);">
+                                          <span>
+  Back to
+ Chlor-Alkali Electrolysis</span>
+                                        </button>
+                                      </li>
+                                      <li role="menuitem">
+                                        <a href="/technologies/alkaline-water-electrolysis">
+                                          Overview: Chlor-Alkali Electrolysis</a>
+                                      </li>
+                                        <li role="menuitem">
+                                              <a title="Bipolar Membrane (BM) Single Element Technology" href="/technologies/chlor-alkali-electrolysis/bipolar-membrane-bm">
+                                                Bipolar Membrane (BM) Single Element Technology
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)" href="/technologies/chlor-alkali-electrolysis/bipolar-ion-exchange-membrane-process-electrolyzer-bitac">
+                                                Bipolar Ion-Exchange Membrane Process Electrolyzer (BiTAC)
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)" href="/technologies/chlor-alkali-electrolysis/oxygen-depolarized-cathode-process-electrolyzer-nacl-odc">
+                                                Oxygen-Depolarized Cathode Process Electrolyzer (NaCl-ODC)
+                                              </a>
+                                        </li>
+                                    </ul>
+                            </li>
+                            <li role="menuitem">
+                                  <button
+                                     aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-606"
+                                    onclick="tknucera.mobileNav.openSecondSubmenu(this);"
+                                  >
+                                    <span>Hydrochloric Acid Electrolysis</span>
+                                  </button>
+                                    <ul role="menu" id="flyout-id-606">
+                                      <li role="menuitem">
+                                        <button onclick="tknucera.mobileNav.closeSecondSubmenu(this);">
+                                          <span>
+  Back to
+ Hydrochloric Acid Electrolysis</span>
+                                        </button>
+                                      </li>
+                                      <li role="menuitem">
+                                        <a href="/technologies/alkaline-water-electrolysis">
+                                          Overview: Hydrochloric Acid Electrolysis</a>
+                                      </li>
+                                        <li role="menuitem">
+                                              <a title="Oxygen-Depolarized Cathode (HCl-ODC) Technology" href="/technologies/hydrochloric-acid-electrolysis/oxygen-depolarized-cathode-hcl-odc-technology">
+                                                Oxygen-Depolarized Cathode (HCl-ODC) Technology
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Diaphragm Electrolyzer Technology" href="/technologies/hydrochloric-acid-electrolysis/diaphragm-electrolyzer-technology">
+                                                Diaphragm Electrolyzer Technology
+                                              </a>
+                                        </li>
+                                    </ul>
+                            </li>
+                            <li role="menuitem">
+                                  <button
+                                     aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-1207"
+                                    onclick="tknucera.mobileNav.openSecondSubmenu(this);"
+                                  >
+                                    <span>Future Solutions</span>
+                                  </button>
+                                    <ul role="menu" id="flyout-id-1207">
+                                      <li role="menuitem">
+                                        <button onclick="tknucera.mobileNav.closeSecondSubmenu(this);">
+                                          <span>
+  Back to
+ Future Solutions</span>
+                                        </button>
+                                      </li>
+                                      <li role="menuitem">
+                                        <a href="/technologies/alkaline-water-electrolysis">
+                                          Overview: Future Solutions</a>
+                                      </li>
+                                        <li role="menuitem">
+                                              <a title="Carbon2Chem®" href="/technologies/future-solutions/carbon2chem">
+                                                Carbon2Chem®
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Skive Test Unit for Pressurized Electrolysis" href="/technologies/future-solutions/skive-test-unit-for-pressurized-electrolysis">
+                                                Skive Test Unit for Pressurized Electrolysis
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Gersthofen Test Facility" href="/technologies/future-solutions/gersthofen-test-facility">
+                                                Gersthofen Test Facility
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="HTEM300" href="/technologies/future-solutions/htem300">
+                                                HTEM300
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="SOEC Test Facility" href="/technologies/future-solutions/soec-test-facility">
+                                                SOEC Test Facility
+                                              </a>
+                                        </li>
+                                    </ul>
+                            </li>
+                        </ul>
+                </li>
+                <li>
+                      <button
+                        type="button"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="flyout-id-43"
+                        onclick="tknucera.mobileNav.openFirstSubmenu(this);"
+                        >
+                        <span>Service</span>
+                      </button>
+                        <ul role="menu" id="flyout-id-43">
+                          <li role="menuitem">
+                            <button onclick="tknucera.mobileNav.closeFirstSubmenu(this);">
+                              <span>
+  Back to
+ Service</span>
+                            </button>
+                          </li>
+                          <li role="menuitem">
+                          <a href="/service">
+                              Overview: Service</a>
+                          </li>
+                            <li role="menuitem">
+                                  <a title="Green Hydrogen Service Solutions" href="/service/green-hydrogen-service-solutions">
+                                    Green Hydrogen Service Solutions
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Chlor-Alkali Service Solutions" href="/service/chlor-alkali-service-solutions">
+                                    Chlor-Alkali Service Solutions
+                                  </a>
+                            </li>
+                        </ul>
+                </li>
+                <li>
+                      <button
+                        type="button"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="flyout-id-46"
+                        onclick="tknucera.mobileNav.openFirstSubmenu(this);"
+                        >
+                        <span>Newsroom</span>
+                      </button>
+                        <ul role="menu" id="flyout-id-46">
+                          <li role="menuitem">
+                            <button onclick="tknucera.mobileNav.closeFirstSubmenu(this);">
+                              <span>
+  Back to
+ Newsroom</span>
+                            </button>
+                          </li>
+                          <li role="menuitem">
+                          <a href="/newsroom">
+                              Overview: Newsroom</a>
+                          </li>
+                            <li role="menuitem">
+                                  <a title="News &amp; Press Releases" href="/newsroom/news-press-releases">
+                                    News &amp; Press Releases
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Publications &amp; Media" href="/newsroom/publications-media">
+                                    Publications &amp; Media
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Glossary" href="/newsroom/glossary">
+                                    Glossary
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Events" href="/newsroom/events">
+                                    Events
+                                  </a>
+                            </li>
+                        </ul>
+                </li>
+                <li>
+                      <button
+                        type="button"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="flyout-id-45"
+                        onclick="tknucera.mobileNav.openFirstSubmenu(this);"
+                        >
+                        <span>Company</span>
+                      </button>
+                        <ul role="menu" id="flyout-id-45">
+                          <li role="menuitem">
+                            <button onclick="tknucera.mobileNav.closeFirstSubmenu(this);">
+                              <span>
+  Back to
+ Company</span>
+                            </button>
+                          </li>
+                          <li role="menuitem">
+                          <a href="/company">
+                              Overview: Company</a>
+                          </li>
+                            <li role="menuitem">
+                                  <button
+                                     aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-62"
+                                    onclick="tknucera.mobileNav.openSecondSubmenu(this);"
+                                  >
+                                    <span>Management</span>
+                                  </button>
+                                    <ul role="menu" id="flyout-id-62">
+                                      <li role="menuitem">
+                                        <button onclick="tknucera.mobileNav.closeSecondSubmenu(this);">
+                                          <span>
+  Back to
+ Management</span>
+                                        </button>
+                                      </li>
+                                      <li role="menuitem">
+                                        <a href="/technologies/alkaline-water-electrolysis">
+                                          Overview: Management</a>
+                                      </li>
+                                        <li role="menuitem">
+                                              <a title="Management Board" href="/company/management/management-board">
+                                                Management Board
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Supervisory Board" href="/company/management/supervisory-board">
+                                                Supervisory Board
+                                              </a>
+                                        </li>
+                                    </ul>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Sustainability" href="/company/sustainability">
+                                    Sustainability
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Careers" href="https://new-era-is-you.com/">
+                                    Careers
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Certifications" href="/company/certifications">
+                                    Certifications
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <button
+                                     aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-61"
+                                    onclick="tknucera.mobileNav.openSecondSubmenu(this);"
+                                  >
+                                    <span>Compliance</span>
+                                  </button>
+                                    <ul role="menu" id="flyout-id-61">
+                                      <li role="menuitem">
+                                        <button onclick="tknucera.mobileNav.closeSecondSubmenu(this);">
+                                          <span>
+  Back to
+ Compliance</span>
+                                        </button>
+                                      </li>
+                                      <li role="menuitem">
+                                        <a href="/technologies/alkaline-water-electrolysis">
+                                          Overview: Compliance</a>
+                                      </li>
+                                        <li role="menuitem">
+                                              <a title="Whistleblowing" href="/company/compliance/whistleblowing">
+                                                Whistleblowing
+                                              </a>
+                                        </li>
+                                    </ul>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Corporate Governance" href="/company/corporate-governance">
+                                    Corporate Governance
+                                  </a>
+                            </li>
+                        </ul>
+                </li>
+                <li>
+                      <button
+                        type="button"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="flyout-id-48"
+                        onclick="tknucera.mobileNav.openFirstSubmenu(this);"
+                        >
+                        <span>Investors</span>
+                      </button>
+                        <ul role="menu" id="flyout-id-48">
+                          <li role="menuitem">
+                            <button onclick="tknucera.mobileNav.closeFirstSubmenu(this);">
+                              <span>
+  Back to
+ Investors</span>
+                            </button>
+                          </li>
+                          <li role="menuitem">
+                          <a href="https://investors.thyssenkrupp-nucera.com/">
+                              Overview: Investors</a>
+                          </li>
+                            <li role="menuitem">
+                                  <button
+                                     aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-91"
+                                    onclick="tknucera.mobileNav.openSecondSubmenu(this);"
+                                  >
+                                    <span>thyssenkrupp nucera at a glance</span>
+                                  </button>
+                                    <ul role="menu" id="flyout-id-91">
+                                      <li role="menuitem">
+                                        <button onclick="tknucera.mobileNav.closeSecondSubmenu(this);">
+                                          <span>
+  Back to
+ thyssenkrupp nucera at a glance</span>
+                                        </button>
+                                      </li>
+                                      <li role="menuitem">
+                                        <a href="/technologies/alkaline-water-electrolysis">
+                                          Overview: thyssenkrupp nucera at a glance</a>
+                                      </li>
+                                        <li role="menuitem">
+                                              <a title="Reasons to Invest" href="https://investors.thyssenkrupp-nucera.com/investors/thyssenkrupp-nucera-at-a-glance#reasons">
+                                                Reasons to Invest
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Factsheet" href="https://investors.thyssenkrupp-nucera.com/investors/thyssenkrupp-nucera-at-a-glance#factsheet">
+                                                Factsheet
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Key Figures Comparison" href="https://investors.thyssenkrupp-nucera.com/investors/thyssenkrupp-nucera-at-a-glance#keyfigures">
+                                                Key Figures Comparison
+                                              </a>
+                                        </li>
+                                    </ul>
+                            </li>
+                            <li role="menuitem">
+                                  <button
+                                     aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="flyout-id-95"
+                                    onclick="tknucera.mobileNav.openSecondSubmenu(this);"
+                                  >
+                                    <span>Share</span>
+                                  </button>
+                                    <ul role="menu" id="flyout-id-95">
+                                      <li role="menuitem">
+                                        <button onclick="tknucera.mobileNav.closeSecondSubmenu(this);">
+                                          <span>
+  Back to
+ Share</span>
+                                        </button>
+                                      </li>
+                                      <li role="menuitem">
+                                        <a href="/technologies/alkaline-water-electrolysis">
+                                          Overview: Share</a>
+                                      </li>
+                                        <li role="menuitem">
+                                              <a title="Basic information" href="https://investors.thyssenkrupp-nucera.com/investors/share#basicinformation">
+                                                Basic information
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Stock chart" href="https://investors.thyssenkrupp-nucera.com/investors/share#stockchart">
+                                                Stock chart
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Shareholder structure" href="https://investors.thyssenkrupp-nucera.com/investors/share#shareholder">
+                                                Shareholder structure
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Analyst Coverage" href="https://investors.thyssenkrupp-nucera.com/investors/share#analyst">
+                                                Analyst Coverage
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="Consensus" href="https://investors.thyssenkrupp-nucera.com/investors/share#consensus">
+                                                Consensus
+                                              </a>
+                                        </li>
+                                        <li role="menuitem">
+                                              <a title="IPO" href="https://investors.thyssenkrupp-nucera.com/investors/ipo">
+                                                IPO
+                                              </a>
+                                        </li>
+                                    </ul>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Legal notices" href="https://investors.thyssenkrupp-nucera.com/investors/legal-notices">
+                                    Legal notices
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Publications" href="https://investors.thyssenkrupp-nucera.com/investors/publications">
+                                    Publications
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Financial news" href="https://investors.thyssenkrupp-nucera.com/investors/financial-news">
+                                    Financial news
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Financial calendar and events" href="https://investors.thyssenkrupp-nucera.com/investors/financial-calendar-and-events">
+                                    Financial calendar and events
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Annual general meeting" href="https://investors.thyssenkrupp-nucera.com/investors/annual-general-meeting">
+                                    Annual general meeting
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="Sustainability" href="/company/sustainability">
+                                    Sustainability
+                                  </a>
+                            </li>
+                            <li role="menuitem">
+                                  <a title="IR Contact" href="https://investors.thyssenkrupp-nucera.com/investors/ir-contact">
+                                    IR Contact
+                                  </a>
+                            </li>
+                        </ul>
+                </li>
+            </ul>
+        </div>
+        <div>
+          <div>
+  <div
+    x-data="{ open: false }"
+    x-id="['dropdown', 'toggle', 'list']"
+    x-on:click.outside="open = false"
+>
+    <button
+        type="button"
+        x-bind:id="$id('toggle')"
+        x-on:click.stop="open = !open"
+        x-bind:aria-expanded="open"
+        x-bind:aria-controls="$id('list')"
+        aria-haspopup="listbox"
+    >
+        English
+    </button>
+    <ul
+        x-show="open"
+        x-on:click.outside="open = false"
+        x-bind:id="$id('list')"
+        role="listbox"
+        x-bind:aria-labelledby="$id('toggle')"
+        x-cloak
+    >
+            <li role="option">
+                <a href="/technologies/alkaline-water-electrolysis">
+                    English
+                </a>
+            </li>
+            <li role="option">
+                <a href="/de/technologien/alkalische-wasserelektrolyse">
+                    Deutsch
+                </a>
+            </li>
+            <li role="option">
+                <a href="/jp/%E6%8A%80%E8%A1%93/%E7%94%A3%E6%A5%AD%E8%A6%8F%E6%A8%A1%E3%81%AE%E3%82%A2%E3%83%AB%E3%82%AB%E3%83%AA%E6%B0%B4%E9%9B%BB%E8%A7%A3">
+                    日本語
+                </a>
+            </li>
+    </ul>
+  </div>
+  <a href="/contact">
+  Contact
+  </a>
+  <a href="/search">
+  Search
+  </a>
+          </div>
+        </div>
+      </div>
+      <div>
+    <div>
+      <p>
+        Social Media  
+      </p>
+  <ul>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/company/thyssenkrupp-nucera/">
+      </a>
+    </li>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="Youtube" title="Youtube" href="https://www.youtube.com/@thyssenkruppnucera">
+      </a>
+    </li>
+    <li>
+      <a target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" href="https://www.instagram.com/thyssenkrupp_nucera/">
+      </a>
+    </li>
+  </ul>
+    </div>
+      </div>
+    </div>
+  </nav>
+</div>
+</body>
+</html>

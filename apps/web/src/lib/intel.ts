@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { COMPETITOR_DATA_SECTIONS, COMPETITOR_WATCH_SECTION, type SiteSnapshot } from '@/lib/competitor-watch';
 import {
   COMPETITOR_SECTION,
   CURSOR_ID,
@@ -130,10 +131,10 @@ export async function loadBlocks(table: 'intel_competitors' | 'intel_patents'): 
     sb,
     table,
     // FTO records (section = 'fto') are loaded separately and trimmed by loadFto;
-    // KIPRIS watch/competitor rows by loadPatentWatch.
+    // KIPRIS watch/competitor rows by loadPatentWatch; official-site snapshots by loadCompetitorWatch.
     'id,section,sort,updated_at,payload',
     { column: 'sort', ascending: true },
-    table === 'intel_patents' ? ['fto', ...PATENT_DATA_SECTIONS] : undefined,
+    table === 'intel_patents' ? ['fto', ...PATENT_DATA_SECTIONS] : [...COMPETITOR_DATA_SECTIONS],
   );
   const lastUpdated = rows.reduce<string | null>((m, r) => (!m || r.updated_at > m ? r.updated_at : m), null);
   return { rows, lastUpdated, error };
@@ -239,6 +240,21 @@ export async function loadPatentChecks(): Promise<Partial<Record<CheckKey, Check
   const { data, error } = await sb.from('intel_patents').select('checks:payload->checks').eq('id', CURSOR_ID).maybeSingle();
   if (error || !data) return null;
   return (data as { checks: Partial<Record<CheckKey, CheckState>> | null }).checks ?? null;
+}
+
+/** Official-site snapshots written by /api/cron/competitor-sites, in registry order. */
+export async function loadCompetitorWatch(): Promise<Loaded<SiteSnapshot>> {
+  const sb = intelSupabase();
+  if (!sb) return { rows: [], lastUpdated: null, error: NOT_CONFIGURED };
+  const { data, error } = await sb
+    .from('intel_competitors')
+    .select('payload,updated_at')
+    .eq('section', COMPETITOR_WATCH_SECTION)
+    .order('sort', { ascending: true });
+  if (error) return { rows: [], lastUpdated: null, error: describeError(error.message) };
+  const rows = (data ?? []) as { payload: SiteSnapshot; updated_at: string }[];
+  const lastUpdated = rows.reduce<string | null>((m, r) => (!m || r.updated_at > m ? r.updated_at : m), null);
+  return { rows: rows.map((r) => r.payload), lastUpdated, error: null };
 }
 
 export async function loadNews(limit = 500): Promise<Loaded<NewsRow>> {

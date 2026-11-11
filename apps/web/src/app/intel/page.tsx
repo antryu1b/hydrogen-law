@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { IntelBlockList } from '@/components/intel/IntelBlocks';
+import { CompetitorSiteWatch } from '@/components/intel/CompetitorSiteWatch';
 import { FtoList } from '@/components/intel/FtoList';
 import { NewsList } from '@/components/intel/NewsList';
 import { CompetitorPatentStats } from '@/components/intel/PatentWatch';
@@ -9,6 +10,7 @@ import {
   formatKst,
   loadBlocks,
   loadCompetitorPatents,
+  loadCompetitorWatch,
   loadFto,
   loadNews,
   loadPatentChecks,
@@ -36,13 +38,41 @@ const PATENT_SEC_TITLES: Partial<Record<PatentSec, string>> = {
   proposals: '특허제안리스트',
 };
 
-function UpdatedAt({ iso, note }: { iso: string | null; note?: string }) {
+// One line under each page title: how the data is refreshed first, then when it last was.
+// Cadence text must match what actually runs (vercel.json crons; Hobby fires once a day within the hour).
+const CADENCE = {
+  news: '매일 1회 갱신(Google News)',
+  competitorSites: '매일 1회 갱신(공식 홈페이지)',
+  kipris: '매일 1회 갱신(KIPRIS 한국·미국·유럽 신규 출원 · 국내 FTO 권리상태 순차 조회)',
+  report: '보고서 기준',
+} as const;
+
+function UpdatedAt({
+  cadence,
+  iso,
+  label = '마지막 갱신',
+  value,
+  note,
+}: {
+  cadence: string;
+  iso?: string | null;
+  label?: string;
+  /** Pre-formatted value; otherwise `iso` in KST. */
+  value?: string;
+  note?: string;
+}) {
   return (
     <p className="text-xs text-muted-foreground">
-      마지막 갱신 <span className="font-medium tabular-nums text-foreground">{formatKst(iso)}</span>
+      {cadence} · {label}{' '}
+      <span className="font-medium tabular-nums text-foreground">{value ?? formatKst(iso ?? null)}</span>
       {note ? ` · ${note}` : ''}
     </p>
   );
+}
+
+/** Marks seeded report blocks that never auto-update (render-level only; payloads untouched). */
+function ReportBasisNote({ children }: { children: string }) {
+  return <p className="mt-6 text-xs text-muted-foreground">{children}</p>;
 }
 
 function Empty({ error }: { error: string | null }) {
@@ -79,25 +109,30 @@ async function NewsTab() {
   const latestPublished = rows[0]?.published_at ?? null;
   return (
     <>
-      <p className="text-xs text-muted-foreground">
-        최신 기사 발행일 <span className="font-medium tabular-nums text-foreground">{latestPublished ?? '—'}</span>
-        {' · 매일 1회 Google News RSS 자동 수집'}
-      </p>
+      <UpdatedAt cadence={CADENCE.news} label="최신 기사 발행일" value={latestPublished ?? '—'} />
       {rows.length ? <NewsList rows={rows} /> : <Empty error={error} />}
     </>
   );
 }
 
 async function CompetitorsTab() {
-  const { rows, lastUpdated, error } = await loadBlocks('intel_competitors');
+  const [{ rows, lastUpdated, error }, watch] = await Promise.all([
+    loadBlocks('intel_competitors'),
+    loadCompetitorWatch(),
+  ]);
   return (
     <>
-      <UpdatedAt iso={lastUpdated} />
+      <UpdatedAt
+        cadence={CADENCE.competitorSites}
+        iso={watch.lastUpdated}
+        note={`비교표는 ${CADENCE.report}(${formatKst(lastUpdated)})`}
+      />
       {rows.length ? (
         <Sections rows={rows} sectionLabel="경쟁사 비교" stripWords={['경쟁사', '비교']} />
       ) : (
         <Empty error={error} />
       )}
+      <CompetitorSiteWatch rows={watch.rows} error={watch.error} nowMs={Date.now()} />
     </>
   );
 }
@@ -137,10 +172,17 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   const fto = competitorFacing ? allFto : { ...allFto, rows: [] };
   const lastUpdated =
     [blocks.lastUpdated, fto.lastUpdated, watch?.lastUpdated, competitor?.lastUpdated].filter(Boolean).sort().pop() ?? null;
+  // Last KIPRIS cron run (cursor row), even when it inserted nothing new.
+  const lastCollected =
+    Object.values(checks ?? {})
+      .map((c) => c?.at)
+      .filter((at): at is string => !!at)
+      .sort()
+      .pop() ?? null;
   if (!blocks.rows.length && !fto.rows.length && !competitorFacing) {
     return (
       <>
-        <UpdatedAt iso={lastUpdated} />
+        <UpdatedAt cadence={CADENCE.report} iso={lastUpdated} />
         <Empty error={blocks.error ?? fto.error} />
       </>
     );
@@ -148,7 +190,7 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   if (!competitorFacing) {
     return (
       <>
-        <UpdatedAt iso={lastUpdated} />
+        <UpdatedAt cadence={CADENCE.report} iso={lastUpdated} />
         <Sections
           rows={blocks.rows}
           sectionLabel="특허 분석"
@@ -163,11 +205,17 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   const otherRows = blocks.rows.filter((r) => !competitorRows.includes(r));
   return (
     <>
-      <UpdatedAt iso={lastUpdated} />
+      <UpdatedAt cadence={CADENCE.kipris} iso={[lastCollected, lastUpdated].filter(Boolean).sort().pop() ?? null} />
       {competitor && (
         <CompetitorPatentStats stats={aggregateCompetitorStats(competitor.rows)} error={competitor.error} />
       )}
       {watch && <PatentWatchList rows={watch.rows} error={watch.error} max={PATENT_WATCH_MAX} checks={checks} />}
+      {competitorRows.length > 0 && (
+        <ReportBasisNote>
+          아래 분석·참고 문구는 보고서 기준(작성 시점)이며 자동 갱신되지 않습니다 · 권리상태 최신값은 FTO 1차 검토 DB의 자동
+          조회 값을 확인하세요.
+        </ReportBasisNote>
+      )}
       <Sections rows={competitorRows} sectionLabel="특허 분석" />
       {fto.rows.length > 0 && (
         <div className="space-y-3">
@@ -188,7 +236,12 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
           />
         </div>
       )}
-      {otherRows.length > 0 && <Sections rows={otherRows} sectionLabel="특허 분석" />}
+      {otherRows.length > 0 && (
+        <>
+          <ReportBasisNote>아래 내용은 보고서 기준(작성 시점)이며 자동 갱신되지 않습니다.</ReportBasisNote>
+          <Sections rows={otherRows} sectionLabel="특허 분석" />
+        </>
+      )}
     </>
   );
 }
