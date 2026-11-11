@@ -20,7 +20,6 @@ import {
   PATENT_WATCH_MAX,
   type BlockRow,
   type IntelBlock,
-  type LoadedChecks,
 } from '@/lib/intel';
 import { aggregateCompetitorStats, normalizeAppNo } from '@/lib/patent-watch';
 
@@ -231,13 +230,12 @@ async function PatentsDbView({
   initialCountry: string;
   initialRights: string;
 }) {
-  const [allFto, watch, autoStatus, checksResult] = await Promise.all([
+  const [allFto, watch, autoStatus, checksData] = await Promise.all([
     loadFto(),
     loadPatentWatch(),
     loadPatentStatus(),
     loadPatentChecks(),
   ]);
-  const checksData: LoadedChecks = checksResult;
   const lastCollected =
     Object.values(checksData.checks ?? {})
       .map((c) => c?.at)
@@ -250,8 +248,10 @@ async function PatentsDbView({
   // Hard failures: FTO or watch unavailable — list data is unreliable.
   const loadError = [allFto.error, watch.error].filter(Boolean).join(' / ') || null;
   // Soft failures: ancillary data unavailable; list still works but some features degrade.
+  // Suppress statusWarning when allFto.error already exists — if Supabase is unconfigured,
+  // all loaders fail with the same error; the loadError banner already covers it.
   const statusParts = [
-    autoStatus?.error ? '권리상태 자동조회 로드 실패 — 권리상태 필터는 FTO 원본 기준' : null,
+    autoStatus?.error && !allFto.error ? '권리상태 자동조회 로드 실패 — 권리상태 필터는 FTO 원본 기준' : null,
     checksData.error ? '수집 시각 조회 실패' : null,
   ].filter(Boolean);
   const statusWarning = statusParts.length ? statusParts.join(' / ') : null;

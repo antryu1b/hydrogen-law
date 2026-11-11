@@ -10,13 +10,14 @@ import {
 // KIPRIS competitor filing trends on the 특허 분석 tab (the unreviewed watch list lives in
 // PatentWatchList.tsx). Server-rendered; bars are plain CSS with text alternatives.
 
-const CATEGORY_ORDER: PatentCategory[] = ['system', 'gas-liquid', 'stack', 'control', 'transfer'];
-const CATEGORY_COLOR: Record<PatentCategory, string> = {
+// 'transfer' (이관) is an FTO workflow label, never assigned by KIPRIS autoCategory.
+// Excluded from the legend and bar segments; any theoretical transfer counts fold into system total.
+const CATEGORY_ORDER: PatentCategory[] = ['system', 'gas-liquid', 'stack', 'control'];
+const CATEGORY_COLOR: Partial<Record<PatentCategory, string>> = {
   system: 'bg-muted-foreground/45',
   'gas-liquid': 'bg-[hsl(var(--brass)/0.85)]',
   stack: 'bg-primary/60',
   control: 'bg-primary',
-  transfer: 'bg-muted-foreground/20',
 };
 
 /** 'KR 8 · US 3' — countries with filings only. */
@@ -105,7 +106,7 @@ export function CompetitorPatentStats({ stats, error }: { stats: CompetitorStats
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             {CATEGORY_ORDER.map((c) => (
               <span key={c} className="inline-flex items-center gap-1.5">
-                <span className={`inline-block h-2.5 w-2.5 rounded-sm ${CATEGORY_COLOR[c]}`} aria-hidden />
+                <span className={`inline-block h-2.5 w-2.5 rounded-sm ${CATEGORY_COLOR[c] ?? ''}`} aria-hidden />
                 {PATENT_CATEGORY_LABEL[c]}
               </span>
             ))}

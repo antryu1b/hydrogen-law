@@ -393,13 +393,16 @@ export function PatentDbList({
           <EmptyNote>검색 결과가 없습니다.</EmptyNote>
         ) : (
           <>
-            <p
-              role="status"
-              aria-live="polite"
-              className="text-xs text-muted-foreground"
-            >
-              {filtered.length}건 중 {shown.length}건 표시
-            </p>
+            {/* Count line hidden when loadError is set — partial rows may still appear below */}
+            {!loadError && (
+              <p
+                role="status"
+                aria-live="polite"
+                className="text-xs text-muted-foreground"
+              >
+                {filtered.length}건 중 {shown.length}건 표시
+              </p>
+            )}
             <div className="mt-2 space-y-2">
               {shown.map((row, i) => {
                 // FTO: srcIdx is the position in the original ftoRecords input — unique even
