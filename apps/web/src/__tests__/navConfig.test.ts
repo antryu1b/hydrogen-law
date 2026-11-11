@@ -109,14 +109,15 @@ describe('shouldExpandLawSection', () => {
 
 describe('특허 분석 sub-items', () => {
   const patents = NAV_MAIN.find((s) => s.label === '특허 분석')!;
-  const [competitor, hmg, proposals] = patents.subItems!;
+  const [competitor, hmg, proposals, db] = patents.subItems!;
 
-  it('has 경쟁사, HMG, 특허제안리스트 in order with sec hrefs', () => {
-    expect(patents.subItems!.map((s) => s.label)).toEqual(['경쟁사', 'HMG', '특허제안리스트']);
+  it('has 경쟁사, HMG, 특허제안리스트, 특허 종합 DB in order with sec hrefs', () => {
+    expect(patents.subItems!.map((s) => s.label)).toEqual(['경쟁사', 'HMG', '특허제안리스트', '특허 종합 DB']);
     expect(patents.subItems!.map((s) => s.href)).toEqual([
       '/intel?tab=patents&sec=competitor',
       '/intel?tab=patents&sec=hmg',
       '/intel?tab=patents&sec=proposals',
+      '/intel?tab=patents&sec=db',
     ]);
   });
 
@@ -124,6 +125,8 @@ describe('특허 분석 sub-items', () => {
     expect(isSubItemActive(competitor, '/intel', 'patents', 'competitor')).toBe(true);
     expect(isSubItemActive(hmg, '/intel', 'patents', 'competitor')).toBe(false);
     expect(isSubItemActive(proposals, '/intel', 'patents', 'proposals')).toBe(true);
+    expect(isSubItemActive(db, '/intel', 'patents', 'db')).toBe(true);
+    expect(isSubItemActive(db, '/intel', 'patents', 'competitor')).toBe(false);
   });
 
   it('highlights no sub-item without sec or with an unknown sec', () => {

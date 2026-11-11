@@ -17,6 +17,7 @@ import {
   Building2,
   Factory,
   Lightbulb,
+  Database,
 } from 'lucide-react';
 import {
   NAV_MAIN,
@@ -41,6 +42,7 @@ const SUB_ICONS: Record<string, React.ComponentType<{ className?: string; stroke
   '경쟁사': Building2,
   'HMG': Factory,
   '특허제안리스트': Lightbulb,
+  '특허 종합 DB': Database,
 };
 
 const ADMIN_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {

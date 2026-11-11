@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { IntelBlockList } from '@/components/intel/IntelBlocks';
 import { CompetitorSiteWatch } from '@/components/intel/CompetitorSiteWatch';
-import { FtoList } from '@/components/intel/FtoList';
 import { NewsList } from '@/components/intel/NewsList';
 import { CompetitorPatentStats } from '@/components/intel/PatentWatch';
-import { PatentWatchList } from '@/components/intel/PatentWatchList';
-import { filterPatentRows, parsePatentSec, stripSectionWords, type PatentSec } from '@/lib/intel-utils';
+import { PatentDbList } from '@/components/intel/PatentDb';
+import { applyFtoStageCleanup, filterPatentRows, parsePatentSec, stripSectionWords, type PatentSec } from '@/lib/intel-utils';
 import {
   formatKst,
   loadBlocks,
@@ -20,7 +20,7 @@ import {
   type BlockRow,
   type IntelBlock,
 } from '@/lib/intel';
-import { aggregateCompetitorStats, normalizeAppNo } from '@/lib/patent-watch';
+import { aggregateCompetitorStats, normalizeAppNo, type CompetitorStats } from '@/lib/patent-watch';
 
 export const metadata: Metadata = { title: '수전해 인텔리전스' };
 export const dynamic = 'force-dynamic';
@@ -36,6 +36,7 @@ const PATENT_SEC_TITLES: Partial<Record<PatentSec, string>> = {
   competitor: '경쟁사 특허검토',
   hmg: '현대차그룹 특허검토',
   proposals: '특허제안리스트',
+  db: '특허 종합 DB',
 };
 
 // One line under each page title: how the data is refreshed first, then when it last was.
@@ -150,16 +151,119 @@ function stripHeadingDescs(block: IntelBlock, words: string[]): IntelBlock {
   return block;
 }
 
-async function PatentsTab({ sec }: { sec: PatentSec | null }) {
-  // FTO 1차 검토 DB and the KIPRIS views are competitor-facing: all view and 경쟁사 view only.
-  const competitorFacing = !sec || sec === 'competitor';
-  const [allBlocks, allFto, watch, competitor, autoStatus, checks] = await Promise.all([
-    loadBlocks('intel_patents'),
+/**
+ * 경쟁사 포트폴리오 — groups rendered as prominent cards with company counts.
+ * Each group/company links to the unified 특허 종합 DB view with filter pre-applied.
+ */
+function CompetitorPortfolioSection({ stats }: { stats: CompetitorStats }) {
+  return (
+    <div>
+      <div className="mt-10 border-b border-border/70 pb-2">
+        <h2 className="font-display text-lg font-bold tracking-tight">경쟁사 포트폴리오</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          그룹별 경쟁사 현황 · KIPRIS 수집 기준 건수 · 각 사명 클릭 시 특허 종합 DB에서 필터 적용
+        </p>
+      </div>
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {stats.groups.map((g) => (
+          <div key={g.label} className="rounded-lg border border-border bg-card p-4">
+            <Link
+              href={`/intel?tab=patents&sec=db&group=${encodeURIComponent(g.label)}`}
+              className="block font-semibold hover:text-[hsl(var(--brass))] transition-colors"
+            >
+              {g.label}
+            </Link>
+            <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{g.total}건</p>
+            <ul className="mt-3 space-y-1.5">
+              {g.companies
+                .filter((c) => c.total > 0)
+                .map((c) => (
+                  <li key={c.label}>
+                    <Link
+                      href={`/intel?tab=patents&sec=db&group=${encodeURIComponent(g.label)}&company=${encodeURIComponent(c.label)}`}
+                      className="flex items-center justify-between gap-2 text-sm hover:text-[hsl(var(--brass))] transition-colors"
+                    >
+                      <span>{c.label}</span>
+                      <span className="shrink-0 tabular-nums text-xs text-muted-foreground">{c.total}건</span>
+                    </Link>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 text-sm">
+        <Link
+          href="/intel?tab=patents&sec=db"
+          className="text-[hsl(var(--brass))] hover:underline"
+        >
+          전체 특허 목록은 특허 종합 DB에서 →
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+async function PatentsDbView({
+  initialGroup,
+  initialCompany,
+  initialQ,
+  initialCat,
+  initialVerdict,
+  initialCountry,
+}: {
+  initialGroup: string;
+  initialCompany: string;
+  initialQ: string;
+  initialCat: string;
+  initialVerdict: string;
+  initialCountry: string;
+}) {
+  const [allFto, watch, autoStatus, checks] = await Promise.all([
     loadFto(),
-    competitorFacing ? loadPatentWatch() : null,
+    loadPatentWatch(),
+    loadPatentStatus(),
+    loadPatentChecks(),
+  ]);
+  const lastCollected =
+    Object.values(checks ?? {})
+      .map((c) => c?.at)
+      .filter((at): at is string => !!at)
+      .sort()
+      .pop() ?? null;
+  const lastUpdated = [allFto.lastUpdated, watch.lastUpdated, lastCollected].filter(Boolean).sort().pop() ?? null;
+  return (
+    <>
+      <UpdatedAt cadence={CADENCE.kipris} iso={lastUpdated} />
+      <PatentDbList
+        ftoRecords={allFto.rows}
+        autoStatus={Object.fromEntries(
+          (autoStatus?.rows ?? []).map((s) => [
+            normalizeAppNo(s.appNo),
+            { registerStatus: s.registerStatus, checkedAt: s.checkedAt },
+          ]),
+        )}
+        watchRows={watch.rows}
+        checks={checks}
+        max={PATENT_WATCH_MAX}
+        initialGroup={initialGroup}
+        initialCompany={initialCompany}
+        initialQ={initialQ}
+        initialCat={initialCat}
+        initialVerdict={initialVerdict}
+        initialCountry={initialCountry}
+      />
+    </>
+  );
+}
+
+async function PatentsTab({ sec }: { sec: PatentSec | null }) {
+  // 특허 종합 DB is handled separately — it has its own data sources.
+  // (sec value handled by caller; sec=db arrives via PatentsDbView)
+  const competitorFacing = !sec || sec === 'competitor';
+  const [allBlocks, competitor] = await Promise.all([
+    loadBlocks('intel_patents'),
     competitorFacing ? loadCompetitorPatents() : null,
-    competitorFacing ? loadPatentStatus() : null,
-    competitorFacing ? loadPatentChecks() : null,
   ]);
   const filtered = filterPatentRows(allBlocks.rows, sec);
   const blocks = {
@@ -169,21 +273,13 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
         ? filtered.map((r) => ({ ...r, payload: stripHeadingDescs(r.payload, PROPOSALS_STRIP_WORDS) }))
         : filtered,
   };
-  const fto = competitorFacing ? allFto : { ...allFto, rows: [] };
-  const lastUpdated =
-    [blocks.lastUpdated, fto.lastUpdated, watch?.lastUpdated, competitor?.lastUpdated].filter(Boolean).sort().pop() ?? null;
-  // Last KIPRIS cron run (cursor row), even when it inserted nothing new.
-  const lastCollected =
-    Object.values(checks ?? {})
-      .map((c) => c?.at)
-      .filter((at): at is string => !!at)
-      .sort()
-      .pop() ?? null;
-  if (!blocks.rows.length && !fto.rows.length && !competitorFacing) {
+  const lastUpdated = [blocks.lastUpdated, competitor?.lastUpdated].filter(Boolean).sort().pop() ?? null;
+
+  if (!blocks.rows.length && !competitorFacing) {
     return (
       <>
         <UpdatedAt cadence={CADENCE.report} iso={lastUpdated} />
-        <Empty error={blocks.error ?? fto.error} />
+        <Empty error={blocks.error} />
       </>
     );
   }
@@ -199,43 +295,29 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
       </>
     );
   }
-  // Competitor-facing order: KIPRIS trends → KIPRIS new filings → FTO-based portfolio → FTO DB.
-  // The all view (no sec) then continues with the remaining sections (당사, 제안).
-  const competitorRows = filterPatentRows(blocks.rows, 'competitor');
-  const otherRows = blocks.rows.filter((r) => !competitorRows.includes(r));
+  // Competitor-facing (all view or sec=competitor):
+  //   - KIPRIS trends (CompetitorPatentStats)
+  //   - 경쟁사 포트폴리오 section (prominent group tabs linking to 특허 종합 DB)
+  //   - Report blocks (Supabase intel_patents section=competitor)
+  //   - Remaining blocks (all view only)
+  // applyFtoStageCleanup removes 1차/2차 review-stage descriptor blocks at render time.
+  const rawCompetitorRows = filterPatentRows(blocks.rows, 'competitor');
+  const competitorRows = applyFtoStageCleanup(rawCompetitorRows);
+  const otherRows = applyFtoStageCleanup(blocks.rows.filter((r) => !rawCompetitorRows.includes(r)));
+  const stats = competitor ? aggregateCompetitorStats(competitor.rows) : null;
   return (
     <>
-      <UpdatedAt cadence={CADENCE.kipris} iso={[lastCollected, lastUpdated].filter(Boolean).sort().pop() ?? null} />
-      {competitor && (
-        <CompetitorPatentStats stats={aggregateCompetitorStats(competitor.rows)} error={competitor.error} />
+      <UpdatedAt cadence={CADENCE.kipris} iso={lastUpdated} />
+      {stats && (
+        <CompetitorPatentStats stats={stats} error={competitor?.error ?? null} />
       )}
-      {watch && <PatentWatchList rows={watch.rows} error={watch.error} max={PATENT_WATCH_MAX} checks={checks} />}
+      {stats && <CompetitorPortfolioSection stats={stats} />}
       {competitorRows.length > 0 && (
         <ReportBasisNote>
-          아래 분석·참고 문구는 보고서 기준(작성 시점)이며 자동 갱신되지 않습니다 · 권리상태 최신값은 FTO 1차 검토 DB의 자동
-          조회 값을 확인하세요.
+          아래 분석·참고 문구는 보고서 기준(작성 시점)이며 자동 갱신되지 않습니다 · 권리상태 최신값은 특허 종합 DB에서 확인하세요.
         </ReportBasisNote>
       )}
       <Sections rows={competitorRows} sectionLabel="특허 분석" />
-      {fto.rows.length > 0 && (
-        <div className="space-y-3">
-          <div className="mt-8 border-b border-border/70 pb-2">
-            <h2 className="font-display text-lg font-bold tracking-tight">FTO 1차 검토 DB</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              FTO 검토 {fto.rows.length}건 기준 · 검토 대상 특허 전건 · 분류·판정·검색 필터
-            </p>
-          </div>
-          <FtoList
-            records={fto.rows}
-            autoStatus={Object.fromEntries(
-              (autoStatus?.rows ?? []).map((s) => [
-                normalizeAppNo(s.appNo),
-                { registerStatus: s.registerStatus, checkedAt: s.checkedAt },
-              ]),
-            )}
-          />
-        </div>
-      )}
       {otherRows.length > 0 && (
         <>
           <ReportBasisNote>아래 내용은 보고서 기준(작성 시점)이며 자동 갱신되지 않습니다.</ReportBasisNote>
@@ -246,8 +328,21 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   );
 }
 
-export default async function IntelPage({ searchParams }: { searchParams: Promise<{ tab?: string; sec?: string }> }) {
-  const { tab, sec } = await searchParams;
+export default async function IntelPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    tab?: string;
+    sec?: string;
+    group?: string;
+    company?: string;
+    q?: string;
+    cat?: string;
+    verdict?: string;
+    country?: string;
+  }>;
+}) {
+  const { tab, sec, group = '', company = '', q = '', cat = '', verdict = '', country = '' } = await searchParams;
   const active: TabKey = TABS.some((t) => t.key === tab) ? (tab as TabKey) : 'news';
   const patentSec = parsePatentSec(sec);
   // Each patent sub-view gets its own visible page title.
@@ -271,7 +366,17 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
       <div className="space-y-4">
         {active === 'news' && <NewsTab />}
         {active === 'competitors' && <CompetitorsTab />}
-        {active === 'patents' && <PatentsTab sec={patentSec} />}
+        {active === 'patents' && patentSec === 'db' && (
+          <PatentsDbView
+            initialGroup={group}
+            initialCompany={company}
+            initialQ={q}
+            initialCat={cat}
+            initialVerdict={verdict}
+            initialCountry={country}
+          />
+        )}
+        {active === 'patents' && patentSec !== 'db' && <PatentsTab sec={patentSec} />}
       </div>
     </div>
   );

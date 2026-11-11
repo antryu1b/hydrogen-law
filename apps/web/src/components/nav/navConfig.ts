@@ -34,6 +34,7 @@ export const NAV_MAIN: NavSection[] = [
       { label: '경쟁사', href: '/intel?tab=patents&sec=competitor', sec: 'competitor' },
       { label: 'HMG', href: '/intel?tab=patents&sec=hmg', sec: 'hmg' },
       { label: '특허제안리스트', href: '/intel?tab=patents&sec=proposals', sec: 'proposals' },
+      { label: '특허 종합 DB', href: '/intel?tab=patents&sec=db', sec: 'db' },
     ],
   },
   {

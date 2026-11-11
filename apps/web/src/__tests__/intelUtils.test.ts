@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { beforeAll, describe, it, expect } from 'vitest';
-import { filterPatentRows, parsePatentSec, stripSectionWords } from '@/lib/intel-utils';
+import { applyFtoStageCleanup, filterPatentRows, FTO_STAGE_HIDE_IDS, parsePatentSec, stripSectionWords } from '@/lib/intel-utils';
 
 const COMP_WORDS = ['경쟁사', '비교'];
 
@@ -46,9 +46,15 @@ describe('patent sec filtering', () => {
     expect(parsePatentSec('competitor')).toBe('competitor');
     expect(parsePatentSec('hmg')).toBe('hmg');
     expect(parsePatentSec('proposals')).toBe('proposals');
+    expect(parsePatentSec('db')).toBe('db');
     expect(parsePatentSec('bogus')).toBeNull();
     expect(parsePatentSec('toString')).toBeNull();
     expect(parsePatentSec(undefined)).toBeNull();
+  });
+
+  it('db sec returns empty section list (uses own data sources)', () => {
+    const rows = ['fto-review', 'own', 'competitor', 'triz'].map((section, i) => ({ id: i, section }));
+    expect(filterPatentRows(rows, 'db')).toHaveLength(0);
   });
 
   it('competitor = fto-review + competitor sections', () => {
@@ -69,6 +75,49 @@ describe('patent sec filtering', () => {
     const w = ['TRIZ 기반', 'TRIZ'];
     expect(stripSectionWords('당사 vs 경쟁사 특허 비교 · TRIZ 기반 신규 특허 제안', w)).toBe('당사 vs 경쟁사 특허 비교 · 신규 특허 제안');
     expect(stripSectionWords('TRIZ 참조 — 39가지 공학적 매개변수', w)).toBe('참조 — 39가지 공학적 매개변수');
+  });
+});
+
+describe('applyFtoStageCleanup', () => {
+  const makeRow = (id: string, type: string, extra: Record<string, unknown> = {}) => ({
+    id,
+    section: 'fto-review',
+    sort: 0,
+    updated_at: '',
+    payload: { type, ...extra },
+  });
+
+  it('removes fto-review:001 (stage process description) from rows', () => {
+    const rows = [
+      makeRow('fto-review:000', 'heading', { title: 'FTO', desc: 'FTO 검토 400건 기준 · 1차 검토 결과' }),
+      makeRow('fto-review:001', 'text', { text: '총 400건 1차 검토 완료.' }),
+      makeRow('fto-review:002', 'stats', {}),
+    ];
+    const out = applyFtoStageCleanup(rows);
+    expect(out.map((r) => r.id)).toEqual(['fto-review:000', 'fto-review:002']);
+    expect(FTO_STAGE_HIDE_IDS.has('fto-review:001')).toBe(true);
+  });
+
+  it('strips "1차 검토 결과" clause from fto-review:000 heading desc', () => {
+    const rows = [
+      makeRow('fto-review:000', 'heading', { title: 'FTO', desc: 'FTO 검토 400건 기준 · 기액분리기/시스템 관련 KR·US 특허 1차 검토 결과' }),
+    ];
+    const out = applyFtoStageCleanup(rows);
+    expect((out[0].payload as { desc?: string }).desc).toBe('FTO 검토 400건 기준 · 기액분리기/시스템 관련 KR·US 특허');
+  });
+
+  it('leaves non-stage rows untouched', () => {
+    const rows = [
+      makeRow('competitor:000', 'heading', { title: '경쟁사', desc: '비교 현황' }),
+      makeRow('triz:025', 'line', { text: '1차 기액분리를 유도하고' }),
+    ];
+    expect(applyFtoStageCleanup(rows)).toHaveLength(2);
+    const triz = applyFtoStageCleanup(rows).find((r) => r.id === 'triz:025');
+    expect((triz!.payload as { text?: string }).text).toBe('1차 기액분리를 유도하고');
+  });
+
+  it('passes through an empty array', () => {
+    expect(applyFtoStageCleanup([])).toEqual([]);
   });
 });
 
