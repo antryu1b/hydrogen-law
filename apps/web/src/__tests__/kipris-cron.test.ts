@@ -78,7 +78,7 @@ describe('/api/cron/kipris-patents GET', () => {
     const body = await (await GET()).json();
 
     expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(20);
-    // Issue 4: KIPRIS Plus supports TLS (confirmed 2026-11-11); must use https.
+    // 확인 필요: REST 경로 https 미검증 — 배포 후 첫 수동 실행으로 확인; must use https.
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/^https:\/\/plus\.kipris\.or\.kr\//);
     expect(String(fetchMock.mock.calls[0][0])).toContain('getWordSearch?word=');
     expect(body.ok).toBe(true);
@@ -96,6 +96,17 @@ describe('/api/cron/kipris-patents GET', () => {
     expect(cursor.payload.offset).toBe(fetchMock.mock.calls.length);
     // totalCount 5 < numOfRows: every fetched job is finished after one page.
     expect(Object.values(cursor.payload.jobs).every((j) => (j as { done: boolean }).done)).toBe(true);
+  });
+
+  it('surfaces HTML gateway responses as non-XML failures with ok:false', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<html><body>502 Bad Gateway</body></html>', { status: 200 })));
+    const { GET } = await import('@/app/api/cron/kipris-patents/route');
+    const body = await (await GET()).json();
+
+    expect(body.ok).toBe(false);
+    expect(body.inserted).toBe(0);
+    expect(body.failures.some((f: string) => f.includes('non-XML response'))).toBe(true);
+    expect(JSON.stringify(body)).not.toContain('test-key');
   });
 
   it('reports resultCode errors without inserting or advancing jobs', async () => {

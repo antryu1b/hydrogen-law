@@ -59,7 +59,6 @@ describe('parseKiprisXml', () => {
   });
 });
 
-// Issue 1: 전해질 (electrolyte) must NOT trigger the electrolysis relevance guard.
 describe('isRelevant', () => {
   it('전해질 alone does not qualify — solid-state / battery patents are not relevant', () => {
     expect(isRelevant('전고체 전해질 양극 소재')).toBe(false);
@@ -67,12 +66,25 @@ describe('isRelevant', () => {
     expect(isRelevant('연료전지 고분자 전해질 막')).toBe(false);
   });
 
-  it('수전해 / 전해조 / 전해 (without 질) qualify as electrolysis', () => {
+  // Issue 2: words that contain 전해 but mean electroplating / electrolyte / verb 전해지다 are false positives.
+  it('전해액, 전해도금, 전해연마, 전해콘덴서, 전해 동박 and 전해지다 are false positives', () => {
+    expect(isRelevant('리튬이온배터리 전해액 첨가제')).toBe(false);
+    expect(isRelevant('금속 표면 전해도금 처리 방법')).toBe(false);
+    expect(isRelevant('전해연마를 이용한 금속 표면 처리')).toBe(false);
+    expect(isRelevant('전해콘덴서 제조 방법')).toBe(false);
+    expect(isRelevant('전해 동박 제조 장치 및 방법')).toBe(false);
+    expect(isRelevant('진동이 전해지는 구조')).toBe(false); // Korean verb 전해지다
+  });
+
+  it('수전해 / 전해조 / 전해 셀|스택|장치|시스템 / English electrolyzer·electrolysis qualify', () => {
     expect(isRelevant('수전해 스택 열화 진단')).toBe(true);
     expect(isRelevant('전해조 스택 분리판 구조')).toBe(true);
     expect(isRelevant('전해 셀 전류 제어 방법')).toBe(true);
+    expect(isRelevant('전해 스택 운전 방법')).toBe(true);
+    expect(isRelevant('수전해 장치 및 시스템')).toBe(true);
     expect(isRelevant('PEM electrolyzer cell design')).toBe(true);
     expect(isRelevant('water electrolysis system')).toBe(true);
+    expect(isRelevant('AEM electrolyser stack')).toBe(true);
   });
 });
 
@@ -92,8 +104,7 @@ describe('companiesForApplicant', () => {
     }
   });
 
-  it('maps Siemens Energy, Toyota, Hydrogenics, 삼성이앤에이 and 현대/기아', () => {
-    // Siemens Energy (specific entity) matches; Siemens AG (parent) does NOT (see exclusion test).
+  it('maps Siemens Energy (and Siemens AG pre-spin-off), Toyota, Hydrogenics, 삼성이앤에이 and 현대/기아', () => {
     expect(companiesForApplicant('SIEMENS ENERGY GLOBAL GMBH & CO. KG')).toEqual(['Siemens Energy']);
     expect(companiesForApplicant('TOYOTA JIDOSHA KABUSHIKI KAISHA')).toEqual(['Toyota']);
     expect(companiesForApplicant('HYDROGENICS CORPORATION')).toEqual(['Accelera']);
@@ -108,9 +119,11 @@ describe('companiesForApplicant', () => {
     expect(companiesForApplicant('포스코퓨처엠(주)')).toEqual([]);
     expect(companiesForApplicant('POSCO FUTURE M CO., LTD.')).toEqual([]);
     expect(companiesForApplicant('포스코아이씨티')).toEqual([]);
-    // Siemens Healthineers / Siemens AG are not Siemens Energy.
+    // Siemens Healthineers is not Siemens Energy.
     expect(companiesForApplicant('Siemens Healthineers')).toEqual([]);
-    expect(companiesForApplicant('SIEMENS AKTIENGESELLSCHAFT')).toEqual([]);
+    // 추정: Siemens AG pre-spin-off electrolysis filings are attributed to Siemens Energy (isRelevant gates).
+    expect(companiesForApplicant('SIEMENS AKTIENGESELLSCHAFT')).toEqual(['Siemens Energy']);
+    expect(companiesForApplicant('지멘스 악티엔게젤샤프트')).toEqual(['Siemens Energy']);
     // POSCO Holdings parent (post-2022 name) does match.
     expect(companiesForApplicant('포스코홀딩스(주)')).toEqual(['포스코홀딩스']);
     expect(companiesForApplicant('POSCO HOLDINGS CO., LTD.')).toEqual(['포스코홀딩스']);

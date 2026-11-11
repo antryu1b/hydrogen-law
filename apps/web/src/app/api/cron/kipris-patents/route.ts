@@ -25,7 +25,7 @@ import {
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-// TLS confirmed: HEAD https://plus.kipris.or.kr/ → HTTP 200, ssl_verify_result=0 (2026-11-11).
+// 확인 필요: REST 경로 https 미검증 — 배포 후 첫 수동 실행으로 확인.
 const API = 'https://plus.kipris.or.kr/kipo-api/kipi/patUtiModInfoSearchSevice/getWordSearch';
 const ROWS = 50;
 const REQUEST_BUDGET = 20; // per run — keeps daily KIPRIS calls bounded
@@ -38,7 +38,10 @@ async function fetchPage(word: string, page: number, key: string) {
   // Errors carry only status/result codes, never the URL (it contains the key).
   const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const parsed = parseKiprisXml(await res.text());
+  const text = await res.text();
+  // Surface non-XML responses (e.g. HTML gateway error) as an explicit failure entry.
+  if (!/<[?]xml|<response/i.test(text)) throw new Error('non-XML response');
+  const parsed = parseKiprisXml(text);
   if (!parsed.ok) throw new Error(`resultCode ${parsed.resultCode || '-'} ${parsed.resultMsg}`.trim());
   return parsed;
 }

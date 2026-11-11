@@ -94,9 +94,11 @@ export const SEARCH_JOBS: SearchJob[] = [
   { key: 'E-posco', set: 'E', word: '포스코 수전해', company: '포스코홀딩스' },
 ];
 
-// 전해(?!질): negative lookahead excludes 전해질 (electrolyte) so battery/fuel-cell-membrane
-// patents from Toyota/Honda/Hyundai are not counted as electrolysis filings.
-const RELEVANT = /수전해|전해(?!질)|전기\s?분해|electroly/i;
+// Require water-electrolysis meaning to avoid false positives:
+//   전해액 (electrolyte solution), 전해도금 (electroplating), 전해연마 (electrolytic polishing),
+//   전해콘덴서 (electrolytic capacitor), 전해 동박 (electrolytic copper foil), 전해지다 (Korean verb)
+//   all fail; 수전해 / 전해조 / 전해 (셀|스택|장치|시스템) / English electrolyzer·electrolysis pass.
+const RELEVANT = /수전해|전기분해|전해조|전해\s?(?:셀|스택|장치|시스템)|electroly[sz]er|electrolysis/i;
 
 /** Mentions electrolysis (guards competitor stats against off-topic applicant hits). */
 export function isRelevant(text: string): boolean {
@@ -128,13 +130,18 @@ const APPLICANT_ALIASES: [string, string[]][] = [
   // Cummins/커민스 entries are kept under Accelera to cover pre-brand-transition filings.
   ['Accelera', ['하이드로제닉스', 'hydrogenics', '액셀레라', 'accelera', '커민스', 'cummins']],
   // Narrowed from bare '지멘스'/'siemens' to avoid matching Siemens Healthineers / Digital Industries /
-  // Smart Infrastructure etc. Only 'siemensenergy' and '지멘스에너지' match Siemens Energy entities.
-  ['Siemens Energy', ['지멘스에너지', 'siemensenergy']],
+  // Smart Infrastructure etc. '지멘스에너지'/'siemensenergy' match the post-spin-off entity.
+  // 추정: Siemens AG ('siemensaktiengesellschaft'/'지멘스악티엔게젤샤프트') filed water-electrolysis patents
+  // before the 2020 Siemens Energy spin-off. isRelevant() already gates; only electrolysis-relevant
+  // filings are counted. Include them here so pre-2020 filings are attributed to Siemens Energy.
+  ['Siemens Energy', ['지멘스에너지', 'siemensenergy', 'siemensaktiengesellschaft', '지멘스악티엔게젤샤프트']],
   ['삼성E&A', ['삼성이앤에이', '삼성엔지니어링', 'samsungea', 'samsungengineering']],
-  // 추정: Narrowed from bare '포스코'/'posco' (which would also match POSCO Future M, POSCO ICT, etc.).
+  // Narrowed from bare '포스코'/'posco' (which would also match POSCO Future M, POSCO ICT, etc.).
   // '포스코홀딩스' covers post-2022 parent; 'poscoholding' covers English-name filings.
-  // Pre-2022 patents filed as plain '포스코(주)' / 'POSCO CO., LTD.' are NOT matched — conservative
-  // choice to avoid false positives from subsidiaries.
+  // Pre-2022 patents filed as plain '주식회사포스코' / 'POSCO CO., LTD.' are NOT included — conservative
+  // choice: the plain '포스코' string also appears in subsidiary names (포스코케미칼, 포스코인터내셔널 etc.),
+  // so including it would require manual false-positive review that pre-2020 data does not yet support.
+  // If pre-2022 filings become relevant, add 'poscoco'/'주식회사포스코' and mark 추정.
   ['포스코홀딩스', ['포스코홀딩스', 'poscoholding']],
 ];
 

@@ -22,6 +22,7 @@ import vm from 'node:vm';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { mergeCompetitorTabs } from './merge-tabs.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../..');
@@ -340,31 +341,7 @@ const newsRows = [...newsByUrl.values()];
 const meta = { KG_NEWS_KW: readConst('KG_NEWS_KW'), KG_CO_MAP: readConst('KG_CO_MAP') };
 
 // ── post-processing ──────────────────────────────────────────────────────────
-// Fold the top-level content blocks that follow the compare:002 tabs row into
-// three new tabs appended to that row.  Groups are separated by `heading` blocks;
-// each heading stays inside its tab (it carries a `desc` the tab label omits).
-function mergeCompetitorTabs(rows) {
-  const tabsIdx = rows.findIndex((r) => r.payload.type === 'tabs');
-  if (tabsIdx === -1) return rows;
-  const tabsRow = rows[tabsIdx];
-  const afterTabs = rows.slice(tabsIdx + 1);
-  // Split into heading-delimited groups
-  const groups = [];
-  let current = null;
-  for (const row of afterTabs) {
-    if (row.payload.type === 'heading') {
-      current = { blocks: [row.payload] };
-      groups.push(current);
-    } else if (current) {
-      current.blocks.push(row.payload);
-    }
-  }
-  const TAB_LABELS = ['개별 기업 상세', '당사 결과·개선항목', '글로벌 리포트'];
-  for (let i = 0; i < Math.min(3, groups.length); i++) {
-    tabsRow.payload.tabs.push({ label: TAB_LABELS[i], blocks: groups[i].blocks });
-  }
-  return rows.slice(0, tabsIdx + 1);
-}
+// mergeCompetitorTabs is imported from ./merge-tabs.mjs.
 
 // ── write ───────────────────────────────────────────────────────────────────
 fs.mkdirSync(outDir, { recursive: true });

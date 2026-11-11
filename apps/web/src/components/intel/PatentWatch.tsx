@@ -104,6 +104,7 @@ export function CompetitorPatentStats({ stats, error }: { stats: CompetitorStats
       <SectionHeading title="경쟁사 특허 출원 동향" desc="그룹 비교 → 그룹 내 업체별 · 구분별 건수와 출원연도별 건수" />
       <p className="text-xs text-muted-foreground">
         KIPRIS 국내 출원 기준 · 구분은 키워드 자동분류(추정) · 출원 후 공개 전 건은 미포함
+        {' · '}추정: Siemens Energy에 Siemens AG 분사 전 출원 포함
       </p>
       {stats.total === 0 ? (
         <EmptyNote>{error ?? '아직 수집된 경쟁사 출원이 없습니다. 매일 KIPRIS 자동 수집이 돌면 채워집니다.'}</EmptyNote>
