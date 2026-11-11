@@ -20,6 +20,7 @@ import {
   PATENT_WATCH_MAX,
   type BlockRow,
   type IntelBlock,
+  type LoadedChecks,
 } from '@/lib/intel';
 import { aggregateCompetitorStats, normalizeAppNo } from '@/lib/patent-watch';
 
@@ -230,14 +231,15 @@ async function PatentsDbView({
   initialCountry: string;
   initialRights: string;
 }) {
-  const [allFto, watch, autoStatus, checks] = await Promise.all([
+  const [allFto, watch, autoStatus, checksResult] = await Promise.all([
     loadFto(),
     loadPatentWatch(),
     loadPatentStatus(),
     loadPatentChecks(),
   ]);
+  const checksData: LoadedChecks = checksResult;
   const lastCollected =
-    Object.values(checks ?? {})
+    Object.values(checksData.checks ?? {})
       .map((c) => c?.at)
       .filter((at): at is string => !!at)
       .sort()
@@ -245,14 +247,14 @@ async function PatentsDbView({
   const lastUpdated = [allFto.lastUpdated, watch.lastUpdated, lastCollected].filter(Boolean).sort().pop() ?? null;
   // key resets client filter state on soft navigation (URL param change).
   const listKey = [initialGroup, initialCompany, initialQ, initialCat, initialVerdict, initialCountry, initialRights].join('|');
-  // Surface Supabase load errors above the (possibly empty) list.
-  // autoStatus error means 권리상태 auto-data is unavailable; the rights filter still works
-  // from raw FTO status values so we surface it with an explanatory note instead of the raw message.
-  const statusNote = autoStatus?.error
-    ? '권리상태 자동조회 로드 실패 — 권리상태 필터는 FTO 원본 기준'
-    : null;
-  const loadError =
-    [allFto.error, watch.error, statusNote].filter(Boolean).join(' / ') || null;
+  // Hard failures: FTO or watch unavailable — list data is unreliable.
+  const loadError = [allFto.error, watch.error].filter(Boolean).join(' / ') || null;
+  // Soft failures: ancillary data unavailable; list still works but some features degrade.
+  const statusParts = [
+    autoStatus?.error ? '권리상태 자동조회 로드 실패 — 권리상태 필터는 FTO 원본 기준' : null,
+    checksData.error ? '수집 시각 조회 실패' : null,
+  ].filter(Boolean);
+  const statusWarning = statusParts.length ? statusParts.join(' / ') : null;
   return (
     <>
       <UpdatedAt cadence={CADENCE.kipris} iso={lastUpdated} />
@@ -266,9 +268,10 @@ async function PatentsDbView({
           ]),
         )}
         watchRows={watch.rows}
-        checks={checks}
+        checks={checksData.checks}
         max={PATENT_WATCH_MAX}
         loadError={loadError}
+        statusWarning={statusWarning}
         initialGroup={initialGroup}
         initialCompany={initialCompany}
         initialQ={initialQ}

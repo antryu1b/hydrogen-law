@@ -233,13 +233,22 @@ export async function loadPatentStatus(): Promise<Loaded<AutoStatus>> {
   );
 }
 
-/** Last per-country collection result from the cron cursor row; null when unavailable. */
-export async function loadPatentChecks(): Promise<Partial<Record<CheckKey, CheckState>> | null> {
+export interface LoadedChecks {
+  checks: Partial<Record<CheckKey, CheckState>> | null;
+  error: string | null;
+}
+
+/** Last per-country collection result from the cron cursor row. */
+export async function loadPatentChecks(): Promise<LoadedChecks> {
   const sb = intelSupabase();
-  if (!sb) return null;
+  if (!sb) return { checks: null, error: null };
   const { data, error } = await sb.from('intel_patents').select('checks:payload->checks').eq('id', CURSOR_ID).maybeSingle();
-  if (error || !data) return null;
-  return (data as { checks: Partial<Record<CheckKey, CheckState>> | null }).checks ?? null;
+  if (error) return { checks: null, error: describeError(error.message) };
+  if (!data) return { checks: null, error: null };
+  return {
+    checks: (data as { checks: Partial<Record<CheckKey, CheckState>> | null }).checks ?? null,
+    error: null,
+  };
 }
 
 /** Official-site snapshots written by /api/cron/competitor-sites, in registry order. */

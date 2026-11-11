@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import type { FtoRecord } from '@/lib/intel';
 import { PATENT_CATEGORY_LABEL, normalizeAppNo } from '@/lib/patent-watch';
+import { resolveFtoCat } from '@/lib/patent-db';
 
 const CATEGORY_LABEL: Record<string, string> = PATENT_CATEGORY_LABEL;
 const MAX_RENDER = 300;
@@ -44,7 +45,7 @@ export function FtoList({
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return records.filter((p) => {
-      if (cat && p.category !== cat) return false;
+      if (cat && resolveFtoCat(p.category) !== cat) return false;
       if (verdict === 'need' && p.verdict !== '상세검토 필요') return false;
       if (verdict === 'noneed' && p.verdict !== '상세검토 불필요') return false;
       if (!needle) return true;
@@ -66,11 +67,13 @@ export function FtoList({
         />
         <select value={cat} onChange={(e) => setCat(e.target.value)} className={control} aria-label="분류">
           <option value="">전체 분류</option>
-          {Object.entries(CATEGORY_LABEL).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v}
-            </option>
-          ))}
+          {Object.entries(CATEGORY_LABEL)
+            .filter(([k]) => k !== 'transfer') // 이관 is folded into 시스템 at render level
+            .map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
         </select>
         <select value={verdict} onChange={(e) => setVerdict(e.target.value)} className={control} aria-label="판정">
           <option value="">전체 판정</option>
@@ -87,7 +90,7 @@ export function FtoList({
           <div key={p.no} className="rounded-lg border border-border/80 bg-card p-3.5">
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className="rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">
-                {CATEGORY_LABEL[p.category ?? ''] ?? p.category ?? '-'}
+                {CATEGORY_LABEL[resolveFtoCat(p.category)] ?? p.category ?? '-'}
               </span>
               <span
                 className={`rounded px-1.5 py-0.5 text-[11px] font-semibold ${

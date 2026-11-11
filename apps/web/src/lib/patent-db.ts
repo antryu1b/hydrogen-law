@@ -44,7 +44,7 @@ export function rightsStatusBucket(status: string | null | undefined): RightsSta
 
 /**
  * Folds the 'transfer' (이관) FTO workflow label into 'system' at render level.
- * FTO records whose category is 'transfer' are display-mapped to '시스템 (이관)';
+ * FTO records whose category is 'transfer' are displayed as '시스템';
  * the underlying Supabase rows are never modified.
  * KIPRIS watch rows never receive 'transfer' (autoCategory rule excludes it).
  */
@@ -321,7 +321,9 @@ export function parseDbParams(
   }
 
   const q = firstStr(raw['q']).trim();
-  const cat = VALID_CATS.has(firstStr(raw['cat'])) ? firstStr(raw['cat']) : '';
+  // Remap 'transfer' → 'system' so stale ?cat=transfer bookmarks show 시스템 in the select.
+  const rawCat = firstStr(raw['cat']);
+  const cat = resolveFtoCat(VALID_CATS.has(rawCat) ? rawCat : '');
   const verdict = VALID_VERDICTS.has(firstStr(raw['verdict'])) ? firstStr(raw['verdict']) : '';
   const country = VALID_COUNTRIES.has(firstStr(raw['country'])) ? firstStr(raw['country']) : '';
   const rights = VALID_RIGHTS.has(firstStr(raw['rights'])) ? firstStr(raw['rights']) : '';

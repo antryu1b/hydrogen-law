@@ -191,6 +191,7 @@ export function PatentDbList({
   checks,
   max,
   loadError = null,
+  statusWarning = null,
   initialGroup = '',
   initialCompany = '',
   initialQ = '',
@@ -204,8 +205,10 @@ export function PatentDbList({
   watchRows: WatchListRow[];
   checks: Partial<Record<CheckKey, CheckState>> | null;
   max: number;
-  /** Supabase load error from loadFto() or loadPatentWatch(); shown as a banner above the list. */
+  /** Hard failure: FTO or watch rows unavailable. Hides counts and suppresses the empty-state note. */
   loadError?: string | null;
+  /** Soft failure: ancillary data (auto-status, check timestamps) unavailable; list still works. */
+  statusWarning?: string | null;
   initialGroup?: string;
   initialCompany?: string;
   initialQ?: string;
@@ -250,11 +253,17 @@ export function PatentDbList({
 
   return (
     <div className="space-y-4">
-      {/* Supabase load error — shown above the (possibly partial) list */}
+      {/* Hard failure: FTO or watch rows unavailable */}
       {loadError && (
         <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs">
           <p className="font-semibold text-destructive">데이터 로드 실패</p>
           <p className="mt-1 text-muted-foreground">{loadError}</p>
+        </div>
+      )}
+      {/* Soft failure: ancillary data degraded; list still works */}
+      {statusWarning && (
+        <div role="status" className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
+          {statusWarning}
         </div>
       )}
       <CheckFailures checks={checks} />

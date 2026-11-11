@@ -131,6 +131,20 @@ describe('parseDbParams', () => {
     expect(result.company).toBe('Toyota');
     expect(result.group).toBe('자동차 업체');
   });
+
+  it('?cat=transfer remaps to system (stale bookmark recovery)', () => {
+    // 이관 is folded into 시스템 at render level; a stale bookmark ?cat=transfer
+    // should select 시스템 in the filter UI, not leave it blank.
+    expect(parseDbParams({ cat: 'transfer' }).cat).toBe('system');
+  });
+
+  it('?cat=system stays system', () => {
+    expect(parseDbParams({ cat: 'system' }).cat).toBe('system');
+  });
+
+  it('?cat=unknown falls back to empty', () => {
+    expect(parseDbParams({ cat: 'unknown' }).cat).toBe('');
+  });
 });
 
 // ── rightsStatusBucket ────────────────────────────────────────────────────────
@@ -529,6 +543,19 @@ describe('shouldShowDbEmptyNote', () => {
   it('suppresses empty note when list has items (nothing to show)', () => {
     expect(shouldShowDbEmptyNote(null, 5)).toBe(false);
     expect(shouldShowDbEmptyNote('error', 5)).toBe(false);
+  });
+
+  it('status-only failure (statusWarning, no loadError) still shows the empty note', () => {
+    // statusWarning is NOT passed to shouldShowDbEmptyNote — only loadError gates it.
+    // So when only auto-status fails, the empty note still shows as expected.
+    const statusWarning = '권리상태 자동조회 로드 실패 — 권리상태 필터는 FTO 원본 기준';
+    expect(shouldShowDbEmptyNote(null /* loadError */, 0)).toBe(true);
+    // statusWarning is irrelevant to this helper — confirm it only depends on loadError
+    void statusWarning; // suppress unused-variable warning
+  });
+
+  it('list-failure path: loadError set → note suppressed even with no rows', () => {
+    expect(shouldShowDbEmptyNote('테이블이 아직 없습니다', 0)).toBe(false);
   });
 });
 
