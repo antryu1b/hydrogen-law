@@ -78,8 +78,8 @@ const COMPETITORS_PATH = path.resolve(__dirname, '../../../../scripts/intel/out/
 const competitorsAvailable = fs.existsSync(COMPETITORS_PATH);
 
 describe.skipIf(!competitorsAvailable)('competitors.json — mergeCompetitorTabs structure', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let rows: any[];
+  type CompetitorRow = { id: string; payload: { type: string; tabs: { label: string; blocks: { type: string }[] }[] } };
+  let rows: CompetitorRow[];
   beforeAll(() => {
     const { rows: r } = JSON.parse(fs.readFileSync(COMPETITORS_PATH, 'utf8'));
     rows = r;
@@ -87,37 +87,37 @@ describe.skipIf(!competitorsAvailable)('competitors.json — mergeCompetitorTabs
 
   it('has exactly 3 top-level rows (compare:000, compare:001, compare:002)', () => {
     expect(rows).toHaveLength(3);
-    expect(rows.map((r: any) => r.id)).toEqual(['compare:000', 'compare:001', 'compare:002']);
+    expect(rows.map((r) => r.id)).toEqual(['compare:000', 'compare:001', 'compare:002']);
   });
 
   it('compare:002 tabs block has 7 tabs (4 original + 3 merged)', () => {
-    const tabsRow = rows.find((r: any) => r.id === 'compare:002');
+    const tabsRow = rows.find((r) => r.id === 'compare:002')!;
     expect(tabsRow.payload.type).toBe('tabs');
     expect(tabsRow.payload.tabs).toHaveLength(7);
   });
 
   it('merged tab labels are correct', () => {
-    const tabs = rows.find((r: any) => r.id === 'compare:002').payload.tabs;
+    const tabs = rows.find((r) => r.id === 'compare:002')!.payload.tabs;
     expect(tabs[4].label).toBe('개별 기업 상세');
     expect(tabs[5].label).toBe('당사 결과·개선항목');
     expect(tabs[6].label).toBe('글로벌 리포트');
   });
 
   it('"개별 기업 상세" tab starts with the heading block and contains 7 details blocks', () => {
-    const tab = rows.find((r: any) => r.id === 'compare:002').payload.tabs[4];
+    const tab = rows.find((r) => r.id === 'compare:002')!.payload.tabs[4];
     expect(tab.blocks[0].type).toBe('heading');
-    expect(tab.blocks.filter((b: any) => b.type === 'details')).toHaveLength(7);
+    expect(tab.blocks.filter((b) => b.type === 'details')).toHaveLength(7);
   });
 
   it('"당사 결과·개선항목" tab starts with the heading block and contains 3 card blocks', () => {
-    const tab = rows.find((r: any) => r.id === 'compare:002').payload.tabs[5];
+    const tab = rows.find((r) => r.id === 'compare:002')!.payload.tabs[5];
     expect(tab.blocks[0].type).toBe('heading');
-    expect(tab.blocks.filter((b: any) => b.type === 'card')).toHaveLength(3);
+    expect(tab.blocks.filter((b) => b.type === 'card')).toHaveLength(3);
   });
 
   it('"글로벌 리포트" tab starts with the heading block and contains 2 card blocks', () => {
-    const tab = rows.find((r: any) => r.id === 'compare:002').payload.tabs[6];
+    const tab = rows.find((r) => r.id === 'compare:002')!.payload.tabs[6];
     expect(tab.blocks[0].type).toBe('heading');
-    expect(tab.blocks.filter((b: any) => b.type === 'card')).toHaveLength(2);
+    expect(tab.blocks.filter((b) => b.type === 'card')).toHaveLength(2);
   });
 });
