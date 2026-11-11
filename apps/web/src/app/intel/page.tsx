@@ -121,12 +121,14 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
   return (
     <div className="space-y-6">
       {/* Patents sub-pages carry their own specific section headings from data blocks,
-          so the generic tab-level heading is omitted there to avoid duplication. */}
-      {active !== 'patents' && (
-        <h1 className="font-display text-2xl font-bold tracking-tight">
-          {TABS.find((t) => t.key === active)?.label}
-        </h1>
-      )}
+          so the generic tab-level heading is visually hidden there (kept for screen readers). */}
+      <h1
+        className={
+          active === 'patents' ? 'sr-only' : 'font-display text-2xl font-bold tracking-tight'
+        }
+      >
+        {TABS.find((t) => t.key === active)?.label}
+      </h1>
 
       <div className="space-y-4">
         {active === 'news' && <NewsTab />}
