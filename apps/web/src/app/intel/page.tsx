@@ -6,6 +6,7 @@ import { NewsList } from '@/components/intel/NewsList';
 import { CompetitorPatentStats } from '@/components/intel/PatentWatch';
 import { PatentDbList } from '@/components/intel/PatentDb';
 import { applyFtoStageCleanup, filterPatentRows, parsePatentSec, stripSectionWords, type PatentSec } from '@/lib/intel-utils';
+import { parseDbParams } from '@/lib/patent-db';
 import {
   formatKst,
   loadBlocks,
@@ -211,6 +212,7 @@ async function PatentsDbView({
   initialCat,
   initialVerdict,
   initialCountry,
+  initialRights,
 }: {
   initialGroup: string;
   initialCompany: string;
@@ -218,6 +220,7 @@ async function PatentsDbView({
   initialCat: string;
   initialVerdict: string;
   initialCountry: string;
+  initialRights: string;
 }) {
   const [allFto, watch, autoStatus, checks] = await Promise.all([
     loadFto(),
@@ -232,10 +235,13 @@ async function PatentsDbView({
       .sort()
       .pop() ?? null;
   const lastUpdated = [allFto.lastUpdated, watch.lastUpdated, lastCollected].filter(Boolean).sort().pop() ?? null;
+  // key resets client filter state on soft navigation (URL param change).
+  const listKey = [initialGroup, initialCompany, initialQ, initialCat, initialVerdict, initialCountry, initialRights].join('|');
   return (
     <>
       <UpdatedAt cadence={CADENCE.kipris} iso={lastUpdated} />
       <PatentDbList
+        key={listKey}
         ftoRecords={allFto.rows}
         autoStatus={Object.fromEntries(
           (autoStatus?.rows ?? []).map((s) => [
@@ -252,6 +258,7 @@ async function PatentsDbView({
         initialCat={initialCat}
         initialVerdict={initialVerdict}
         initialCountry={initialCountry}
+        initialRights={initialRights}
       />
     </>
   );
@@ -308,6 +315,12 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   return (
     <>
       <UpdatedAt cadence={CADENCE.kipris} iso={lastUpdated} />
+      {!stats && competitor?.error && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs">
+          <p className="font-semibold text-destructive">경쟁사 통계 로드 실패</p>
+          <p className="mt-1 text-muted-foreground">{competitor.error}</p>
+        </div>
+      )}
       {stats && (
         <CompetitorPatentStats stats={stats} error={competitor?.error ?? null} />
       )}
@@ -331,20 +344,21 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
 export default async function IntelPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    tab?: string;
-    sec?: string;
-    group?: string;
-    company?: string;
-    q?: string;
-    cat?: string;
-    verdict?: string;
-    country?: string;
-  }>;
+  // Next.js 15: a repeated query param (e.g. ?q=a&q=b) is delivered as string[].
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { tab, sec, group = '', company = '', q = '', cat = '', verdict = '', country = '' } = await searchParams;
+  const rawParams = await searchParams;
+  // tab and sec are always single values; take first if array
+  const rawFirst = (v: string | string[] | undefined) => (Array.isArray(v) ? (v[0] ?? '') : (v ?? ''));
+  const tab = rawFirst(rawParams['tab']);
+  const sec = rawFirst(rawParams['sec']);
+
   const active: TabKey = TABS.some((t) => t.key === tab) ? (tab as TabKey) : 'news';
   const patentSec = parsePatentSec(sec);
+
+  // Parse and validate DB-specific params (guards against repeated params and unknown values).
+  const { group, company, q, cat, verdict, country, rights } = parseDbParams(rawParams);
+
   // Each patent sub-view gets its own visible page title.
   const patentTitle =
     active === 'patents' && patentSec ? PATENT_SEC_TITLES[patentSec] : undefined;
@@ -374,6 +388,7 @@ export default async function IntelPage({
             initialCat={cat}
             initialVerdict={verdict}
             initialCountry={country}
+            initialRights={rights}
           />
         )}
         {active === 'patents' && patentSec !== 'db' && <PatentsTab sec={patentSec} />}
