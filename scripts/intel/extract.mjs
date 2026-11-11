@@ -339,6 +339,33 @@ const newsRows = [...newsByUrl.values()];
 // Keyword / company map used by the daily RSS cron (kept for reference).
 const meta = { KG_NEWS_KW: readConst('KG_NEWS_KW'), KG_CO_MAP: readConst('KG_CO_MAP') };
 
+// ── post-processing ──────────────────────────────────────────────────────────
+// Fold the top-level content blocks that follow the compare:002 tabs row into
+// three new tabs appended to that row.  Groups are separated by `heading` blocks;
+// each heading stays inside its tab (it carries a `desc` the tab label omits).
+function mergeCompetitorTabs(rows) {
+  const tabsIdx = rows.findIndex((r) => r.payload.type === 'tabs');
+  if (tabsIdx === -1) return rows;
+  const tabsRow = rows[tabsIdx];
+  const afterTabs = rows.slice(tabsIdx + 1);
+  // Split into heading-delimited groups
+  const groups = [];
+  let current = null;
+  for (const row of afterTabs) {
+    if (row.payload.type === 'heading') {
+      current = { blocks: [row.payload] };
+      groups.push(current);
+    } else if (current) {
+      current.blocks.push(row.payload);
+    }
+  }
+  const TAB_LABELS = ['개별 기업 상세', '당사 결과·개선항목', '글로벌 리포트'];
+  for (let i = 0; i < Math.min(3, groups.length); i++) {
+    tabsRow.payload.tabs.push({ label: TAB_LABELS[i], blocks: groups[i].blocks });
+  }
+  return rows.slice(0, tabsIdx + 1);
+}
+
 // ── write ───────────────────────────────────────────────────────────────────
 fs.mkdirSync(outDir, { recursive: true });
 const generated_at = new Date().toISOString();
@@ -347,7 +374,7 @@ const write = (file, table, rows) => {
   fs.writeFileSync(path.join(outDir, file), JSON.stringify({ table, generated_at, source, rows }, null, 1));
   console.log(`${file}: ${rows.length} rows`);
 };
-write('competitors.json', 'intel_competitors', competitorRows);
+write('competitors.json', 'intel_competitors', mergeCompetitorTabs(competitorRows));
 write('patents.json', 'intel_patents', patentRows);
 write('news.json', 'intel_news', newsRows);
 fs.writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify(meta, null, 1));
