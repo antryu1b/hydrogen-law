@@ -6,7 +6,7 @@ import { NewsList } from '@/components/intel/NewsList';
 import { CompetitorPatentStats } from '@/components/intel/PatentWatch';
 import { PatentDbList } from '@/components/intel/PatentDb';
 import { applyFtoStageCleanup, filterPatentRows, parsePatentSec, stripSectionWords, type PatentSec } from '@/lib/intel-utils';
-import { parseDbParams } from '@/lib/patent-db';
+import { computePortfolioCounts, parseDbParams, type PortfolioGroupCount } from '@/lib/patent-db';
 import {
   formatKst,
   loadBlocks,
@@ -21,7 +21,7 @@ import {
   type BlockRow,
   type IntelBlock,
 } from '@/lib/intel';
-import { aggregateCompetitorStats, normalizeAppNo, type CompetitorStats } from '@/lib/patent-watch';
+import { aggregateCompetitorStats, normalizeAppNo } from '@/lib/patent-watch';
 
 export const metadata: Metadata = { title: '수전해 인텔리전스' };
 export const dynamic = 'force-dynamic';
@@ -154,19 +154,27 @@ function stripHeadingDescs(block: IntelBlock, words: string[]): IntelBlock {
 
 /**
  * 경쟁사 포트폴리오 — groups rendered as prominent cards with company counts.
- * Each group/company links to the unified 특허 종합 DB view with filter pre-applied.
+ * Counts are computed via computePortfolioCounts (same buildDbRows + filterPatentDb
+ * path as the DB list), so the card count equals the row count the linked DB view shows.
  */
-function CompetitorPortfolioSection({ stats }: { stats: CompetitorStats }) {
+function CompetitorPortfolioSection({
+  counts,
+  watchCapped,
+}: {
+  counts: PortfolioGroupCount[];
+  watchCapped: boolean;
+}) {
   return (
     <div>
       <div className="mt-10 border-b border-border/70 pb-2">
         <h2 className="font-display text-lg font-bold tracking-tight">경쟁사 포트폴리오</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          그룹별 경쟁사 현황 · KIPRIS 수집 기준 건수 · 각 사명 클릭 시 특허 종합 DB에서 필터 적용
+          그룹별 경쟁사 현황 · 각 사명 클릭 시 특허 종합 DB에서 필터 적용
+          {watchCapped && ` · KIPRIS 감시 목록은 최신 ${PATENT_WATCH_MAX}건까지만 반영`}
         </p>
       </div>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {stats.groups.map((g) => (
+        {counts.map((g) => (
           <div key={g.label} className="rounded-lg border border-border bg-card p-4">
             <Link
               href={`/intel?tab=patents&sec=db&group=${encodeURIComponent(g.label)}`}
@@ -268,9 +276,12 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   // 특허 종합 DB is handled separately — it has its own data sources.
   // (sec value handled by caller; sec=db arrives via PatentsDbView)
   const competitorFacing = !sec || sec === 'competitor';
-  const [allBlocks, competitor] = await Promise.all([
+  const [allBlocks, competitor, ftoForCount, watchForCount] = await Promise.all([
     loadBlocks('intel_patents'),
     competitorFacing ? loadCompetitorPatents() : null,
+    // Load FTO + watch so portfolio card counts match the DB list (same data path).
+    competitorFacing ? loadFto() : null,
+    competitorFacing ? loadPatentWatch() : null,
   ]);
   const filtered = filterPatentRows(allBlocks.rows, sec);
   const blocks = {
@@ -312,10 +323,18 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   const competitorRows = applyFtoStageCleanup(rawCompetitorRows);
   const otherRows = applyFtoStageCleanup(blocks.rows.filter((r) => !rawCompetitorRows.includes(r)));
   const stats = competitor ? aggregateCompetitorStats(competitor.rows) : null;
+
+  // Portfolio counts via same buildDbRows + filterPatentDb path as the DB list.
+  const portfolioCounts =
+    ftoForCount && watchForCount
+      ? computePortfolioCounts(ftoForCount.rows, watchForCount.rows)
+      : null;
+  const watchCapped = watchForCount ? watchForCount.rows.length >= PATENT_WATCH_MAX : false;
+
   return (
     <>
       <UpdatedAt cadence={CADENCE.kipris} iso={lastUpdated} />
-      {!stats && competitor?.error && (
+      {competitor?.error && (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs">
           <p className="font-semibold text-destructive">경쟁사 통계 로드 실패</p>
           <p className="mt-1 text-muted-foreground">{competitor.error}</p>
@@ -324,7 +343,7 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
       {stats && (
         <CompetitorPatentStats stats={stats} error={competitor?.error ?? null} />
       )}
-      {stats && <CompetitorPortfolioSection stats={stats} />}
+      {portfolioCounts && <CompetitorPortfolioSection counts={portfolioCounts} watchCapped={watchCapped} />}
       {competitorRows.length > 0 && (
         <ReportBasisNote>
           아래 분석·참고 문구는 보고서 기준(작성 시점)이며 자동 갱신되지 않습니다 · 권리상태 최신값은 특허 종합 DB에서 확인하세요.

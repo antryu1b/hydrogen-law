@@ -7,7 +7,6 @@ import {
   PATENT_CATEGORY_LABEL,
   WATCH_SET_LABEL,
   rowCountry,
-  normalizeAppNo,
   type CheckKey,
   type CheckState,
   type WatchListRow,
@@ -222,7 +221,7 @@ export function PatentDbList({
 
   // Build combined sorted list once; re-build only when source data changes.
   const allRows = useMemo(
-    () => buildDbRows(ftoRecords, autoStatus, watchRows, (appNo) => normalizeAppNo(appNo)),
+    () => buildDbRows(ftoRecords, autoStatus, watchRows),
     [ftoRecords, autoStatus, watchRows],
   );
 
@@ -328,27 +327,25 @@ export function PatentDbList({
           ))}
         </select>
 
-        <label htmlFor={`${id}-verdict`} className="sr-only">판정 (FTO)</label>
+        <label htmlFor={`${id}-verdict`} className="sr-only">판정 (FTO 검토 항목, 선택 시 미검토 행 숨김)</label>
         <select
           id={`${id}-verdict`}
           value={verdict}
           onChange={(e) => { setVerdict(e.target.value); setPageLimit(PAGE_SIZE); }}
           className={control}
-          aria-label="판정 (FTO 검토 항목, 선택 시 미검토 행 숨김)"
         >
           <option value="">전체 판정</option>
           <option value="need">상세검토 필요</option>
           <option value="noneed">상세검토 불필요</option>
         </select>
 
-        {/* Row 5: 국가 (watch only) */}
-        <label htmlFor={`${id}-country`} className="sr-only">출원국 (신규 출원)</label>
+        {/* Row 5: 국가 (watch only) — FTO rows hidden when country selected */}
+        <label htmlFor={`${id}-country`} className="sr-only">출원국 (선택 시 FTO 검토 행 숨김)</label>
         <select
           id={`${id}-country`}
           value={country}
           onChange={(e) => { setCountry(e.target.value); setPageLimit(PAGE_SIZE); }}
           className={control}
-          aria-label="출원국 (신규(미검토) 항목)"
         >
           <option value="">전체 국가</option>
           {COUNTRIES.map((c) => (
@@ -376,12 +373,13 @@ export function PatentDbList({
               {filtered.length}건 중 {shown.length}건 표시
             </p>
             <div className="mt-2 space-y-2">
-              {shown.map((row, i) => (
-                <DbRowCard
-                  key={row.source === 'fto' ? `fto-${row.record.no}` : `watch-${row.row.id}-${i}`}
-                  row={row}
-                />
-              ))}
+              {shown.map((row, i) => {
+                const key =
+                  row.source === 'fto'
+                    ? `fto-${row.record.no ?? `idx-${i}`}`
+                    : `watch-${row.row.appNo || row.row.id || `idx-${i}`}`;
+                return <DbRowCard key={key} row={row} />;
+              })}
             </div>
             {hasMore && (
               <button
