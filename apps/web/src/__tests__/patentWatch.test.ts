@@ -269,9 +269,48 @@ describe('competitorGroupFor (FTO competitor regrouping)', () => {
     expect(competitorGroupFor('SIEMENS AKTIENGESELLSCHAFT')).toEqual({ company: 'Siemens Energy', group: '에너지·플랜트(EPC)' });
   });
 
-  it('returns null for applicants missing from the alias map', () => {
-    for (const a of ['AISIN CORPORATION', 'SIEMENS GAMESA RENEWABLE ENERGY A/S', '드 노라 페르멜렉 가부시키가이샤', 'Ohmium International, Inc.', '']) {
-      expect(competitorGroupFor(a)).toBeNull();
+  it('maps the FTO DB applicants added to the alias map (KR and EN legal names)', () => {
+    const cases: [string, string, string][] = [
+      ['Aisin Seiki Kabushiki Kaisha', 'Toyota', '자동차 업체'],
+      ['AISIN CORPORATION', 'Toyota', '자동차 업체'],
+      ['아이신 세이끼 가부시끼가이샤', 'Toyota', '자동차 업체'],
+      ['H-TEC SYSTEMS GMBH', 'H-TEC', '수전해 전문업체'],
+      ['인두스트리에 데 노라 에스.피.에이.', 'De Nora', '수전해 전문업체'],
+      ['드 노라 페르멜렉 가부시키가이샤', 'De Nora', '수전해 전문업체'],
+      ['INDUSTRIE DE NORA S.P.A.', 'De Nora', '수전해 전문업체'],
+      ['Ohmium International, Inc.', 'Ohmium', '수전해 전문업체'],
+      ['VERDAGY, INC.', 'Verdagy', '수전해 전문업체'],
+      ['BLOOM ENERGY CORPORATION', 'Bloom Energy', '수전해 전문업체'],
+      ['블룸 에너지 코퍼레이션', 'Bloom Energy', '수전해 전문업체'],
+      ['린데 게엠베하', 'Linde', '에너지·플랜트(EPC)'],
+      ['LINDE GMBH', 'Linde', '에너지·플랜트(EPC)'],
+      ['Linde Aktiengesellschaft', 'Linde', '에너지·플랜트(EPC)'],
+      ['AIR PRODUCTS AND CHEMICALS, INC.', 'Air Products', '에너지·플랜트(EPC)'],
+      ['에어 프로덕츠 앤드 케미칼스, 인코포레이티드', 'Air Products', '에너지·플랜트(EPC)'],
+      ['THYSSENKRUPP UHDE GMBH | THYSSENKRUPP AG', 'thyssenkrupp', '에너지·플랜트(EPC)'],
+      ['thyssenkrupp nucera AG & Co. KGaA', 'thyssenkrupp', '에너지·플랜트(EPC)'],
+      ['티센크루프 우데 게엠베하', 'thyssenkrupp', '에너지·플랜트(EPC)'],
+      // 추정: Siemens Gamesa attributed to its parent Siemens Energy.
+      ['SIEMENS GAMESA RENEWABLE ENERGY A/S', 'Siemens Energy', '에너지·플랜트(EPC)'],
+    ];
+    for (const [applicant, company, group] of cases) {
+      expect(competitorGroupFor(applicant), applicant).toEqual({ company, group });
+    }
+  });
+
+  it('does not match generic words or look-alike names', () => {
+    for (const a of [
+      'Lindenberg GmbH',
+      'Linden Technologies',
+      'Bloom Industries Ltd.',
+      'Bloomberg L.P.',
+      'Raising Cane Holdings',
+      'H TECH CO., LTD.',
+      'Air Liquide',
+      'Siemens Healthineers',
+      '',
+    ]) {
+      expect(competitorGroupFor(a), a).toBeNull();
     }
   });
 });

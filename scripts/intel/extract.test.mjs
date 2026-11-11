@@ -6,10 +6,10 @@ import { mergeCompetitorTabs } from './merge-tabs.mjs';
 import {
   dropInternalProcedure,
   neutralFtoDesc,
+  neutralFtoSummary,
   regroupCompetitorTabs,
   renameLegacyText,
   transformPatentRows,
-  UNMAPPED_GROUP,
 } from './patent-rows.mjs';
 
 function tabsRow(tabs = []) {
@@ -158,11 +158,16 @@ test('neutralFtoDesc strips team mentions and adds the FTO basis label', () => {
   );
 });
 
+const SUMMARY =
+  '기액분리기(171건) + 시스템(214건) + 기액분리기→시스템 이관(15건) = 총 400건 1차 검토 완료. KR 특허는 대체로 위협도 낮음. ' +
+  '2차 검토는 외부 특허법인(남아이피)과 8월 둘째 주 온라인 킥오프 후 9월 말까지 진행 예정. 당사 자체 특허 초안은 8월 중 제출 예정.';
+const FTO_OPTS = { ftoCount: 400, categoryCounts: [171, 214, 15] };
+
 function ftoReviewRows() {
   const p = (i, payload) => ({ id: `fto-review:${String(i).padStart(3, '0')}`, section: 'fto-review', sort: i, payload });
   return [
     p(0, { type: 'heading', title: '특허 검토', desc: '사업화IP팀 주관 · 1차 검토 (수전해스택개발팀)' }),
-    p(1, { type: 'text', text: 'overview' }),
+    p(1, { type: 'text', text: SUMMARY }),
     p(2, { type: 'stats', items: [] }),
     p(3, { type: 'heading', title: '① 프로세스' }),
     p(4, { type: 'table', headers: [], rows: [] }),
@@ -175,42 +180,54 @@ function ftoReviewRows() {
 }
 
 test('dropInternalProcedure keeps the overview and drops ①–④ only', () => {
-  const { rows, droppedIds } = dropInternalProcedure(ftoReviewRows(), { ftoCount: 400 });
+  const { rows, droppedIds } = dropInternalProcedure(ftoReviewRows(), FTO_OPTS);
   assert.deepEqual(rows.map((r) => r.id), ['fto-review:000', 'fto-review:001', 'fto-review:002', 'own:000']);
   assert.equal(droppedIds.length, 6);
   assert.equal(rows[0].payload.desc, 'FTO 검토 400건 기준 · 1차 검토');
+  assert.equal(rows[1].payload.text, '기액분리기(171건) + 시스템(214건) + 기액분리기→시스템 이관(15건) = 총 400건 1차 검토 완료.');
+});
+
+test('neutralFtoSummary drops the external firm and schedule, and checks counts against the records', () => {
+  const out = neutralFtoSummary(SUMMARY, 400, [171, 214, 15]);
+  assert.doesNotMatch(out, /남아이피|특허법인|\d+월|예정/);
+  assert.match(out, /총 400건/);
+  assert.throws(() => neutralFtoSummary(SUMMARY, 400, [170, 214, 16]), /count 170건 missing/);
+  assert.throws(() => neutralFtoSummary(SUMMARY, 401, []), /no sentence with "총 401건"/);
 });
 
 test('dropInternalProcedure throws when the procedure blocks move', () => {
   const rows = ftoReviewRows().filter((r) => r.id !== 'fto-review:002');
-  assert.throws(() => dropInternalProcedure(rows, { ftoCount: 400 }), /start at fto-review:003/);
+  assert.throws(() => dropInternalProcedure(rows, FTO_OPTS), /start at fto-review:003/);
 });
 
 test('regroupCompetitorTabs regroups rows on the KIPRIS alias map and recomputes counts', () => {
   const { payload, summary } = regroupCompetitorTabs(legacyTabs(), { ftoCount: 400 });
-  assert.deepEqual(summary.counts, [['자동차 업체', 2], ['에너지·플랜트(EPC)', 1], [UNMAPPED_GROUP, 2]]);
+  assert.deepEqual(summary.counts, [['자동차 업체', 3], ['수전해 전문업체', 1], ['에너지·플랜트(EPC)', 1]]);
   assert.deepEqual(summary.legacyCounts, [3, 2]);
-  assert.deepEqual(summary.unmappedApplicants, ['Ohmium International, Inc.', 'AISIN CORPORATION']);
-  const labels = payload.tabs.map((t) => t.label);
-  assert.deepEqual(labels, [
-    '자동차 업체 (2건)',
+  assert.deepEqual(payload.tabs.map((t) => t.label), [
+    '자동차 업체 (3건)',
+    '수전해 전문업체 (1건)',
     '에너지·플랜트(EPC) (1건)',
-    `${UNMAPPED_GROUP} (2건)`,
-    // Only 2 of 3 legacy group-1 rows landed in one group (< 90%), so its analysis gets its own tab.
-    '공백 분석 — 자동차 계열 (이전 분류)',
+    // Legacy group 2 split 1/1 across groups (< 90% in one), so its analysis gets its own tab.
     '공백 분석 — 수전해 전문·에너지 기업 (이전 분류)',
   ]);
   const auto = payload.tabs[0].blocks;
   const stats = auto[0].items;
-  assert.equal(stats[0].value, '2건');
-  assert.equal(stats[1].value, '1건 (50.0%)');
-  assert.equal(stats[1].desc, '기액분리기 1건 · 시스템 1건 (중복 포함)');
+  assert.equal(stats[0].value, '3건');
+  assert.equal(stats[0].desc, 'Honda 1건 · Toyota 2건');
+  assert.equal(stats[1].value, '2건 (66.7%)');
+  assert.equal(stats[1].desc, '기액분리기 2건 · 시스템 1건 (중복 포함)');
   const table = auto.find((b) => b.type === 'table');
-  // Renumbered; joint Toyota|Aisin filing maps to Toyota, Aisin-only does not.
-  assert.deepEqual(table.rows.map((r) => [r[0].t, r[1].t, r[2].t]), [['1', 'Honda', 'H1'], ['2', 'Toyota', 'T1']]);
-  const unmapped = payload.tabs[2].blocks.find((b) => b.type === 'table');
-  assert.equal(unmapped.headers[1], '원 분류');
-  assert.deepEqual(unmapped.rows.map((r) => r[2].t), ['O1', 'A1']); // filing date ascending
+  // Renumbered; joint Toyota|Aisin and Aisin-only filings both map to Toyota.
+  assert.deepEqual(table.rows.map((r) => [r[0].t, r[1].t, r[2].t]), [
+    ['1', 'Honda', 'H1'],
+    ['2', 'Toyota', 'T1'],
+    ['3', 'Toyota', 'A1'],
+  ]);
+  // Legacy group 1 rows all landed in 자동차 업체, so its analysis is attached there.
+  const after = auto.slice(auto.indexOf(table) + 1);
+  assert.deepEqual(after.map((b) => b.type), ['text', 'text', 'card']);
+  assert.match(after[0].text, /이전 분류\(자동차 계열 3건\) 기준.*모두 현재 자동차 업체 탭/);
 });
 
 test('regroupCompetitorTabs rewrites old No. references in 참고 notes to application numbers', () => {
@@ -218,22 +235,12 @@ test('regroupCompetitorTabs rewrites old No. references in 참고 notes to appli
   const texts = JSON.stringify(payload);
   assert.match(texts, /최근 건\(H1·A1\)/);
   assert.match(texts, /당사 No\.2·4 특허/); // own-patent references in cards are untouched
-  assert.match(texts, /이전 분류\(자동차 계열 3건\) 기준/);
 });
 
-test('regroupCompetitorTabs attaches legacy analysis to the tab holding >= 90% of its rows', () => {
+test('regroupCompetitorTabs throws on an applicant missing from the alias map', () => {
   const tabs = legacyTabs();
-  const t1 = tabs.tabs[0].blocks;
-  t1[2].rows.pop(); // drop the Aisin-only row → both remaining rows map to 자동차 업체
-  t1[3].text = '참고 — 최근 건(No.1·2) 확인';
-  const { payload } = regroupCompetitorTabs(tabs, { ftoCount: 400 });
-  assert.equal(payload.tabs.length, 4);
-  const auto = payload.tabs[0];
-  assert.equal(auto.label, '자동차 업체 (2건)');
-  const after = auto.blocks.slice(auto.blocks.findIndex((b) => b.type === 'table') + 1);
-  assert.deepEqual(after.map((b) => b.type), ['text', 'text', 'card']);
-  assert.match(after[0].text, /이전 분류\(자동차 계열 2건\) 기준.*자동차 업체 2건/);
-  assert.equal(after[1].text, '참고 — 최근 건(H1·T1) 확인');
+  tabs.tabs[1].blocks[2].rows[1][4].t = 'Unknown Electrolysis Startup Inc.';
+  assert.throws(() => regroupCompetitorTabs(tabs, { ftoCount: 400 }), /"Unknown Electrolysis Startup Inc\." is not in the KIPRIS alias map/);
 });
 
 test('regroupCompetitorTabs throws on unexpected table columns', () => {
@@ -256,7 +263,7 @@ test('transformPatentRows leaves no 경쟁사1/2 mention and rewrites the overvi
     { id: 'competitor:001', section: 'competitor', sort: 210, payload: legacyTabs() },
     { id: 'triz:000', section: 'triz', sort: 300, payload: { type: 'table', headers: ['당사', '경쟁사1', '경쟁사2'], rows: [] } },
   ];
-  const { rows: out } = transformPatentRows(rows, { ftoCount: 400 });
+  const { rows: out } = transformPatentRows(rows, FTO_OPTS);
   assert.doesNotMatch(JSON.stringify(out), /경쟁사[12]/);
   const overview = out.find((r) => r.id === 'competitor:000').payload.desc;
   assert.match(overview, /^FTO 검토 400건 기준 · DB 내 경쟁사 출원 5건을 KIPRIS 감시 그룹으로 재분류/);

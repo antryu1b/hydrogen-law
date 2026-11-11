@@ -110,18 +110,26 @@ export function isExcluded(text: string): boolean {
 }
 
 // ── Competitors ─────────────────────────────────────────────────────────────
-/** Labels match the news tab's COMPANIES labels (intel-news cron). */
+/**
+ * Original labels match the news tab's COMPANIES labels (intel-news cron); the later
+ * additions (H-TEC … thyssenkrupp) cover the remaining applicants of the FTO competitor DB.
+ */
 export const COMPETITOR_GROUPS: { group: string; companies: string[] }[] = [
   { group: '자동차 업체', companies: ['현대차', 'Toyota', 'Honda'] },
-  { group: '수전해 전문업체', companies: ['NEL', 'ITM Power', 'Plug Power', 'Accelera'] },
-  { group: '에너지·플랜트(EPC)', companies: ['Siemens Energy', '삼성E&A', '포스코홀딩스'] },
+  {
+    group: '수전해 전문업체',
+    companies: ['NEL', 'ITM Power', 'Plug Power', 'Accelera', 'H-TEC', 'De Nora', 'Ohmium', 'Verdagy', 'Bloom Energy'],
+  },
+  { group: '에너지·플랜트(EPC)', companies: ['Siemens Energy', '삼성E&A', '포스코홀딩스', 'Linde', 'Air Products', 'thyssenkrupp'] },
 ];
 
 // Matched as substrings of the normalized applicant name (lowercase, no spaces/punctuation).
 // Use specific strings to avoid broad-matching subsidiaries or unrelated entities.
 const APPLICANT_ALIASES: [string, string[]][] = [
   ['현대차', ['현대자동차', '기아주식회사', '기아자동차', 'hyundaimotor', 'kiacorporation', 'kiamotors']],
-  ['Toyota', ['도요타', '토요타', 'toyota']],
+  // Aisin is a Toyota group company; its filings were attributed to Toyota in the FTO analysis.
+  // English aliases are legal-name prefixes so a bare 'aisin' substring cannot match other names.
+  ['Toyota', ['도요타', '토요타', 'toyota', '아이신', 'aisinseiki', 'aisincorporation', 'aisincorp']],
   ['Honda', ['혼다', 'honda']],
   ['NEL', ['넬에이에스에이', '넬하이드로젠', 'nelasa', 'nelhydrogen']],
   ['ITM Power', ['아이티엠파워', 'itmpower']],
@@ -134,7 +142,12 @@ const APPLICANT_ALIASES: [string, string[]][] = [
   // 추정: Siemens AG ('siemensaktiengesellschaft'/'지멘스악티엔게젤샤프트') filed water-electrolysis patents
   // before the 2020 Siemens Energy spin-off. isRelevant() already gates; only electrolysis-relevant
   // filings are counted. Include them here so pre-2020 filings are attributed to Siemens Energy.
-  ['Siemens Energy', ['지멘스에너지', 'siemensenergy', 'siemensaktiengesellschaft', '지멘스악티엔게젤샤프트']],
+  // 추정: Siemens Gamesa Renewable Energy is a Siemens Energy subsidiary (majority 2020, wholly owned
+  // 2023); its electrolysis filings are attributed to Siemens Energy, consistent with Siemens AG above.
+  [
+    'Siemens Energy',
+    ['지멘스에너지', 'siemensenergy', 'siemensaktiengesellschaft', '지멘스악티엔게젤샤프트', 'siemensgamesa', '지멘스가메사'],
+  ],
   ['삼성E&A', ['삼성이앤에이', '삼성엔지니어링', 'samsungea', 'samsungengineering']],
   // Narrowed from bare '포스코'/'posco' (which would also match POSCO Future M, POSCO ICT, etc.).
   // '포스코홀딩스' covers post-2022 parent; 'poscoholding' covers English-name filings.
@@ -143,6 +156,19 @@ const APPLICANT_ALIASES: [string, string[]][] = [
   // so including it would require manual false-positive review that pre-2020 data does not yet support.
   // If pre-2022 filings become relevant, add 'poscoco'/'주식회사포스코' and mark 추정.
   ['포스코홀딩스', ['포스코홀딩스', 'poscoholding']],
+  // Electrolyzer specialists. Korean transliterations not yet seen in KIPRIS data are 추정.
+  ['H-TEC', ['htecsystems', '에이치텍시스템즈']],
+  // De Nora: Industrie De Nora S.p.A. and De Nora Permelec Ltd (KR: 인두스트리에 데 노라 / 드 노라 페르멜렉).
+  ['De Nora', ['denora', '데노라', '드노라']],
+  ['Ohmium', ['ohmiuminternational', '오미움']],
+  ['Verdagy', ['verdagy', '버다지']],
+  ['Bloom Energy', ['bloomenergy', '블룸에너지']],
+  // Energy / industrial gas / EPC. Linde uses legal-name forms only: bare 'linde' would also match
+  // names such as 'Lindenberg'.
+  ['Linde', ['린데게엠베하', '린데악티엔게젤샤프트', '린데피엘씨', 'lindegmbh', 'lindeag', 'lindeaktiengesellschaft', 'lindeplc']],
+  ['Air Products', ['airproductsandchemicals', '에어프로덕츠']],
+  // thyssenkrupp AG, thyssenkrupp Uhde, thyssenkrupp nucera.
+  ['thyssenkrupp', ['thyssenkrupp', '티센크루프']],
 ];
 
 function normName(s: string): string {

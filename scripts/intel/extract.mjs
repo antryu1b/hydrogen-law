@@ -289,7 +289,13 @@ const patentRows = [
 ];
 const PATENTS = readConst('PATENTS');
 // Drop internal procedure blocks, regroup competitor tabs on the KIPRIS groups (see patent-rows.mjs).
-const patentReport = transformPatentRows(patentRows.splice(0), { ftoCount: PATENTS.length });
+const ftoCategoryCounts = Object.values(
+  PATENTS.reduce((m, p) => ({ ...m, [p.category]: (m[p.category] ?? 0) + 1 }), {}),
+);
+const patentReport = transformPatentRows(patentRows.splice(0), {
+  ftoCount: PATENTS.length,
+  categoryCounts: ftoCategoryCounts,
+});
 patentRows.push(...patentReport.rows);
 for (const { reviewer: _reviewer, ...p } of PATENTS) {
   // Reviewer holds an employee's name; never publish it.
@@ -359,7 +365,6 @@ write('competitors.json', 'intel_competitors', mergeCompetitorTabs(competitorRow
 write('patents.json', 'intel_patents', patentRows);
 console.log(`  dropped rows: ${patentReport.droppedIds.join(', ')}`);
 console.log(`  competitor groups: ${patentReport.summary.counts.map(([g, n]) => `${g} ${n}`).join(' · ')}`);
-console.log(`  unmapped applicants: ${patentReport.summary.unmappedApplicants.join(' / ') || 'none'}`);
 write('news.json', 'intel_news', newsRows);
 fs.writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify(meta, null, 1));
 console.log(`→ ${outDir}`);

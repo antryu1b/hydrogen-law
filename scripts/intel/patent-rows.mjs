@@ -18,13 +18,11 @@ import { COMPETITOR_GROUPS, competitorGroupFor } from '../../apps/web/src/lib/pa
 
 /** Display names for the earlier FTO grouping (used where analysis was done on it). */
 export const LEGACY_GROUP_NAMES = ['자동차 계열', '수전해 전문·에너지 기업'];
-/** Tab label for applicants missing from the KIPRIS alias map. */
-export const UNMAPPED_GROUP = 'KIPRIS 감시 외 출원인';
 
 const PROCEDURE_HEADING = /^[①②③④]/;
 
 /** Removes rows after the overview (heading, text, stats) of the fto-review section. */
-export function dropInternalProcedure(rows, { ftoCount }) {
+export function dropInternalProcedure(rows, { ftoCount, categoryCounts }) {
   const fto = rows.filter((r) => r.section === 'fto-review');
   const firstProc = fto.findIndex((r) => r.payload.type === 'heading' && PROCEDURE_HEADING.test(r.payload.title));
   if (firstProc !== 3) {
@@ -40,7 +38,23 @@ export function dropInternalProcedure(rows, { ftoCount }) {
   const head = out.find((r) => r.section === 'fto-review');
   if (head?.payload.type !== 'heading') throw new Error('dropInternalProcedure: fto-review must start with a heading');
   head.payload = { ...head.payload, desc: neutralFtoDesc(head.payload.desc ?? '', ftoCount) };
+  const summary = out.filter((r) => r.section === 'fto-review')[1];
+  if (summary?.payload.type !== 'text') throw new Error('dropInternalProcedure: fto-review:001 must be a text block');
+  summary.payload = { ...summary.payload, text: neutralFtoSummary(summary.payload.text, ftoCount, categoryCounts) };
   return { rows: out, droppedIds: [...droppedIds] };
+}
+
+/**
+ * Keeps only the sentence with the 총 N건 count breakdown (drops review schedule, external firm
+ * and assessment sentences) and checks its numbers against the FTO records.
+ */
+export function neutralFtoSummary(text, ftoCount, categoryCounts) {
+  const sentence = text.split(/(?<=\.)\s+/).find((x) => x.includes(`총 ${ftoCount}건`));
+  if (!sentence) throw new Error(`neutralFtoSummary: no sentence with "총 ${ftoCount}건"`);
+  for (const n of categoryCounts) {
+    if (!sentence.includes(`(${n}건)`)) throw new Error(`neutralFtoSummary: count ${n}건 missing from "${sentence}"`);
+  }
+  return sentence;
 }
 
 /** Drops team mentions ("…팀 주관" segments, "(…팀…)" groups) and prefixes the FTO basis label. */
@@ -117,8 +131,7 @@ function statsBlock(entries, companyOrder) {
   const needCats = countBy(need.flatMap((e) => e.cells[5].t.split(/\s+/).filter(Boolean)));
   const byCompany = countBy(entries.map((e) => e.company));
   const items = [
-    // Unmapped rows carry their earlier-grouping label, so say so.
-    { label: '전체 건수', value: `${entries.length}건`, desc: `${companyOrder.length ? '' : '원 분류 기준 '}${joinCounts(byCompany)}` },
+    { label: '전체 건수', value: `${entries.length}건`, desc: joinCounts(byCompany) },
     {
       label: '상세검토 필요',
       value: `${need.length}건 (${pct(need.length, entries.length)})`,
@@ -135,7 +148,8 @@ function statsBlock(entries, companyOrder) {
 
 /**
  * Rebuilds the competitor:002 tabs on the KIPRIS groups. Returns the new payload plus a
- * summary (group counts, unmapped applicants) for the overview heading and reporting.
+ * summary (group counts) for the overview heading and reporting. Throws on an applicant
+ * missing from the alias map.
  */
 export function regroupCompetitorTabs(payload, { ftoCount }) {
   if (payload.type !== 'tabs' || payload.tabs.length !== LEGACY_GROUP_NAMES.length) {
@@ -145,12 +159,14 @@ export function regroupCompetitorTabs(payload, { ftoCount }) {
   const entries = legacy.flatMap((l, li) =>
     l.rows.map((cells, i) => {
       const hit = competitorGroupFor(cells[4].t);
+      // No fallback bucket: every applicant must be in the KIPRIS alias map (patent-watch.ts).
+      if (!hit) throw new Error(`regroupCompetitorTabs: applicant "${cells[4].t}" is not in the KIPRIS alias map`);
       return {
         cells,
         legacy: li,
         order: i,
-        group: hit?.group ?? UNMAPPED_GROUP,
-        company: hit?.company ?? cells[1].t,
+        group: hit?.group,
+        company: hit?.company,
         need: cells[8].t === NEED,
       };
     }),
@@ -158,25 +174,15 @@ export function regroupCompetitorTabs(payload, { ftoCount }) {
   // Filing date ascending (YYYY.MM.DD compares as text); legacy order breaks ties.
   entries.sort((a, b) => a.cells[6].t.localeCompare(b.cells[6].t) || a.legacy - b.legacy || a.order - b.order);
 
-  const groupNames = [...COMPETITOR_GROUPS.map((g) => g.group), UNMAPPED_GROUP];
+  const groupNames = COMPETITOR_GROUPS.map((g) => g.group);
   const byGroup = new Map(groupNames.map((g) => [g, entries.filter((e) => e.group === g)]));
   const tabs = [];
   for (const g of groupNames) {
     const list = byGroup.get(g);
     if (!list.length) continue;
-    const unmapped = g === UNMAPPED_GROUP;
     // The 당사 entry (현대차) is never a competitor in the FTO portfolio.
-    const companyOrder = unmapped ? [] : COMPETITOR_GROUPS.find((x) => x.group === g).companies.filter((c) => c !== '현대차');
+    const companyOrder = COMPETITOR_GROUPS.find((x) => x.group === g).companies.filter((c) => c !== '현대차');
     const blocks = [statsBlock(list, companyOrder)];
-    if (unmapped) {
-      blocks.push({
-        type: 'text',
-        tone: 'info',
-        text:
-          'KIPRIS 감시 그룹 별칭표에 없는 출원인입니다. 「원 분류」는 이전 분류의 기업 표기입니다. 출원인별: ' +
-          joinCounts(countBy(list.map((e) => e.cells[4].t))),
-      });
-    }
     blocks.push(
       {
         type: 'heading',
@@ -185,7 +191,7 @@ export function regroupCompetitorTabs(payload, { ftoCount }) {
       },
       {
         type: 'table',
-        headers: ['No', unmapped ? '원 분류' : '기업', ...TABLE_HEADERS.slice(2)],
+        headers: ['No', '기업', ...TABLE_HEADERS.slice(2)],
         rows: list.map((e, i) => [{ t: String(i + 1) }, { ...e.cells[1], t: e.company }, ...e.cells.slice(2)]),
       },
     );
@@ -203,7 +209,11 @@ export function regroupCompetitorTabs(payload, { ftoCount }) {
     const note = {
       type: 'text',
       tone: 'info',
-      text: `※ 아래 참고·공백 분석은 이전 분류(${name} ${l.rows.length}건) 기준입니다. 해당 ${l.rows.length}건은 현재 ${joinCounts(where)}으로 나뉩니다.`,
+      text:
+        `※ 아래 참고·공백 분석은 이전 분류(${name} ${l.rows.length}건) 기준입니다. ` +
+        (where.size === 1
+          ? `해당 ${l.rows.length}건은 모두 현재 ${[...where.keys()][0]} 탭에 있습니다.`
+          : `해당 ${l.rows.length}건은 현재 ${joinCounts(where)}으로 나뉩니다.`),
     };
     const [topGroup, topN] = [...where].sort((a, b) => b[1] - a[1])[0];
     const home = topN / l.rows.length >= 0.9 ? tabs.find((t) => t.group === topGroup) : null;
@@ -212,10 +222,9 @@ export function regroupCompetitorTabs(payload, { ftoCount }) {
   });
 
   const counts = groupNames.map((g) => [g, byGroup.get(g).length]).filter(([, n]) => n);
-  const unmappedApplicants = [...new Set(byGroup.get(UNMAPPED_GROUP).map((e) => e.cells[4].t))];
   return {
     payload: { type: 'tabs', tabs: tabs.map(({ label, blocks }) => ({ label, blocks })) },
-    summary: { total: entries.length, counts, legacyCounts: legacy.map((l) => l.rows.length), unmappedApplicants },
+    summary: { total: entries.length, counts, legacyCounts: legacy.map((l) => l.rows.length) },
   };
 }
 
@@ -249,8 +258,8 @@ export function renameLegacyGroups(value) {
 
 // ── entry point ─────────────────────────────────────────────────────────────
 /** Applies all patent-row transforms. Returns rows plus a report for the console. */
-export function transformPatentRows(rows, { ftoCount }) {
-  const { rows: kept, droppedIds } = dropInternalProcedure(rows, { ftoCount });
+export function transformPatentRows(rows, { ftoCount, categoryCounts }) {
+  const { rows: kept, droppedIds } = dropInternalProcedure(rows, { ftoCount, categoryCounts });
   const tabsRow = kept.find((r) => r.section === 'competitor' && r.payload.type === 'tabs');
   if (!tabsRow) throw new Error('transformPatentRows: competitor tabs row not found');
   const { payload, summary } = regroupCompetitorTabs(tabsRow.payload, { ftoCount });
