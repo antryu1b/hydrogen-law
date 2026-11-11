@@ -78,6 +78,8 @@ describe('/api/cron/kipris-patents GET', () => {
     const body = await (await GET()).json();
 
     expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(20);
+    // Issue 4: KIPRIS Plus supports TLS (confirmed 2026-11-11); must use https.
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/^https:\/\/plus\.kipris\.or\.kr\//);
     expect(String(fetchMock.mock.calls[0][0])).toContain('getWordSearch?word=');
     expect(body.ok).toBe(true);
     expect(body.failures).toEqual([]);

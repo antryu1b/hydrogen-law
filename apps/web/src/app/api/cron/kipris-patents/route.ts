@@ -25,7 +25,8 @@ import {
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-const API = 'http://plus.kipris.or.kr/kipo-api/kipi/patUtiModInfoSearchSevice/getWordSearch';
+// TLS confirmed: HEAD https://plus.kipris.or.kr/ → HTTP 200, ssl_verify_result=0 (2026-11-11).
+const API = 'https://plus.kipris.or.kr/kipo-api/kipi/patUtiModInfoSearchSevice/getWordSearch';
 const ROWS = 50;
 const REQUEST_BUDGET = 20; // per run — keeps daily KIPRIS calls bounded
 const CONCURRENCY = 5;

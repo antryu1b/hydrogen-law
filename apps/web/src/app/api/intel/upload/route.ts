@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { intelSupabase } from '@/lib/intel';
+import { PATENT_DATA_SECTIONS } from '@/lib/patent-watch';
 
 // Authenticated (middleware) admin upload for competitor / patent content.
 // Body: the seed JSON shape { table, rows: [{ id, section, sort, payload }], replace? }.
@@ -79,7 +80,14 @@ export async function POST(req: Request) {
   let deleted = 0;
   if (body.replace === true) {
     // Every row in this upload carries `stamp`; anything older was not in the file.
-    const { error, count } = await sb.from(table).delete({ count: 'exact' }).lt('updated_at', stamp);
+    // For intel_patents: skip the three cron-owned sections so a re-seed does not wipe
+    // accumulated patent-watch / patent-competitor / patent-cursor rows.
+    // Decision: 'fto' rows remain deletable (existing replace behaviour preserved for fto).
+    let del = sb.from(table).delete({ count: 'exact' }).lt('updated_at', stamp);
+    if (table === 'intel_patents') {
+      del = del.not('section', 'in', `(${PATENT_DATA_SECTIONS.join(',')})`);
+    }
+    const { error, count } = await del;
     if (error) return NextResponse.json({ error: error.message, upserted: rows.length }, { status: 500 });
     deleted = count ?? 0;
   }

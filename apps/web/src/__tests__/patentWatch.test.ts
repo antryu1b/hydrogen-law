@@ -8,6 +8,7 @@ import {
   autoCategory,
   companiesForApplicant,
   formatAppNo,
+  isRelevant,
   normalizeAppNo,
   parseKiprisXml,
   planRequests,
@@ -58,6 +59,23 @@ describe('parseKiprisXml', () => {
   });
 });
 
+// Issue 1: 전해질 (electrolyte) must NOT trigger the electrolysis relevance guard.
+describe('isRelevant', () => {
+  it('전해질 alone does not qualify — solid-state / battery patents are not relevant', () => {
+    expect(isRelevant('전고체 전해질 양극 소재')).toBe(false);
+    expect(isRelevant('리튬 이차전지용 전해질 조성물')).toBe(false);
+    expect(isRelevant('연료전지 고분자 전해질 막')).toBe(false);
+  });
+
+  it('수전해 / 전해조 / 전해 (without 질) qualify as electrolysis', () => {
+    expect(isRelevant('수전해 스택 열화 진단')).toBe(true);
+    expect(isRelevant('전해조 스택 분리판 구조')).toBe(true);
+    expect(isRelevant('전해 셀 전류 제어 방법')).toBe(true);
+    expect(isRelevant('PEM electrolyzer cell design')).toBe(true);
+    expect(isRelevant('water electrolysis system')).toBe(true);
+  });
+});
+
 describe('application numbers', () => {
   it('normalizes dashed and plain forms to the same digits', () => {
     expect(normalizeAppNo('10-2011-0042643')).toBe('1020110042643');
@@ -74,14 +92,28 @@ describe('companiesForApplicant', () => {
     }
   });
 
-  it('maps Siemens, Toyota, Hydrogenics, 삼성이앤에이 and 현대/기아', () => {
-    expect(companiesForApplicant('SIEMENS AKTIENGESELLSCHAFT')).toEqual(['Siemens Energy']);
+  it('maps Siemens Energy, Toyota, Hydrogenics, 삼성이앤에이 and 현대/기아', () => {
+    // Siemens Energy (specific entity) matches; Siemens AG (parent) does NOT (see exclusion test).
     expect(companiesForApplicant('SIEMENS ENERGY GLOBAL GMBH & CO. KG')).toEqual(['Siemens Energy']);
     expect(companiesForApplicant('TOYOTA JIDOSHA KABUSHIKI KAISHA')).toEqual(['Toyota']);
     expect(companiesForApplicant('HYDROGENICS CORPORATION')).toEqual(['Accelera']);
     expect(companiesForApplicant('삼성이앤에이 주식회사')).toEqual(['삼성E&A']);
     expect(companiesForApplicant('기아 주식회사')).toEqual(['현대차']);
     expect(companiesForApplicant('NEL ASA')).toEqual(['NEL']);
+  });
+
+  // Issue 2: narrow aliases must exclude subsidiary / unrelated entities.
+  it('excludes POSCO subsidiaries and non-Energy Siemens entities', () => {
+    // POSCO Future M and POSCO ICT are subsidiaries — not the POSCO Holdings parent.
+    expect(companiesForApplicant('포스코퓨처엠(주)')).toEqual([]);
+    expect(companiesForApplicant('POSCO FUTURE M CO., LTD.')).toEqual([]);
+    expect(companiesForApplicant('포스코아이씨티')).toEqual([]);
+    // Siemens Healthineers / Siemens AG are not Siemens Energy.
+    expect(companiesForApplicant('Siemens Healthineers')).toEqual([]);
+    expect(companiesForApplicant('SIEMENS AKTIENGESELLSCHAFT')).toEqual([]);
+    // POSCO Holdings parent (post-2022 name) does match.
+    expect(companiesForApplicant('포스코홀딩스(주)')).toEqual(['포스코홀딩스']);
+    expect(companiesForApplicant('POSCO HOLDINGS CO., LTD.')).toEqual(['포스코홀딩스']);
   });
 
   it('returns every competitor on a joint filing, once each', () => {

@@ -94,7 +94,9 @@ export const SEARCH_JOBS: SearchJob[] = [
   { key: 'E-posco', set: 'E', word: '포스코 수전해', company: '포스코홀딩스' },
 ];
 
-const RELEVANT = /수전해|전해|전기\s?분해|electroly/i;
+// 전해(?!질): negative lookahead excludes 전해질 (electrolyte) so battery/fuel-cell-membrane
+// patents from Toyota/Honda/Hyundai are not counted as electrolysis filings.
+const RELEVANT = /수전해|전해(?!질)|전기\s?분해|electroly/i;
 
 /** Mentions electrolysis (guards competitor stats against off-topic applicant hits). */
 export function isRelevant(text: string): boolean {
@@ -114,6 +116,7 @@ export const COMPETITOR_GROUPS: { group: string; companies: string[] }[] = [
 ];
 
 // Matched as substrings of the normalized applicant name (lowercase, no spaces/punctuation).
+// Use specific strings to avoid broad-matching subsidiaries or unrelated entities.
 const APPLICANT_ALIASES: [string, string[]][] = [
   ['현대차', ['현대자동차', '기아주식회사', '기아자동차', 'hyundaimotor', 'kiacorporation', 'kiamotors']],
   ['Toyota', ['도요타', '토요타', 'toyota']],
@@ -121,10 +124,18 @@ const APPLICANT_ALIASES: [string, string[]][] = [
   ['NEL', ['넬에이에스에이', '넬하이드로젠', 'nelasa', 'nelhydrogen']],
   ['ITM Power', ['아이티엠파워', 'itmpower']],
   ['Plug Power', ['플러그파워', 'plugpower']],
+  // 추정: Cummins Inc. created Accelera specifically for electrolysis products (acquired Hydrogenics 2019).
+  // Cummins/커민스 entries are kept under Accelera to cover pre-brand-transition filings.
   ['Accelera', ['하이드로제닉스', 'hydrogenics', '액셀레라', 'accelera', '커민스', 'cummins']],
-  ['Siemens Energy', ['지멘스', 'siemens']],
+  // Narrowed from bare '지멘스'/'siemens' to avoid matching Siemens Healthineers / Digital Industries /
+  // Smart Infrastructure etc. Only 'siemensenergy' and '지멘스에너지' match Siemens Energy entities.
+  ['Siemens Energy', ['지멘스에너지', 'siemensenergy']],
   ['삼성E&A', ['삼성이앤에이', '삼성엔지니어링', 'samsungea', 'samsungengineering']],
-  ['포스코홀딩스', ['포스코', 'posco']],
+  // 추정: Narrowed from bare '포스코'/'posco' (which would also match POSCO Future M, POSCO ICT, etc.).
+  // '포스코홀딩스' covers post-2022 parent; 'poscoholding' covers English-name filings.
+  // Pre-2022 patents filed as plain '포스코(주)' / 'POSCO CO., LTD.' are NOT matched — conservative
+  // choice to avoid false positives from subsidiaries.
+  ['포스코홀딩스', ['포스코홀딩스', 'poscoholding']],
 ];
 
 function normName(s: string): string {
