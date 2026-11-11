@@ -1,8 +1,12 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
   COMPETITOR_SECTION,
+  CURSOR_ID,
   PATENT_DATA_SECTIONS,
+  STATUS_SECTION,
   WATCH_SECTION,
+  type CheckKey,
+  type CheckState,
   type CompetitorStatRow,
   type WatchListRow,
 } from '@/lib/patent-watch';
@@ -163,7 +167,7 @@ export async function loadFto(): Promise<Loaded<FtoRecord>> {
   return { rows, lastUpdated, error: null };
 }
 
-/** Rows of one KIPRIS section, newest filing first; stops after `max` rows when given. */
+/** Rows of one KIPRIS section, newest filing first (id breaks ties); stops after `max` rows when given. */
 async function loadPatentSection<T>(section: string, columns: string, max = Infinity): Promise<Loaded<T>> {
   const sb = intelSupabase();
   if (!sb) return { rows: [], lastUpdated: null, error: NOT_CONFIGURED };
@@ -175,6 +179,7 @@ async function loadPatentSection<T>(section: string, columns: string, max = Infi
       .select(`updated_at,${columns}`)
       .eq('section', section)
       .order('sort', { ascending: false })
+      .order('id', { ascending: true })
       .range(from, Math.min(from + PAGE, max) - 1);
     if (error) return { rows: [], lastUpdated: null, error: describeError(error.message) };
     for (const r of (data ?? []) as unknown as (T & { updated_at: string })[]) {
@@ -198,8 +203,9 @@ export const PATENT_WATCH_MAX = 2000;
 export async function loadPatentWatch(): Promise<Loaded<WatchListRow>> {
   return loadPatentSection(
     WATCH_SECTION,
-    'appNo:payload->>appNo,title:payload->>title,applicant:payload->>applicant,filedDate:payload->>filedDate,' +
-      'status:payload->>status,link:payload->>link,category:payload->>category,matchedSet:payload->>matchedSet',
+    'id,country:payload->>country,appNo:payload->>appNo,title:payload->>title,applicant:payload->>applicant,' +
+      'filedDate:payload->>filedDate,status:payload->>status,link:payload->>link,category:payload->>category,' +
+      'matchedSet:payload->>matchedSet',
     PATENT_WATCH_MAX,
   );
 }
@@ -208,8 +214,31 @@ export async function loadPatentWatch(): Promise<Loaded<WatchListRow>> {
 export async function loadCompetitorPatents(): Promise<Loaded<CompetitorStatRow>> {
   return loadPatentSection(
     COMPETITOR_SECTION,
-    'companies:payload->companies,category:payload->>category,filedDate:payload->>filedDate',
+    'country:payload->>country,companies:payload->companies,category:payload->>category,filedDate:payload->>filedDate',
   );
+}
+
+/** Auto-collected KR rights status (cron 'patent-status' rows) — separate from the reviewed FTO fields. */
+export interface AutoStatus {
+  appNo: string;
+  registerStatus: string;
+  checkedAt: string;
+}
+
+export async function loadPatentStatus(): Promise<Loaded<AutoStatus>> {
+  return loadPatentSection(
+    STATUS_SECTION,
+    'appNo:payload->>appNo,registerStatus:payload->>registerStatus,checkedAt:payload->>checkedAt',
+  );
+}
+
+/** Last per-country collection result from the cron cursor row; null when unavailable. */
+export async function loadPatentChecks(): Promise<Partial<Record<CheckKey, CheckState>> | null> {
+  const sb = intelSupabase();
+  if (!sb) return null;
+  const { data, error } = await sb.from('intel_patents').select('checks:payload->checks').eq('id', CURSOR_ID).maybeSingle();
+  if (error || !data) return null;
+  return (data as { checks: Partial<Record<CheckKey, CheckState>> | null }).checks ?? null;
 }
 
 export async function loadNews(limit = 500): Promise<Loaded<NewsRow>> {

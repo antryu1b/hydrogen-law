@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+  <header>
+    <resultCode>00</resultCode>
+    <resultMsg>NORMAL SERVICE.</resultMsg>
+  </header>
+  <body>
+    <items>
+      <searchResult>
+        <applicationNo>17/123,456</applicationNo>
+        <applicationDate>20230301</applicationDate>
+        <inventionName>Proton exchange membrane water electrolyzer stack with improved bipolar plate</inventionName>
+        <applicant>NEL ASA</applicant>
+        <openDate>20240905</openDate>
+        <registerStatus>Published</registerStatus>
+        <ipcNumber>C25B 9/77</ipcNumber>
+        <astrtCont><![CDATA[A PEM electrolyser stack comprising bipolar plates &amp; porous transport layers.]]></astrtCont>
+      </searchResult>
+      <searchResult>
+        <applicationNo>16/987,654</applicationNo>
+        <applicationDate>20200115</applicationDate>
+        <inventionName>Fuel cell stack with polymer electrolyte membrane</inventionName>
+        <applicant>NEL ASA</applicant>
+        <astrtCont>A PEM fuel cell having a polymer electrolyte membrane and gas diffusion layers.</astrtCont>
+      </searchResult>
+      <searchResult>
+        <applicationNo>13/007,675</applicationNo>
+        <applicationDate>20090118</applicationDate>
+        <inventionName>Electrolysis cell for hydrogen production</inventionName>
+        <applicant>NEL Hydrogen AS</applicant>
+      </searchResult>
+      <searchResult>
+        <applicationNo>18/222,333</applicationNo>
+        <applicationDate>20240210</applicationDate>
+        <inventionName>Water electrolysis system</inventionName>
+        <applicant>SOME OTHER COMPANY INC.</applicant>
+      </searchResult>
+    </items>
+  </body>
+  <count>
+    <totalCount>4</totalCount>
+  </count>
+</response>

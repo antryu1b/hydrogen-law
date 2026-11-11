@@ -39,14 +39,20 @@ export const EXCLUDE_WORDS = ['이차전지', '배터리', '리튬', '레독스'
 /** Only filings on/after this date are kept. Applied client-side (date param unconfirmed). */
 export const MIN_FILED = '20100101';
 
+/** Filing office of a collected record. KR = KIPO domestic search; US/EP = KIPRIS overseas search. */
+export type Country = 'KR' | 'US' | 'EP';
+export const COUNTRIES: Country[] = ['KR', 'US', 'EP'];
+
 export interface SearchJob {
   key: string;
   /** Watch set A–F. */
   set: 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
-  /** getWordSearch `word` value. Space-separated terms are AND-matched (추정). */
+  /** KR: getWordSearch `word` value (space-separated terms AND-matched, 추정). US/EP: English applicant name. */
   word: string;
   /** Set E only: the competitor label this applicant search is for. */
   company?: string;
+  /** Overseas applicantSearch job; absent = domestic (KR) word search. */
+  country?: Exclude<Country, 'KR'>;
 }
 
 export const WATCH_SET_LABEL: Record<SearchJob['set'], string> = {
@@ -92,7 +98,63 @@ export const SEARCH_JOBS: SearchJob[] = [
   { key: 'E-samsung', set: 'E', word: '삼성이앤에이 전해', company: '삼성E&A' },
   { key: 'E-samsung-old', set: 'E', word: '삼성엔지니어링 전해', company: '삼성E&A' },
   { key: 'E-posco', set: 'E', word: '포스코 수전해', company: '포스코홀딩스' },
+  // Later competitor additions. Korean applicant transliterations are 추정 (not yet seen in KIPRIS data).
+  { key: 'E-htec', set: 'E', word: '에이치텍 전해', company: 'H-TEC' },
+  { key: 'E-denora', set: 'E', word: '노라 전해', company: 'De Nora' },
+  { key: 'E-ohmium', set: 'E', word: '오미움 전해', company: 'Ohmium' },
+  { key: 'E-verdagy', set: 'E', word: '버다지 전해', company: 'Verdagy' },
+  { key: 'E-bloom', set: 'E', word: '블룸 에너지 전해', company: 'Bloom Energy' },
+  { key: 'E-linde', set: 'E', word: '린데 전해', company: 'Linde' },
+  { key: 'E-airproducts', set: 'E', word: '에어 프로덕츠 전해', company: 'Air Products' },
+  { key: 'E-thyssenkrupp', set: 'E', word: '티센크루프 전해', company: 'thyssenkrupp' },
 ];
+
+// Overseas (US/EP) applicantSearch names, one job per name per country. 「추정」 English names as
+// filed; several entries may share a competitor label. Broad applicants (Toyota, Linde …) return
+// their whole portfolio, so overseas rows are gated by isRelevantForeign() and a page cap.
+const FOREIGN_APPLICANTS: { key: string; company: string; name: string }[] = [
+  { key: 'hmc', company: '현대차', name: 'Hyundai Motor Company' },
+  { key: 'kia', company: '현대차', name: 'Kia Corporation' },
+  { key: 'toyota', company: 'Toyota', name: 'Toyota Jidosha' },
+  { key: 'honda', company: 'Honda', name: 'Honda Motor' },
+  { key: 'nel', company: 'NEL', name: 'Nel ASA' },
+  { key: 'itm', company: 'ITM Power', name: 'ITM Power' },
+  { key: 'plug', company: 'Plug Power', name: 'Plug Power' },
+  { key: 'hydrogenics', company: 'Accelera', name: 'Hydrogenics' },
+  { key: 'htec', company: 'H-TEC', name: 'H-TEC Systems' },
+  { key: 'denora', company: 'De Nora', name: 'De Nora' },
+  { key: 'ohmium', company: 'Ohmium', name: 'Ohmium International' },
+  { key: 'verdagy', company: 'Verdagy', name: 'Verdagy' },
+  { key: 'bloom', company: 'Bloom Energy', name: 'Bloom Energy' },
+  { key: 'siemens', company: 'Siemens Energy', name: 'Siemens Energy' },
+  { key: 'samsung', company: '삼성E&A', name: 'Samsung E&A' },
+  { key: 'posco', company: '포스코홀딩스', name: 'POSCO Holdings' },
+  { key: 'linde', company: 'Linde', name: 'Linde' },
+  { key: 'airproducts', company: 'Air Products', name: 'Air Products' },
+  { key: 'thyssenkrupp', company: 'thyssenkrupp', name: 'thyssenkrupp' },
+];
+
+export const FOREIGN_JOBS: SearchJob[] = (['US', 'EP'] as const).flatMap((country) =>
+  FOREIGN_APPLICANTS.map((a) => ({ key: `${country}-${a.key}`, set: 'E' as const, word: a.name, company: a.company, country })),
+);
+
+/**
+ * Every search job of the cron, interleaved KR / US / EP so each run's round-robin window
+ * touches all three countries (a failing country then shows up after the next run).
+ */
+export const ALL_JOBS: SearchJob[] = (() => {
+  const lists = [SEARCH_JOBS, FOREIGN_JOBS.filter((j) => j.country === 'US'), FOREIGN_JOBS.filter((j) => j.country === 'EP')];
+  const out: SearchJob[] = [];
+  for (let i = 0; i < Math.max(...lists.map((l) => l.length)); i++) for (const l of lists) if (i < l.length) out.push(l[i]);
+  return out;
+})();
+
+/** Total KIPRIS requests per cron run (search + status refresh) — keeps daily calls bounded. */
+export const REQUEST_BUDGET = 20;
+/** Share of REQUEST_BUDGET spent on the KR rights-status refresh of FTO records. */
+export const STATUS_BUDGET = 3;
+/** Overseas applicant searches stop backfilling after this many pages (newest filings first). */
+export const FOREIGN_MAX_PAGES = 5;
 
 // Require water-electrolysis meaning to avoid false positives:
 //   전해액 (electrolyte solution), 전해도금 (electroplating), 전해연마 (electrolytic polishing),
@@ -106,7 +168,20 @@ export function isRelevant(text: string): boolean {
 }
 
 export function isExcluded(text: string): boolean {
-  return EXCLUDE_WORDS.some((w) => text.includes(w));
+  return EXCLUDE_WORDS.some((w) => text.includes(w)) || EXCLUDE_EN.test(text);
+}
+
+// English counterpart of RELEVANT for overseas records (applicant searches return whole portfolios).
+// electroly[sz] covers electrolysis / electrolyzer / electrolyser / electrolysing but not
+// electrolyte / electrolytic, so a PEM *fuel cell* abstract ("polymer electrolyte membrane") fails.
+// PEM / AEM / alkaline only count together with an electrolysis word, which this already requires.
+const RELEVANT_EN = /electroly[sz]|\bSOEC\b|electrolytic\s(?:cell|stack)|water\ssplitting/i;
+// Mirrors EXCLUDE_WORDS for English text.
+const EXCLUDE_EN = /\b(?:lithium|batter(?:y|ies)|redox flow|semiconductor|ceramic|ammonia|capacitor|antenna)\b/i;
+
+/** Water-electrolysis relevance for English (US/EP) title + abstract text. */
+export function isRelevantForeign(text: string): boolean {
+  return RELEVANT_EN.test(text);
 }
 
 // ── Competitors ─────────────────────────────────────────────────────────────
@@ -166,7 +241,8 @@ const APPLICANT_ALIASES: [string, string[]][] = [
   // Energy / industrial gas / EPC. Linde uses legal-name forms only: bare 'linde' would also match
   // names such as 'Lindenberg'.
   ['Linde', ['린데게엠베하', '린데악티엔게젤샤프트', '린데피엘씨', 'lindegmbh', 'lindeag', 'lindeaktiengesellschaft', 'lindeplc']],
-  ['Air Products', ['airproductsandchemicals', '에어프로덕츠']],
+  // normName drops '&' and spaces, so 'Air Products & Chemicals, Inc.' → 'airproductschemicalsinc'.
+  ['Air Products', ['airproducts', '에어프로덕츠']],
   // thyssenkrupp AG, thyssenkrupp Uhde, thyssenkrupp nucera.
   ['thyssenkrupp', ['thyssenkrupp', '티센크루프']],
 ];
@@ -291,9 +367,76 @@ export function parseKiprisXml(xml: string): KiprisResult {
   };
 }
 
+/** Overseas result codes that are not failures: '00' ok, '20' no results (unconfirmed, per wrapper). */
+const FOREIGN_OK_CODES = ['00', '20'];
+
+/**
+ * Parses a ForeignPatentAdvencedSearchService response. Field names come from a third-party
+ * wrapper (unverified), so every field also accepts its domestic name. Items are <searchResult>
+ * (falling back to <item>). Unknown result codes give ok = false — the caller records a
+ * failure; this never throws.
+ */
+export function parseForeignXml(xml: string): KiprisResult {
+  const header = /<header>([\s\S]*?)<\/header>/i.exec(xml)?.[1] ?? xml;
+  const resultCode = tag(header, 'resultCode');
+  const resultMsg = tag(header, 'resultMsg');
+  const totalRaw = tag(xml, 'totalCount');
+  let blocks = [...xml.matchAll(/<searchResult(?:\s[^>]*)?>([\s\S]*?)<\/searchResult>/gi)];
+  if (!blocks.length) blocks = [...xml.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi)];
+  const items: KiprisItem[] = blocks.map(([, b]) => ({
+    applicationNumber: tag(b, 'applicationNo', 'applicationNumber'),
+    inventionTitle: tag(b, 'inventionName', 'inventionTitle'),
+    applicantName: tag(b, 'applicant', 'applicantName'),
+    applicationDate: tag(b, 'applicationDate'),
+    openDate: tag(b, 'openDate', 'publicationDate'),
+    registerDate: tag(b, 'registerDate'),
+    registerStatus: tag(b, 'registerStatus'),
+    ipcNumber: tag(b, 'ipcNumber', 'ipc'),
+    astrtCont: tag(b, 'astrtCont', 'abstract'),
+  }));
+  const ok = FOREIGN_OK_CODES.includes(resultCode) || (resultCode === '' && /<response/i.test(xml) && items.length > 0);
+  const total = Number(totalRaw);
+  return {
+    ok,
+    resultCode,
+    resultMsg,
+    totalCount: totalRaw !== '' && Number.isFinite(total) ? total : null,
+    items: ok && resultCode !== '20' ? items.filter((i) => normalizeAppNo(i.applicationNumber)) : [],
+  };
+}
+
+/**
+ * Structure hint for the first live run: when an overseas response says '00' but parses to no
+ * items while its body is non-empty, returns the distinct tag names (≤500 chars). Tag names only,
+ * never element values, so the access key cannot leak into the stored payload.
+ */
+export function foreignDiag(xml: string, r: KiprisResult): string | null {
+  if (r.resultCode !== '00' || r.items.length) return null;
+  const body = /<body(?:\s[^>]*)?>([\s\S]*?)<\/body>/i.exec(xml)?.[1] ?? xml.replace(/<header>[\s\S]*?<\/header>/i, '');
+  if (!body.trim()) return null;
+  const names = [...new Set([...xml.matchAll(/<([A-Za-z_][\w.-]*)/g)].map((m) => m[1]))];
+  return names.join(',').slice(0, 500);
+}
+
+/**
+ * Parses a getBibliographyDetailInfoSearch response (one application). registerStatus is read
+ * from the first item, else from anywhere in the response (detail layout unconfirmed).
+ */
+export function parseStatusXml(xml: string) {
+  const r = parseKiprisXml(xml);
+  return {
+    ok: r.ok,
+    resultCode: r.resultCode,
+    resultMsg: r.resultMsg,
+    registerStatus: r.items[0]?.registerStatus || tag(xml, 'registerStatus'),
+  };
+}
+
 // ── Rows ────────────────────────────────────────────────────────────────────
 export interface PatentWatchPayload {
   type: 'patent-watch' | 'patent-competitor';
+  /** Filing office. Rows written before overseas collection have no country (= KR). */
+  country: Country;
   appNo: string;
   title: string;
   applicant: string;
@@ -323,17 +466,21 @@ export interface PatentRow {
 export const WATCH_SECTION = 'patent-watch';
 export const COMPETITOR_SECTION = 'patent-competitor';
 export const CURSOR_SECTION = 'patent-cursor';
+/** Auto-collected KR rights status of FTO records — kept apart from the human-reviewed FTO payload. */
+export const STATUS_SECTION = 'patent-status';
+export const CURSOR_ID = 'patent-cursor:kipris';
 /** Sections owned by this feature — never rendered as content blocks. */
-export const PATENT_DATA_SECTIONS = [WATCH_SECTION, COMPETITOR_SECTION, CURSOR_SECTION];
+export const PATENT_DATA_SECTIONS = [WATCH_SECTION, COMPETITOR_SECTION, CURSOR_SECTION, STATUS_SECTION];
 
 const SUMMARY_MAX = 500;
 
-function baseRow(item: KiprisItem, set: SearchJob['set'], foundAt: string) {
+function baseRow(item: KiprisItem, set: SearchJob['set'], country: Country, foundAt: string) {
   const filedDate = formatDate(item.applicationDate);
   return {
     sort: filedDate ? Number(filedDate.replace(/-/g, '')) : 0,
     payload: {
-      appNo: formatAppNo(item.applicationNumber),
+      country,
+      appNo: country === 'KR' ? formatAppNo(item.applicationNumber) : item.applicationNumber,
       title: item.inventionTitle,
       applicant: item.applicantName,
       filedDate,
@@ -342,7 +489,7 @@ function baseRow(item: KiprisItem, set: SearchJob['set'], foundAt: string) {
       status: item.registerStatus,
       ipc: item.ipcNumber,
       summary: item.astrtCont.slice(0, SUMMARY_MAX),
-      link: kiprisLink(item.applicationNumber),
+      link: country === 'KR' ? kiprisLink(item.applicationNumber) : null,
       category: autoCategory(item.inventionTitle, item.astrtCont),
       categorySource: 'auto' as const,
       verdict: null,
@@ -352,10 +499,16 @@ function baseRow(item: KiprisItem, set: SearchJob['set'], foundAt: string) {
   };
 }
 
+/** Id/dedupe key: KR stays `<digits>` (ids unchanged); overseas is `US:<digits>` / `EP:<digits>`. */
+export function countryKey(country: Country, no: string): string {
+  return country === 'KR' ? no : `${country}:${no}`;
+}
+
 /**
  * Turns one job's search hits into rows to insert. Watch rows skip appNos in `known`
- * (FTO records); competitor rows are kept for every relevant competitor filing.
- * Within-run duplicates are dropped via the shared `seen` sets.
+ * (FTO records, KR and US numbers); competitor rows are kept for every relevant competitor
+ * filing. Overseas jobs (applicant searches) keep only electrolysis-relevant hits.
+ * Within-run duplicates are dropped via the shared `seen` sets (keyed per country).
  */
 export function rowsFromItems(
   items: KiprisItem[],
@@ -363,24 +516,29 @@ export function rowsFromItems(
   ctx: { ftoAppNos: Set<string>; seenWatch: Set<string>; seenCompetitor: Set<string>; foundAt: string },
 ): PatentRow[] {
   const out: PatentRow[] = [];
+  const country: Country = job.country ?? 'KR';
   for (const item of items) {
     const no = normalizeAppNo(item.applicationNumber);
     const filed = item.applicationDate.replace(/\D/g, '');
     if (!no || (filed && filed < MIN_FILED)) continue;
     const text = `${item.inventionTitle} ${item.astrtCont}`;
     if (isExcluded(text)) continue;
+    if (country !== 'KR' && !isRelevantForeign(text)) continue;
     const companies = companiesForApplicant(item.applicantName);
     // Set E: the applicant must actually be the searched competitor.
     if (job.company && !companies.includes(job.company)) continue;
-    const base = baseRow(item, job.set, ctx.foundAt);
-    if (!ctx.ftoAppNos.has(no) && !ctx.seenWatch.has(no)) {
-      ctx.seenWatch.add(no);
-      out.push({ id: `watch:${no}`, section: WATCH_SECTION, sort: base.sort, payload: { type: 'patent-watch', ...base.payload } });
+    const base = baseRow(item, job.set, country, ctx.foundAt);
+    const key = countryKey(country, no);
+    // The FTO DB holds KR and US numbers only; EP digits are never checked against it.
+    const inFto = country !== 'EP' && ctx.ftoAppNos.has(no);
+    if (!inFto && !ctx.seenWatch.has(key)) {
+      ctx.seenWatch.add(key);
+      out.push({ id: `watch:${key}`, section: WATCH_SECTION, sort: base.sort, payload: { type: 'patent-watch', ...base.payload } });
     }
-    if (companies.length && isRelevant(text) && !ctx.seenCompetitor.has(no)) {
-      ctx.seenCompetitor.add(no);
+    if (companies.length && (country !== 'KR' || isRelevant(text)) && !ctx.seenCompetitor.has(key)) {
+      ctx.seenCompetitor.add(key);
       out.push({
-        id: `pcomp:${no}`,
+        id: `pcomp:${key}`,
         section: COMPETITOR_SECTION,
         sort: base.sort,
         payload: { type: 'patent-competitor', ...base.payload, companies },
@@ -397,10 +555,24 @@ export interface JobState {
   total: number | null;
   done: boolean;
 }
+/** Outcome of the last run that sent requests for one country (or for the KR status refresh). */
+export interface CheckState {
+  at: string;
+  requests: number;
+  /** Error summaries (status/result codes only — never URLs, which carry the key). */
+  failures: string[];
+}
+export type CheckKey = Country | 'status';
+
 export interface CursorState {
-  /** Round-robin start index into SEARCH_JOBS. */
+  /** Round-robin start index into ALL_JOBS. */
   offset: number;
   jobs: Record<string, JobState>;
+  /** Round-robin start index into the sorted KR FTO application numbers. */
+  statusOffset?: number;
+  /** Last overseas structure hint (see foreignDiag). */
+  foreignDiag?: { at: string; job: string; tags: string };
+  checks?: Partial<Record<CheckKey, CheckState>>;
 }
 
 export const EMPTY_CURSOR: CursorState = { offset: 0, jobs: {} };
@@ -420,6 +592,67 @@ export function planRequests(jobs: SearchJob[], cursor: CursorState, budget: num
   return plan;
 }
 
+/**
+ * Splits REQUEST_BUDGET for one run: up to STATUS_BUDGET KR status refreshes (round-robin over
+ * `statusAppNos`), the rest for search jobs (round-robin over `jobs`). Returns the next offsets.
+ */
+export function planRun(jobs: SearchJob[], cursor: CursorState, statusAppNos: string[], budget = REQUEST_BUDGET) {
+  const statusN = Math.min(STATUS_BUDGET, statusAppNos.length, budget);
+  const statusOffset = cursor.statusOffset ?? 0;
+  const status = Array.from({ length: statusN }, (_, i) => statusAppNos[(statusOffset + i) % statusAppNos.length]);
+  const search = planRequests(jobs, cursor, budget - statusN);
+  return {
+    search,
+    status,
+    nextOffset: jobs.length ? (cursor.offset + search.length) % jobs.length : 0,
+    nextStatusOffset: statusAppNos.length ? (statusOffset + statusN) % statusAppNos.length : 0,
+  };
+}
+
+/** Distinct KR (13-digit) application numbers among FTO appNo fields, sorted for a stable rotation. */
+export function krStatusTargets(appNos: (string | null | undefined)[]): string[] {
+  return [...new Set(appNos.map(normalizeAppNo).filter((n) => n.length === 13))].sort();
+}
+
+export interface StatusRow {
+  id: string;
+  section: typeof STATUS_SECTION;
+  sort: number;
+  payload: { type: typeof STATUS_SECTION; appNo: string; registerStatus: string; checkedAt: string; source: 'KIPRIS' };
+}
+
+/** One auto-collected status row per KR application number (overwritten on every refresh). */
+export function statusRow(appNo: string, registerStatus: string, checkedAt: string): StatusRow {
+  const no = normalizeAppNo(appNo);
+  return {
+    id: `pstatus:${no}`,
+    section: STATUS_SECTION,
+    sort: 0,
+    payload: { type: STATUS_SECTION, appNo: formatAppNo(no), registerStatus, checkedAt, source: 'KIPRIS' },
+  };
+}
+
+/**
+ * Overseas job state. The page size is unconfirmed, so completion uses the returned count and
+ * total rather than ROWS. Results are newest first, so the backfill also stops at
+ * FOREIGN_MAX_PAGES or once a page reaches filings older than MIN_FILED (`oldestFiled` 'YYYYMMDD' or '').
+ */
+export function advanceForeignJob(
+  prev: JobState | undefined,
+  page: number,
+  count: number,
+  total: number | null,
+  oldestFiled: string,
+): JobState {
+  if (prev?.done) return { ...prev, total: total ?? prev.total };
+  const done =
+    count === 0 ||
+    (total !== null && page * count >= total) ||
+    page >= FOREIGN_MAX_PAGES ||
+    (oldestFiled !== '' && oldestFiled < MIN_FILED);
+  return { page, total, done };
+}
+
 /** State after a successful fetch of `page` returning `count` items out of `total`. */
 export function advanceJob(prev: JobState | undefined, page: number, count: number, total: number | null, rows: number): JobState {
   if (prev?.done) return { ...prev, total: total ?? prev.total };
@@ -429,6 +662,8 @@ export function advanceJob(prev: JobState | undefined, page: number, count: numb
 
 // ── Aggregation ─────────────────────────────────────────────────────────────
 export interface CompetitorStatRow {
+  /** Missing on rows written before overseas collection (= KR). */
+  country?: string | null;
   companies?: string[];
   category?: string;
   filedDate?: string | null;
@@ -439,6 +674,7 @@ export interface StatBucket {
   total: number;
   byCategory: Record<PatentCategory, number>;
   byYear: Record<string, number>;
+  byCountry: Record<Country, number>;
 }
 
 export interface CompetitorStats {
@@ -448,12 +684,24 @@ export interface CompetitorStats {
 }
 
 function emptyBucket(label: string): StatBucket {
-  return { label, total: 0, byCategory: { system: 0, 'gas-liquid': 0, transfer: 0, stack: 0, control: 0 }, byYear: {} };
+  return {
+    label,
+    total: 0,
+    byCategory: { system: 0, 'gas-liquid': 0, transfer: 0, stack: 0, control: 0 },
+    byYear: {},
+    byCountry: { KR: 0, US: 0, EP: 0 },
+  };
 }
 
-function add(b: StatBucket, cat: PatentCategory, year: string | null) {
+/** Country of a stored row; missing / unknown values count as KR (rows from before overseas collection). */
+export function rowCountry(country: string | null | undefined): Country {
+  return country === 'US' || country === 'EP' ? country : 'KR';
+}
+
+function add(b: StatBucket, cat: PatentCategory, year: string | null, country: Country) {
   b.total++;
   b.byCategory[cat]++;
+  b.byCountry[country]++;
   if (year) b.byYear[year] = (b.byYear[year] ?? 0) + 1;
 }
 
@@ -468,13 +716,14 @@ export function aggregateCompetitorStats(rows: CompetitorStatRow[]): CompetitorS
   for (const r of rows) {
     const cat = (Object.hasOwn(PATENT_CATEGORY_LABEL, r.category ?? '') ? r.category : 'system') as PatentCategory;
     const year = r.filedDate ? r.filedDate.slice(0, 4) : null;
+    const country = rowCountry(r.country);
     const companies = [...new Set(r.companies ?? [])];
     let counted = false;
     for (const g of groups) {
       const hits = g.companies.filter((c) => companies.includes(c.label));
       if (!hits.length) continue;
-      hits.forEach((c) => add(c, cat, year));
-      add(g, cat, year);
+      hits.forEach((c) => add(c, cat, year, country));
+      add(g, cat, year, country);
       counted = true;
     }
     if (counted) {
@@ -506,7 +755,12 @@ export const OTHER_APPLICANT_GROUP = '그 외 출원인';
 export type WatchListRow = Pick<
   PatentWatchPayload,
   'appNo' | 'title' | 'applicant' | 'filedDate' | 'status' | 'link' | 'category' | 'matchedSet'
->;
+> & {
+  /** Row id — unique across countries (appNo is not). */
+  id: string;
+  /** Missing on rows written before overseas collection (= KR). */
+  country?: string | null;
+};
 
 export interface WatchFilter {
   /** Competitor group label, OTHER_APPLICANT_GROUP, or '' for all. */
@@ -515,6 +769,8 @@ export interface WatchFilter {
   company: string;
   /** Filing year ('2024') or '' for all. */
   year: string;
+  /** 'KR' | 'US' | 'EP' or '' for all. */
+  country: string;
   /** Case-insensitive substring over title, applicant and application number. */
   q: string;
 }
@@ -557,6 +813,7 @@ export function filterWatchRows<T extends WatchListRow>(rows: T[], f: WatchFilte
       }
     }
     if (f.year && (r.filedDate ?? '').slice(0, 4) !== f.year) return false;
+    if (f.country && rowCountry(r.country) !== f.country) return false;
     if (!needle) return true;
     return [r.title, r.applicant, r.appNo].some((v) => (v ?? '').toLowerCase().includes(needle));
   });

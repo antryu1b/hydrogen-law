@@ -11,12 +11,14 @@ import {
   loadCompetitorPatents,
   loadFto,
   loadNews,
+  loadPatentChecks,
+  loadPatentStatus,
   loadPatentWatch,
   PATENT_WATCH_MAX,
   type BlockRow,
   type IntelBlock,
 } from '@/lib/intel';
-import { aggregateCompetitorStats } from '@/lib/patent-watch';
+import { aggregateCompetitorStats, normalizeAppNo } from '@/lib/patent-watch';
 
 export const metadata: Metadata = { title: '수전해 인텔리전스' };
 export const dynamic = 'force-dynamic';
@@ -116,11 +118,13 @@ function stripHeadingDescs(block: IntelBlock, words: string[]): IntelBlock {
 async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   // FTO 1차 검토 DB and the KIPRIS views are competitor-facing: all view and 경쟁사 view only.
   const competitorFacing = !sec || sec === 'competitor';
-  const [allBlocks, allFto, watch, competitor] = await Promise.all([
+  const [allBlocks, allFto, watch, competitor, autoStatus, checks] = await Promise.all([
     loadBlocks('intel_patents'),
     loadFto(),
     competitorFacing ? loadPatentWatch() : null,
     competitorFacing ? loadCompetitorPatents() : null,
+    competitorFacing ? loadPatentStatus() : null,
+    competitorFacing ? loadPatentChecks() : null,
   ]);
   const filtered = filterPatentRows(allBlocks.rows, sec);
   const blocks = {
@@ -163,7 +167,7 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
       {competitor && (
         <CompetitorPatentStats stats={aggregateCompetitorStats(competitor.rows)} error={competitor.error} />
       )}
-      {watch && <PatentWatchList rows={watch.rows} error={watch.error} max={PATENT_WATCH_MAX} />}
+      {watch && <PatentWatchList rows={watch.rows} error={watch.error} max={PATENT_WATCH_MAX} checks={checks} />}
       <Sections rows={competitorRows} sectionLabel="특허 분석" />
       {fto.rows.length > 0 && (
         <div className="space-y-3">
@@ -173,7 +177,15 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
               FTO 검토 {fto.rows.length}건 기준 · 검토 대상 특허 전건 · 분류·판정·검색 필터
             </p>
           </div>
-          <FtoList records={fto.rows} />
+          <FtoList
+            records={fto.rows}
+            autoStatus={Object.fromEntries(
+              (autoStatus?.rows ?? []).map((s) => [
+                normalizeAppNo(s.appNo),
+                { registerStatus: s.registerStatus, checkedAt: s.checkedAt },
+              ]),
+            )}
+          />
         </div>
       )}
       {otherRows.length > 0 && <Sections rows={otherRows} sectionLabel="특허 분석" />}

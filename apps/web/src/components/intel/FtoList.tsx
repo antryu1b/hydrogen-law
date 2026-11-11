@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { FtoRecord } from '@/lib/intel';
-import { PATENT_CATEGORY_LABEL } from '@/lib/patent-watch';
+import { PATENT_CATEGORY_LABEL, normalizeAppNo } from '@/lib/patent-watch';
 
 const CATEGORY_LABEL: Record<string, string> = PATENT_CATEGORY_LABEL;
 const MAX_RENDER = 300;
@@ -11,8 +11,32 @@ function safeHref(url?: string) {
   return url && /^https?:\/\//i.test(url) ? url : undefined;
 }
 
+/** checkedAt (ISO) → 'YYYY-MM-DD' in KST. */
+function kstDate(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '-' : d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+}
+
+/** Machine-collected KIPRIS status, visually apart from the reviewed fields (dashed, labelled). */
+function AutoStatusNote({ status }: { status?: { registerStatus: string; checkedAt: string } }) {
+  if (!status) return null;
+  return (
+    <p className="mt-1.5 inline-flex flex-wrap items-center gap-x-1.5 rounded border border-dashed border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">
+      <span className="font-medium text-foreground">현재 상태 {status.registerStatus}</span>
+      <span>· 자동 수집 · KIPRIS · 반영일 {kstDate(status.checkedAt)}</span>
+    </p>
+  );
+}
+
 // Searchable FTO review list (400 records from the legacy PATENTS constant).
-export function FtoList({ records }: { records: FtoRecord[] }) {
+// `autoStatus` (appNo digits → KIPRIS status) is machine-collected and shown apart from the reviewed fields.
+export function FtoList({
+  records,
+  autoStatus = {},
+}: {
+  records: FtoRecord[];
+  autoStatus?: Record<string, { registerStatus: string; checkedAt: string }>;
+}) {
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('');
   const [verdict, setVerdict] = useState('');
@@ -80,6 +104,7 @@ export function FtoList({ records }: { records: FtoRecord[] }) {
               출원번호 {p.appNo ?? '-'} · 출원인 {(p.applicant ?? '-').split('|')[0].trim()} · 상태 {p.status ?? '-'}
               {p.filedDate ? ` · 출원일 ${p.filedDate}` : ''}
             </div>
+            <AutoStatusNote status={autoStatus[normalizeAppNo(p.appNo)]} />
             {p.reason && <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{p.reason}</p>}
             {safeHref(p.link) && (
               <a

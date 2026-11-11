@@ -1,5 +1,11 @@
 import { EmptyNote, SectionHeading } from '@/components/intel/PatentWatchList';
-import { PATENT_CATEGORY_LABEL, type CompetitorStats, type PatentCategory, type StatBucket } from '@/lib/patent-watch';
+import {
+  COUNTRIES,
+  PATENT_CATEGORY_LABEL,
+  type CompetitorStats,
+  type PatentCategory,
+  type StatBucket,
+} from '@/lib/patent-watch';
 
 // KIPRIS competitor filing trends on the 특허 분석 tab (the unreviewed watch list lives in
 // PatentWatchList.tsx). Server-rendered; bars are plain CSS with text alternatives.
@@ -12,6 +18,13 @@ const CATEGORY_COLOR: Record<PatentCategory, string> = {
   control: 'bg-primary',
   transfer: 'bg-muted-foreground/20',
 };
+
+/** 'KR 8 · US 3' — countries with filings only. */
+function countryCounts(b: StatBucket): string {
+  return COUNTRIES.filter((c) => b.byCountry[c])
+    .map((c) => `${c} ${b.byCountry[c]}`)
+    .join(' · ');
+}
 
 function describe(b: StatBucket): string {
   const cats = CATEGORY_ORDER.filter((c) => b.byCategory[c]).map((c) => `${PATENT_CATEGORY_LABEL[c]} ${b.byCategory[c]}건`);
@@ -65,6 +78,7 @@ function StatRows({ buckets, years }: { buckets: StatBucket[]; years: string[] }
           <div className="text-sm">
             <span className="font-medium">{b.label}</span>{' '}
             <span className="tabular-nums text-muted-foreground">{b.total}건</span>
+            {b.total > 0 && <span className="block text-[11px] tabular-nums text-muted-foreground">{countryCounts(b)}</span>}
           </div>
           <CategoryBar bucket={b} max={maxTotal} />
           {years.length > 0 && <YearBars bucket={b} years={years} max={maxYear} />}
@@ -80,7 +94,8 @@ export function CompetitorPatentStats({ stats, error }: { stats: CompetitorStats
     <div className="space-y-3">
       <SectionHeading title="KIPRIS 경쟁사 출원 동향" desc="그룹 비교 → 그룹 내 업체별 · 구분별 건수와 출원연도별 건수" />
       <p className="text-xs text-muted-foreground">
-        KIPRIS 국내 출원 기준 · 구분은 키워드 자동분류(추정) · 출원 후 공개 전 건은 미포함
+        KIPRIS 국내(KR)·미국(US)·유럽(EP) 출원 기준 · 국가별 출원을 각각 집계(패밀리 미병합) · 구분은 키워드
+        자동분류(추정) · 출원 후 공개 전 건은 미포함
         {' · '}추정: Siemens Energy에 Siemens AG 분사 전 출원 포함
       </p>
       {stats.total === 0 ? (

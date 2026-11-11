@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <header>
+    <resultCode>00</resultCode>
+    <resultMsg>NORMAL SERVICE.</resultMsg>
+  </header>
+  <body>
+    <items>
+      <item>
+        <applicationNumber>EP20123456</applicationNumber>
+        <applicationDate>2022.07.01</applicationDate>
+        <inventionTitle>Alkaline electrolyzer with gas-liquid separator</inventionTitle>
+        <applicantName>thyssenkrupp nucera AG &amp; Co. KGaA</applicantName>
+        <publicationDate>20240110</publicationDate>
+      </item>
+    </items>
+    <totalCount>1</totalCount>
+  </body>
+</response>
