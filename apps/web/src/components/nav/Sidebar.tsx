@@ -101,13 +101,12 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
     }
   }, [isPatentActive]);
 
-  const lawExpanded = isLawActive || lawOpen;
+  // Law stays user-collapsible even on a law page (auto-expands on entry).
+  const lawExpanded = lawOpen;
   // Patents stays user-collapsible even on a patents view (auto-expands on entry).
   const patentExpanded = patentOpen;
 
   const toggleLaw = () => {
-    // On a law page, don't allow collapsing (would hide active item)
-    if (isLawActive) return;
     const next = !lawOpen;
     setLawOpen(next);
     try { localStorage.setItem('nav-law-open', next ? '1' : '0'); } catch {}
@@ -169,6 +168,9 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
                         setPatentOpen(true);
                         try { localStorage.setItem('nav-patent-open', '1'); } catch {}
                       }
+                    } else if (isLawActive) {
+                      // Already on a law page: the label toggles the sub-menu.
+                      toggleLaw();
                     } else {
                       setLawOpen(true);
                       try { localStorage.setItem('nav-law-open', '1'); } catch {}
