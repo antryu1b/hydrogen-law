@@ -388,4 +388,95 @@ describe('computePortfolioCounts parity', () => {
       expect(countLabels).toContain(g.group);
     }
   });
+
+  it('parity with mixed FTO + watch rows including a joint filing', () => {
+    // Real pipe format "A | B" — normName strips pipe and spaces
+    const ftoRecords: FtoRecord[] = [
+      { no: 1, applicant: '현대자동차', appNo: '10-2020-0001', title: 'FTO1', filedDate: '2020-01-01' },
+      // Joint filing: "현대자동차 | Toyota" — both names survive normName (strips pipe+space)
+      { no: 2, applicant: '현대자동차 | Toyota', appNo: '10-2020-0002', title: 'FTO-joint', filedDate: '2020-01-02' },
+    ];
+    const watchRows: WatchListRow[] = [
+      { id: 'w1', country: 'KR', appNo: '10-2022-0001', title: 'W1',
+        applicant: 'Toyota', filedDate: '2022-01-01', status: '공개',
+        link: '', category: 'system', matchedSet: 'E' },
+    ];
+
+    const allRows = buildDbRows(ftoRecords, {}, watchRows);
+    const counts = computePortfolioCounts(ftoRecords, watchRows);
+    const baseFilter = { source: '', cat: '', verdict: '', country: '', rights: '', q: '' };
+
+    for (const g of counts) {
+      const expected = filterPatentDb(allRows, { ...baseFilter, group: g.label, company: '' }).length;
+      expect(g.total, `group "${g.label}" count mismatch`).toBe(expected);
+      for (const c of g.companies) {
+        const expectedC = filterPatentDb(allRows, { ...baseFilter, group: '', company: c.label }).length;
+        expect(c.total, `company "${c.label}" count mismatch`).toBe(expectedC);
+      }
+    }
+
+    // Verify: Toyota card shows 2 (joint FTO + watch), 현대차 card shows 2 (sole FTO + joint FTO)
+    const autoGroup = counts.find((g) => g.label === '자동차 업체')!;
+    const toyotaCount = autoGroup.companies.find((c) => c.label === 'Toyota')!.total;
+    const hyundaiCount = autoGroup.companies.find((c) => c.label === '현대차')!.total;
+    expect(toyotaCount).toBe(2);   // joint FTO + Toyota watch row
+    expect(hyundaiCount).toBe(2);  // sole FTO + joint FTO
+  });
+});
+
+// ── parseDbParams: group derivation and OTHER_APPLICANT_GROUP rules ───────────
+
+describe('parseDbParams: group derivation', () => {
+  it('?company=Toyota with no group → derives group from COMPANY_TO_GROUP', () => {
+    const result = parseDbParams({ company: 'Toyota' });
+    expect(result.company).toBe('Toyota');
+    expect(result.group).toBe('자동차 업체');
+  });
+
+  it('?company=NEL with no group → derives 수전해 전문업체', () => {
+    const result = parseDbParams({ company: 'NEL' });
+    expect(result.company).toBe('NEL');
+    expect(result.group).toBe('수전해 전문업체');
+  });
+
+  it('?group=그 외 출원인&company=Toyota → drops group (company wins)', () => {
+    const result = parseDbParams({ group: '그 외 출원인', company: 'Toyota' });
+    expect(result.company).toBe('Toyota');
+    expect(result.group).toBe('');
+  });
+
+  it('no company, no group → both empty', () => {
+    const result = parseDbParams({});
+    expect(result.company).toBe('');
+    expect(result.group).toBe('');
+  });
+});
+
+// ── Joint filing "A | B" pipe format via real companiesForApplicant ───────────
+
+describe('joint filing pipe format', () => {
+  it('"현대자동차 | Toyota" matches both companies in filterPatentDb', () => {
+    const rows = [
+      makeFtoRow({ no: 1, appNo: '10-2020-0010', applicant: '현대자동차 | Toyota' }),
+    ];
+    expect(filterPatentDb(rows, { ...emptyFilter, company: '현대차' })).toHaveLength(1);
+    expect(filterPatentDb(rows, { ...emptyFilter, company: 'Toyota' })).toHaveLength(1);
+    expect(filterPatentDb(rows, { ...emptyFilter, company: 'Honda' })).toHaveLength(0);
+  });
+
+  it('"현대자동차 | Toyota" matches 자동차 업체 group once', () => {
+    const rows = [
+      makeFtoRow({ no: 1, appNo: '10-2020-0010', applicant: '현대자동차 | Toyota' }),
+    ];
+    const result = filterPatentDb(rows, { ...emptyFilter, group: '자동차 업체' });
+    // The row appears once (not duplicated) even though two companies match
+    expect(result).toHaveLength(1);
+  });
+
+  it('"현대자동차 | Toyota" does NOT match 수전해 전문업체 group', () => {
+    const rows = [
+      makeFtoRow({ no: 1, appNo: '10-2020-0010', applicant: '현대자동차 | Toyota' }),
+    ];
+    expect(filterPatentDb(rows, { ...emptyFilter, group: '수전해 전문업체' })).toHaveLength(0);
+  });
 });

@@ -245,6 +245,8 @@ async function PatentsDbView({
   const lastUpdated = [allFto.lastUpdated, watch.lastUpdated, lastCollected].filter(Boolean).sort().pop() ?? null;
   // key resets client filter state on soft navigation (URL param change).
   const listKey = [initialGroup, initialCompany, initialQ, initialCat, initialVerdict, initialCountry, initialRights].join('|');
+  // Surface Supabase load errors above the (possibly empty) list.
+  const loadError = allFto.error ?? watch.error ?? null;
   return (
     <>
       <UpdatedAt cadence={CADENCE.kipris} iso={lastUpdated} />
@@ -260,6 +262,7 @@ async function PatentsDbView({
         watchRows={watch.rows}
         checks={checks}
         max={PATENT_WATCH_MAX}
+        loadError={loadError}
         initialGroup={initialGroup}
         initialCompany={initialCompany}
         initialQ={initialQ}
@@ -325,6 +328,7 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
   const stats = competitor ? aggregateCompetitorStats(competitor.rows) : null;
 
   // Portfolio counts via same buildDbRows + filterPatentDb path as the DB list.
+  const portfolioDataError = ftoForCount?.error ?? watchForCount?.error ?? null;
   const portfolioCounts =
     ftoForCount && watchForCount
       ? computePortfolioCounts(ftoForCount.rows, watchForCount.rows)
@@ -340,10 +344,17 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
           <p className="mt-1 text-muted-foreground">{competitor.error}</p>
         </div>
       )}
+      {/* error={null}: the banner above already surfaces competitor.error once. */}
       {stats && (
-        <CompetitorPatentStats stats={stats} error={competitor?.error ?? null} />
+        <CompetitorPatentStats stats={stats} error={null} />
       )}
-      {portfolioCounts && <CompetitorPortfolioSection counts={portfolioCounts} watchCapped={watchCapped} />}
+      {portfolioDataError && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs">
+          <p className="font-semibold text-destructive">포트폴리오 데이터 로드 실패 (일부 데이터 로드 실패)</p>
+          <p className="mt-1 text-muted-foreground">{portfolioDataError}</p>
+        </div>
+      )}
+      {portfolioCounts && !portfolioDataError && <CompetitorPortfolioSection counts={portfolioCounts} watchCapped={watchCapped} />}
       {competitorRows.length > 0 && (
         <ReportBasisNote>
           아래 분석·참고 문구는 보고서 기준(작성 시점)이며 자동 갱신되지 않습니다 · 권리상태 최신값은 특허 종합 DB에서 확인하세요.

@@ -265,9 +265,11 @@ function firstStr(v: string | string[] | undefined): string {
  * Parses raw Next.js searchParams (string | string[] | undefined per key) into validated
  * PatentDbParams. Unknown values fall back to ''; repeated params take the first value.
  *
- * Cross-validation: if both group and company are set and they don't match,
- * the group is dropped (keeping company) so the select is never blank while
- * a company filter is active.
+ * Group resolution rules (applied in order):
+ * 1. `?company=Toyota` with no group → derive group from COMPANY_TO_GROUP
+ *    so the company select shows the right group.
+ * 2. `?group=G&company=C` where C doesn't belong to G → drop group (company wins).
+ * 3. `?group=그 외 출원인&company=C` → drop group (company wins, OTHER has no company list).
  */
 export function parseDbParams(
   raw: Record<string, string | string[] | undefined>,
@@ -280,10 +282,18 @@ export function parseDbParams(
   const companyValid = COMPANY_TO_GROUP.has(rawCompany);
   const company = companyValid ? rawCompany : '';
 
-  // Cross-validate: drop group if company doesn't belong to it
   const companyGroup = company ? (COMPANY_TO_GROUP.get(company) ?? null) : null;
-  const resolvedGroup =
-    company && group && group !== OTHER_APPLICANT_GROUP && companyGroup !== group ? '' : group;
+
+  let resolvedGroup = group;
+  if (company) {
+    if (!group) {
+      // Rule 1: derive group from company when no group given
+      resolvedGroup = companyGroup ?? '';
+    } else if (group === OTHER_APPLICANT_GROUP || companyGroup !== group) {
+      // Rule 2+3: company doesn't belong to this group — drop group
+      resolvedGroup = '';
+    }
+  }
 
   const q = firstStr(raw['q']).trim();
   const cat = VALID_CATS.has(firstStr(raw['cat'])) ? firstStr(raw['cat']) : '';

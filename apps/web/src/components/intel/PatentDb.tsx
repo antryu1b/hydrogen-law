@@ -105,7 +105,8 @@ function FtoRowCard({
         <strong className="break-words font-semibold">{record.title ?? '-'}</strong>
       </div>
       <div className="mt-1.5 break-words text-xs text-muted-foreground">
-        출원번호 {record.appNo ?? '-'} · 출원인 {(record.applicant ?? '-').split('|')[0].trim()} · 상태{' '}
+        출원번호 {record.appNo ?? '-'} · 출원인{' '}
+        {(record.applicant ?? '-').split('|').map((s) => s.trim()).join(' · ')} · 상태{' '}
         {record.status ?? '-'}
         {record.filedDate ? ` · 출원일 ${record.filedDate}` : ''}
       </div>
@@ -187,6 +188,7 @@ export function PatentDbList({
   watchRows,
   checks,
   max,
+  loadError = null,
   initialGroup = '',
   initialCompany = '',
   initialQ = '',
@@ -200,6 +202,8 @@ export function PatentDbList({
   watchRows: WatchListRow[];
   checks: Partial<Record<CheckKey, CheckState>> | null;
   max: number;
+  /** Supabase load error from loadFto() or loadPatentWatch(); shown as a banner above the list. */
+  loadError?: string | null;
   initialGroup?: string;
   initialCompany?: string;
   initialQ?: string;
@@ -244,6 +248,13 @@ export function PatentDbList({
 
   return (
     <div className="space-y-4">
+      {/* Supabase load error — shown above the (possibly partial) list */}
+      {loadError && (
+        <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs">
+          <p className="font-semibold text-destructive">데이터 로드 실패</p>
+          <p className="mt-1 text-muted-foreground">{loadError}</p>
+        </div>
+      )}
       <CheckFailures checks={checks} />
 
       {/* Shared filter bar — grid-cols-2 at 375 px so controls don't overflow */}
@@ -374,10 +385,12 @@ export function PatentDbList({
             </p>
             <div className="mt-2 space-y-2">
               {shown.map((row, i) => {
+                // FTO: stable on no+appNo (no alone can be duplicate if records re-seed).
+                // Watch: id is the Supabase row PK, stable and unique across countries.
                 const key =
                   row.source === 'fto'
-                    ? `fto-${row.record.no ?? `idx-${i}`}`
-                    : `watch-${row.row.appNo || row.row.id || `idx-${i}`}`;
+                    ? `fto-${row.record.no ?? 'x'}-${row.record.appNo ?? `idx-${i}`}`
+                    : `watch-${row.row.id || `idx-${i}`}`;
                 return <DbRowCard key={key} row={row} />;
               })}
             </div>
