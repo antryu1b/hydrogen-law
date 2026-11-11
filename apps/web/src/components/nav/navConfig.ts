@@ -50,7 +50,6 @@ export const NAV_MAIN: NavSection[] = [
 
 export const NAV_ADMIN: SubNavItem[] = [
   { label: '법령 업로드', href: '/upload' },
-  { label: '인텔 업로드', href: '/intel/admin' },
 ];
 
 function matchesRelatedPath(section: NavSection, pathname: string): boolean {

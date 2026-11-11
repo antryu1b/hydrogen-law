@@ -37,8 +37,8 @@ describe('navConfig', () => {
     expect(searchItem?.href).toBe('/search');
   });
 
-  it('exports 2 admin items', () => {
-    expect(NAV_ADMIN).toHaveLength(2);
+  it('exports only the law upload admin item', () => {
+    expect(NAV_ADMIN.map((i) => i.href)).toEqual(['/upload']);
   });
 });
 

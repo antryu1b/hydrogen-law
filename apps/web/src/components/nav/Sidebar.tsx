@@ -12,7 +12,6 @@ import {
   Columns2,
   Network,
   Upload,
-  BookOpen,
   ChevronDown,
   Settings2,
   Building2,
@@ -46,7 +45,6 @@ const SUB_ICONS: Record<string, React.ComponentType<{ className?: string; stroke
 
 const ADMIN_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   '법령 업로드': Upload,
-  '인텔 업로드': BookOpen,
 };
 
 function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
