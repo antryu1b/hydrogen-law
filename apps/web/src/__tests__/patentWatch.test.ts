@@ -7,13 +7,18 @@ import {
   aggregateCompetitorStats,
   autoCategory,
   companiesForApplicant,
+  competitorGroupFor,
+  filterWatchRows,
   formatAppNo,
   isRelevant,
   normalizeAppNo,
   parseKiprisXml,
   planRequests,
   rowsFromItems,
+  OTHER_APPLICANT_GROUP,
+  watchFacets,
   type SearchJob,
+  type WatchListRow,
 } from '@/lib/patent-watch';
 
 const fixture = readFileSync(path.join(__dirname, 'fixtures/kipris-word-search.xml'), 'utf8');
@@ -248,5 +253,69 @@ describe('aggregateCompetitorStats', () => {
     const stats = aggregateCompetitorStats([]);
     expect(stats.total).toBe(0);
     expect(stats.groups).toHaveLength(3);
+  });
+});
+
+describe('competitorGroupFor (FTO competitor regrouping)', () => {
+  it('maps FTO applicants onto the KIPRIS groups', () => {
+    expect(competitorGroupFor('HONDA MOTOR CO., LTD.')).toEqual({ company: 'Honda', group: '자동차 업체' });
+    expect(competitorGroupFor('TOYOTA BOSHOKU KABUSHIKI KAISHA')).toEqual({ company: 'Toyota', group: '자동차 업체' });
+    expect(competitorGroupFor('DENSO CORPORATION | TOYOTA JIDOSHA KABUSHIKI KAISHA')).toEqual({
+      company: 'Toyota',
+      group: '자동차 업체',
+    });
+    expect(competitorGroupFor('ITM Power (Trading) Limited')).toEqual({ company: 'ITM Power', group: '수전해 전문업체' });
+    expect(competitorGroupFor('HYDROGENICS CORPORATION')).toEqual({ company: 'Accelera', group: '수전해 전문업체' });
+    expect(competitorGroupFor('SIEMENS AKTIENGESELLSCHAFT')).toEqual({ company: 'Siemens Energy', group: '에너지·플랜트(EPC)' });
+  });
+
+  it('returns null for applicants missing from the alias map', () => {
+    for (const a of ['AISIN CORPORATION', 'SIEMENS GAMESA RENEWABLE ENERGY A/S', '드 노라 페르멜렉 가부시키가이샤', 'Ohmium International, Inc.', '']) {
+      expect(competitorGroupFor(a)).toBeNull();
+    }
+  });
+});
+
+describe('watch list filtering', () => {
+  const row = (appNo: string, applicant: string, filedDate: string | null, title = 'title'): WatchListRow => ({
+    appNo,
+    title,
+    applicant,
+    filedDate,
+    status: '공개',
+    link: null,
+    category: 'system',
+    matchedSet: 'B',
+  });
+  const rows = [
+    row('1', 'HONDA MOTOR CO., LTD.', '2025-03-01', '수전해 시스템'),
+    row('2', 'SIEMENS ENERGY GLOBAL GMBH & CO. KG', '2024-05-01'),
+    row('3', '(주) 테크윈', '2025-01-01', '전해조 스택'),
+    row('4', 'TOYOTA JIDOSHA KABUSHIKI KAISHA', null),
+  ];
+  const none = { group: '', company: '', year: '', q: '' };
+
+  it('lists facets in group order, other bucket last, years newest first', () => {
+    expect(watchFacets(rows)).toEqual({
+      groups: ['자동차 업체', '에너지·플랜트(EPC)', OTHER_APPLICANT_GROUP],
+      companies: ['Toyota', 'Honda', 'Siemens Energy'],
+      years: ['2025', '2024'],
+    });
+  });
+
+  it('returns every row when no filter is set, order preserved', () => {
+    expect(filterWatchRows(rows, none).map((r) => r.appNo)).toEqual(['1', '2', '3', '4']);
+  });
+
+  it('filters by group, other bucket, company, year and text', () => {
+    const ids = (f: Partial<typeof none>) => filterWatchRows(rows, { ...none, ...f }).map((r) => r.appNo);
+    expect(ids({ group: '자동차 업체' })).toEqual(['1', '4']);
+    expect(ids({ group: OTHER_APPLICANT_GROUP })).toEqual(['3']);
+    expect(ids({ company: 'Siemens Energy' })).toEqual(['2']);
+    expect(ids({ year: '2025' })).toEqual(['1', '3']);
+    expect(ids({ q: '  스택 ' })).toEqual(['3']);
+    expect(ids({ q: 'honda' })).toEqual(['1']);
+    expect(ids({ group: '자동차 업체', year: '2025' })).toEqual(['1']);
+    expect(ids({ group: '자동차 업체', company: 'Siemens Energy' })).toEqual([]);
   });
 });

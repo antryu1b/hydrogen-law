@@ -23,6 +23,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { mergeCompetitorTabs } from './merge-tabs.mjs';
+import { transformPatentRows } from './patent-rows.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../..');
@@ -287,6 +288,9 @@ const patentRows = [
   ...sectionRows(mustGet('secPatentTriz'), 'triz'),
 ];
 const PATENTS = readConst('PATENTS');
+// Drop internal procedure blocks, regroup competitor tabs on the KIPRIS groups (see patent-rows.mjs).
+const patentReport = transformPatentRows(patentRows.splice(0), { ftoCount: PATENTS.length });
+patentRows.push(...patentReport.rows);
 for (const { reviewer: _reviewer, ...p } of PATENTS) {
   // Reviewer holds an employee's name; never publish it.
   patentRows.push({
@@ -353,6 +357,9 @@ const write = (file, table, rows) => {
 };
 write('competitors.json', 'intel_competitors', mergeCompetitorTabs(competitorRows));
 write('patents.json', 'intel_patents', patentRows);
+console.log(`  dropped rows: ${patentReport.droppedIds.join(', ')}`);
+console.log(`  competitor groups: ${patentReport.summary.counts.map(([g, n]) => `${g} ${n}`).join(' · ')}`);
+console.log(`  unmapped applicants: ${patentReport.summary.unmappedApplicants.join(' / ') || 'none'}`);
 write('news.json', 'intel_news', newsRows);
 fs.writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify(meta, null, 1));
 console.log(`→ ${outDir}`);

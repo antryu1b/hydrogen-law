@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { IntelBlockList } from '@/components/intel/IntelBlocks';
 import { FtoList } from '@/components/intel/FtoList';
 import { NewsList } from '@/components/intel/NewsList';
-import { CompetitorPatentStats, PatentWatchList } from '@/components/intel/PatentWatch';
+import { CompetitorPatentStats } from '@/components/intel/PatentWatch';
+import { PatentWatchList } from '@/components/intel/PatentWatchList';
 import { filterPatentRows, parsePatentSec, stripSectionWords, type PatentSec } from '@/lib/intel-utils';
 import {
   formatKst,
@@ -11,6 +12,7 @@ import {
   loadFto,
   loadNews,
   loadPatentWatch,
+  PATENT_WATCH_MAX,
   type BlockRow,
   type IntelBlock,
 } from '@/lib/intel';
@@ -139,27 +141,42 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
       </>
     );
   }
+  if (!competitorFacing) {
+    return (
+      <>
+        <UpdatedAt iso={lastUpdated} />
+        <Sections
+          rows={blocks.rows}
+          sectionLabel="특허 분석"
+          stripWords={sec === 'proposals' ? PROPOSALS_STRIP_WORDS : undefined}
+        />
+      </>
+    );
+  }
+  // Competitor-facing order: KIPRIS trends → KIPRIS new filings → FTO-based portfolio → FTO DB.
+  // The all view (no sec) then continues with the remaining sections (당사, 제안).
+  const competitorRows = filterPatentRows(blocks.rows, 'competitor');
+  const otherRows = blocks.rows.filter((r) => !competitorRows.includes(r));
   return (
     <>
       <UpdatedAt iso={lastUpdated} />
-      <Sections
-        rows={blocks.rows}
-        sectionLabel="특허 분석"
-        stripWords={sec === 'proposals' ? PROPOSALS_STRIP_WORDS : undefined}
-      />
       {competitor && (
         <CompetitorPatentStats stats={aggregateCompetitorStats(competitor.rows)} error={competitor.error} />
       )}
-      {watch && <PatentWatchList rows={watch.rows.map((r) => r.payload)} error={watch.error} />}
+      {watch && <PatentWatchList rows={watch.rows} error={watch.error} max={PATENT_WATCH_MAX} />}
+      <Sections rows={competitorRows} sectionLabel="특허 분석" />
       {fto.rows.length > 0 && (
         <div className="space-y-3">
           <div className="mt-8 border-b border-border/70 pb-2">
             <h2 className="font-display text-lg font-bold tracking-tight">FTO 1차 검토 DB</h2>
-            <p className="mt-1 text-sm text-muted-foreground">검토 대상 특허 전건 · 분류·판정·검색 필터</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              FTO 검토 {fto.rows.length}건 기준 · 검토 대상 특허 전건 · 분류·판정·검색 필터
+            </p>
           </div>
           <FtoList records={fto.rows} />
         </div>
       )}
+      {otherRows.length > 0 && <Sections rows={otherRows} sectionLabel="특허 분석" />}
     </>
   );
 }

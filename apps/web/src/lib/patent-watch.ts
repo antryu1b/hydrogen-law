@@ -458,3 +458,80 @@ export function aggregateCompetitorStats(rows: CompetitorStatRow[]): CompetitorS
   }
   return { groups, years: [...years].sort(), total };
 }
+
+// ── FTO competitor regrouping ───────────────────────────────────────────────
+/**
+ * KIPRIS company/group for one FTO applicant field, using the same alias map as the
+ * watch. Joint filings take the first matching competitor in alias-map order.
+ * null = applicant is not in the alias map (callers put it in a fallback bucket).
+ */
+export function competitorGroupFor(applicant: string | null | undefined): { company: string; group: string } | null {
+  for (const company of companiesForApplicant(applicant)) {
+    const group = groupOf(company);
+    if (group) return { company, group };
+  }
+  return null;
+}
+
+// ── Watch list filtering ────────────────────────────────────────────────────
+/** Filter bucket for watch rows whose applicant is not a tracked competitor. */
+export const OTHER_APPLICANT_GROUP = '그 외 출원인';
+
+export type WatchListRow = Pick<
+  PatentWatchPayload,
+  'appNo' | 'title' | 'applicant' | 'filedDate' | 'status' | 'link' | 'category' | 'matchedSet'
+>;
+
+export interface WatchFilter {
+  /** Competitor group label, OTHER_APPLICANT_GROUP, or '' for all. */
+  group: string;
+  /** Competitor company label or '' for all. */
+  company: string;
+  /** Filing year ('2024') or '' for all. */
+  year: string;
+  /** Case-insensitive substring over title, applicant and application number. */
+  q: string;
+}
+
+export interface WatchFacets {
+  groups: string[];
+  companies: string[];
+  years: string[];
+}
+
+/** Filter options present in `rows`: groups in COMPETITOR_GROUPS order (+ other), years newest first. */
+export function watchFacets(rows: WatchListRow[]): WatchFacets {
+  const companies = new Set<string>();
+  const years = new Set<string>();
+  let other = false;
+  for (const r of rows) {
+    const cs = companiesForApplicant(r.applicant);
+    if (cs.length) cs.forEach((c) => companies.add(c));
+    else other = true;
+    if (r.filedDate) years.add(r.filedDate.slice(0, 4));
+  }
+  const allCompanies = COMPETITOR_GROUPS.flatMap((g) => g.companies);
+  const groups = COMPETITOR_GROUPS.filter((g) => g.companies.some((c) => companies.has(c))).map((g) => g.group);
+  return {
+    groups: other ? [...groups, OTHER_APPLICANT_GROUP] : groups,
+    companies: allCompanies.filter((c) => companies.has(c)),
+    years: [...years].sort().reverse(),
+  };
+}
+
+/** Rows matching every non-empty filter field, order preserved. */
+export function filterWatchRows<T extends WatchListRow>(rows: T[], f: WatchFilter): T[] {
+  const needle = f.q.trim().toLowerCase();
+  return rows.filter((r) => {
+    if (f.group || f.company) {
+      const cs = companiesForApplicant(r.applicant);
+      if (f.company && !cs.includes(f.company)) return false;
+      if (f.group === OTHER_APPLICANT_GROUP ? cs.length > 0 : f.group && !cs.some((c) => groupOf(c) === f.group)) {
+        return false;
+      }
+    }
+    if (f.year && (r.filedDate ?? '').slice(0, 4) !== f.year) return false;
+    if (!needle) return true;
+    return [r.title, r.applicant, r.appNo].some((v) => (v ?? '').toLowerCase().includes(needle));
+  });
+}

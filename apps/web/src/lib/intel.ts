@@ -4,7 +4,7 @@ import {
   PATENT_DATA_SECTIONS,
   WATCH_SECTION,
   type CompetitorStatRow,
-  type PatentWatchPayload,
+  type WatchListRow,
 } from '@/lib/patent-watch';
 
 // ── Content block model (produced by scripts/intel/extract.mjs) ─────────────
@@ -163,18 +163,19 @@ export async function loadFto(): Promise<Loaded<FtoRecord>> {
   return { rows, lastUpdated, error: null };
 }
 
-async function loadPatentSection<T>(section: string, columns: string): Promise<Loaded<T>> {
+/** Rows of one KIPRIS section, newest filing first; stops after `max` rows when given. */
+async function loadPatentSection<T>(section: string, columns: string, max = Infinity): Promise<Loaded<T>> {
   const sb = intelSupabase();
   if (!sb) return { rows: [], lastUpdated: null, error: NOT_CONFIGURED };
   const rows: T[] = [];
   let lastUpdated: string | null = null;
-  for (let from = 0; ; from += PAGE) {
+  for (let from = 0; from < max; from += PAGE) {
     const { data, error } = await sb
       .from('intel_patents')
       .select(`updated_at,${columns}`)
       .eq('section', section)
       .order('sort', { ascending: false })
-      .range(from, from + PAGE - 1);
+      .range(from, Math.min(from + PAGE, max) - 1);
     if (error) return { rows: [], lastUpdated: null, error: describeError(error.message) };
     for (const r of (data ?? []) as unknown as (T & { updated_at: string })[]) {
       const { updated_at, ...rec } = r;
@@ -186,9 +187,21 @@ async function loadPatentSection<T>(section: string, columns: string): Promise<L
   return { rows, lastUpdated, error: null };
 }
 
-/** KIPRIS watch rows (written by /api/cron/kipris-patents), newest filing first. */
-export async function loadPatentWatch(): Promise<Loaded<{ payload: PatentWatchPayload }>> {
-  return loadPatentSection(WATCH_SECTION, 'payload');
+/**
+ * Upper bound on watch rows sent to the page. The cron keeps adding rows, and the list is
+ * filtered client-side, so only the newest PATENT_WATCH_MAX filings (sort = filing date desc)
+ * are loaded; older ones stay in the table but are not shown.
+ */
+export const PATENT_WATCH_MAX = 2000;
+
+/** KIPRIS watch rows (written by /api/cron/kipris-patents), newest filing first, trimmed to list fields. */
+export async function loadPatentWatch(): Promise<Loaded<WatchListRow>> {
+  return loadPatentSection(
+    WATCH_SECTION,
+    'appNo:payload->>appNo,title:payload->>title,applicant:payload->>applicant,filedDate:payload->>filedDate,' +
+      'status:payload->>status,link:payload->>link,category:payload->>category,matchedSet:payload->>matchedSet',
+    PATENT_WATCH_MAX,
+  );
 }
 
 /** Competitor filings trimmed to what the statistics need. */
