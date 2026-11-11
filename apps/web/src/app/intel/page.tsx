@@ -18,6 +18,7 @@ type TabKey = (typeof TABS)[number]['key'];
 const PATENT_SEC_TITLES: Partial<Record<PatentSec, string>> = {
   competitor: '경쟁사 특허검토',
   hmg: '현대차그룹 특허검토',
+  proposals: '특허제안리스트',
 };
 
 function UpdatedAt({ iso, note }: { iso: string | null; note?: string }) {
@@ -140,7 +141,7 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
   const { tab, sec } = await searchParams;
   const active: TabKey = TABS.some((t) => t.key === tab) ? (tab as TabKey) : 'news';
   const patentSec = parsePatentSec(sec);
-  // Competitor and HMG patent views get their own visible page titles.
+  // Each patent sub-view gets its own visible page title.
   const patentTitle =
     active === 'patents' && patentSec ? PATENT_SEC_TITLES[patentSec] : undefined;
 
