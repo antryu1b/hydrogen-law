@@ -59,10 +59,15 @@ function Sections({
 }
 
 async function NewsTab() {
-  const { rows, lastUpdated, error } = await loadNews();
+  const { rows, error } = await loadNews();
+  // Rows are ordered by published_at desc, so the first row is the newest article.
+  const latestPublished = rows[0]?.published_at ?? null;
   return (
     <>
-      <UpdatedAt iso={lastUpdated} note="매일 1회 Google News RSS 자동 수집" />
+      <p className="text-xs text-muted-foreground">
+        최신 기사 발행일 <span className="font-medium tabular-nums text-foreground">{latestPublished ?? '—'}</span>
+        {' · 매일 1회 Google News RSS 자동 수집'}
+      </p>
       {rows.length ? <NewsList rows={rows} /> : <Empty error={error} />}
     </>
   );
