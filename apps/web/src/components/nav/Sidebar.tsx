@@ -102,7 +102,8 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
   }, [isPatentActive]);
 
   const lawExpanded = isLawActive || lawOpen;
-  const patentExpanded = isPatentActive || patentOpen;
+  // Patents stays user-collapsible even on a patents view (auto-expands on entry).
+  const patentExpanded = patentOpen;
 
   const toggleLaw = () => {
     // On a law page, don't allow collapsing (would hide active item)
@@ -113,8 +114,6 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
   };
 
   const togglePatent = () => {
-    // On a patents view, don't allow collapsing (would hide active item)
-    if (isPatentActive) return;
     const next = !patentOpen;
     setPatentOpen(next);
     try { localStorage.setItem('nav-patent-open', next ? '1' : '0'); } catch {}
@@ -164,8 +163,12 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
                   href={section.href}
                   onClick={() => {
                     if (isPatents) {
-                      setPatentOpen(true);
-                      try { localStorage.setItem('nav-patent-open', '1'); } catch {}
+                      // Already on a patents view: the label toggles the sub-menu.
+                      if (isPatentActive) togglePatent();
+                      else {
+                        setPatentOpen(true);
+                        try { localStorage.setItem('nav-patent-open', '1'); } catch {}
+                      }
                     } else {
                       setLawOpen(true);
                       try { localStorage.setItem('nav-law-open', '1'); } catch {}
