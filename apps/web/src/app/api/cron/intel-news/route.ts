@@ -9,18 +9,20 @@ import { intelSupabase } from '@/lib/intel';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-// Company map migrated from the legacy dashboard (KG_CO_MAP). Order matters:
+// Company map migrated from the legacy dashboard (KG_CO_MAP). Labels match the seeded rows
+// so manual and RSS articles group together. enQuery adds an English Google News feed for
+// overseas companies, which Korean-only queries barely cover. Order matters:
 // more specific keys (삼성E&A) must come before generic ones (삼성).
-const COMPANIES: { label: string; query: string; keys: string[] }[] = [
-  { label: 'NEL ASA', query: 'Nel 수전해', keys: ['NEL', 'Nel'] },
-  { label: 'ITM Power', query: 'ITM Power 수전해', keys: ['ITM'] },
-  { label: 'Plug Power', query: '플러그파워 수전해', keys: ['Plug', '플러그'] },
+const COMPANIES: { label: string; query: string; enQuery?: string; keys: string[] }[] = [
+  { label: 'NEL', query: 'Nel 수전해', enQuery: 'Nel ASA electrolyser', keys: ['NEL', 'Nel'] },
+  { label: 'ITM Power', query: 'ITM Power 수전해', enQuery: 'ITM Power electrolyser', keys: ['ITM'] },
+  { label: 'Plug Power', query: '플러그파워 수전해', enQuery: 'Plug Power electrolyzer', keys: ['Plug Power', '플러그'] },
   { label: '삼성E&A', query: '삼성E&A 수전해', keys: ['삼성E&A', '삼성 E&A', 'Samsung E&A', '삼성이앤에이', 'CompassH2'] },
-  { label: '현대차·HTWO', query: '현대차 수전해', keys: ['현대차', 'HTWO', '현대로템', '현대자동차'] },
+  { label: '현대차', query: '현대차 수전해', keys: ['현대차', 'HTWO', '현대로템', '현대자동차'] },
   { label: '포스코홀딩스', query: '포스코 수전해', keys: ['포스코', 'POSCO'] },
-  { label: 'Accelera', query: 'Accelera 커민스 수전해', keys: ['Accelera', 'Cummins', '커민스'] },
-  { label: 'Siemens Energy', query: '지멘스에너지 수전해', keys: ['Siemens', '지멘스'] },
-  { label: 'Toyota·Chiyoda', query: '도요타 수전해', keys: ['Toyota', '도요타', 'Chiyoda', '치요다'] },
+  { label: 'Accelera', query: 'Accelera 커민스 수전해', enQuery: 'Accelera Cummins electrolyzer', keys: ['Accelera', 'Cummins', '커민스'] },
+  { label: 'Siemens Energy', query: '지멘스에너지 수전해', enQuery: 'Siemens Energy electrolyzer', keys: ['Siemens', '지멘스'] },
+  { label: 'Toyota', query: '도요타 수전해', enQuery: 'Toyota Chiyoda electrolyzer', keys: ['Toyota', '도요타', 'Chiyoda', '치요다'] },
 ];
 
 // General queries. The legacy KG_NEWS_KW list ('동향','뉴스','최신',…) is chat-intent
@@ -61,8 +63,10 @@ function matchCompany(title: string): string | null {
   return COMPANIES.find((c) => c.keys.some((k) => title.includes(k)))?.label ?? null;
 }
 
-async function fetchQuery(query: string, fallbackCompany: string | null): Promise<Item[]> {
-  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko`;
+const LOCALES = { ko: 'hl=ko&gl=KR&ceid=KR:ko', en: 'hl=en-US&gl=US&ceid=US:en' } as const;
+
+async function fetchQuery(query: string, fallbackCompany: string | null, lang: keyof typeof LOCALES = 'ko'): Promise<Item[]> {
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&${LOCALES[lang]}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'hydrogen-law-intel/1.0' } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const xml = await res.text();
@@ -97,10 +101,11 @@ export async function GET() {
   if (!sb) return NextResponse.json({ error: 'Supabase env not set' }, { status: 503 });
 
   const jobs = [
-    ...COMPANIES.map((c) => ({ query: c.query, company: c.label })),
-    ...GENERAL_QUERIES.map((q) => ({ query: q, company: null })),
+    ...COMPANIES.map((c) => ({ query: c.query, company: c.label, lang: 'ko' as const })),
+    ...COMPANIES.filter((c) => c.enQuery).map((c) => ({ query: c.enQuery!, company: c.label, lang: 'en' as const })),
+    ...GENERAL_QUERIES.map((q) => ({ query: q, company: null, lang: 'ko' as const })),
   ];
-  const results = await Promise.allSettled(jobs.map((j) => fetchQuery(j.query, j.company)));
+  const results = await Promise.allSettled(jobs.map((j) => fetchQuery(j.query, j.company, j.lang)));
 
   const byUrl = new Map<string, Item>();
   const failures: string[] = [];
