@@ -15,6 +15,11 @@ const TABS = [
 ] as const;
 type TabKey = (typeof TABS)[number]['key'];
 
+const PATENT_SEC_TITLES: Partial<Record<PatentSec, string>> = {
+  competitor: '경쟁사 특허검토',
+  hmg: '현대차그룹 특허검토',
+};
+
 function UpdatedAt({ iso, note }: { iso: string | null; note?: string }) {
   return (
     <p className="text-xs text-muted-foreground">
@@ -117,6 +122,10 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
 export default async function IntelPage({ searchParams }: { searchParams: Promise<{ tab?: string; sec?: string }> }) {
   const { tab, sec } = await searchParams;
   const active: TabKey = TABS.some((t) => t.key === tab) ? (tab as TabKey) : 'news';
+  const patentSec = parsePatentSec(sec);
+  // Competitor and HMG patent views get their own visible page titles.
+  const patentTitle =
+    active === 'patents' && patentSec ? PATENT_SEC_TITLES[patentSec] : undefined;
 
   return (
     <div className="space-y-6">
@@ -124,16 +133,18 @@ export default async function IntelPage({ searchParams }: { searchParams: Promis
           so the generic tab-level heading is visually hidden there (kept for screen readers). */}
       <h1
         className={
-          active === 'patents' ? 'sr-only' : 'font-display text-2xl font-bold tracking-tight'
+          active === 'patents' && !patentTitle
+            ? 'sr-only'
+            : 'font-display text-2xl font-bold tracking-tight'
         }
       >
-        {TABS.find((t) => t.key === active)?.label}
+        {patentTitle ?? TABS.find((t) => t.key === active)?.label}
       </h1>
 
       <div className="space-y-4">
         {active === 'news' && <NewsTab />}
         {active === 'competitors' && <CompetitorsTab />}
-        {active === 'patents' && <PatentsTab sec={parsePatentSec(sec)} />}
+        {active === 'patents' && <PatentsTab sec={patentSec} />}
       </div>
     </div>
   );
