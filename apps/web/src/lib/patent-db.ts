@@ -42,12 +42,35 @@ export function rightsStatusBucket(status: string | null | undefined): RightsSta
   return '상태없음';
 }
 
+/**
+ * Folds the 'transfer' (이관) FTO workflow label into 'system' at render level.
+ * FTO records whose category is 'transfer' are display-mapped to '시스템 (이관)';
+ * the underlying Supabase rows are never modified.
+ * KIPRIS watch rows never receive 'transfer' (autoCategory rule excludes it).
+ */
+export function resolveFtoCat(cat: string | undefined): string {
+  return cat === 'transfer' ? 'system' : (cat ?? '');
+}
+
+/**
+ * Returns true when the "검색 결과가 없습니다." empty note should be shown.
+ * Suppressed when a load error already explains the empty state.
+ */
+export function shouldShowDbEmptyNote(
+  loadError: string | null | undefined,
+  filteredLength: number,
+): boolean {
+  return !loadError && filteredLength === 0;
+}
+
 // ── Combined row type ────────────────────────────────────────────────────────
 
 export type PatentDbRow =
   | {
       source: 'fto';
       sortKey: string; // ISO date or '' for unknown — used for sort
+      /** Position in the original ftoRecords input — stable unique key even when no/appNo collide. */
+      srcIdx: number;
       record: FtoRecord;
       autoStatus?: { registerStatus: string; checkedAt: string };
     }
@@ -66,9 +89,10 @@ export function buildDbRows(
   autoStatus: Record<string, { registerStatus: string; checkedAt: string }>,
   watchRows: WatchListRow[],
 ): PatentDbRow[] {
-  const ftoDbRows: PatentDbRow[] = ftoRecords.map((record) => ({
+  const ftoDbRows: PatentDbRow[] = ftoRecords.map((record, i) => ({
     source: 'fto' as const,
     sortKey: record.filedDate ?? '',
+    srcIdx: i,
     record,
     autoStatus: autoStatus[normalizeAppNo(record.appNo)],
   }));
@@ -176,8 +200,9 @@ export function filterPatentDb(rows: PatentDbRow[], f: PatentDbFilter): PatentDb
     const applicant = row.source === 'fto' ? row.record.applicant : row.row.applicant;
     if (!rowMatchesGroupCompany(applicant, f.group, f.company)) return false;
 
-    // Category filter
-    const cat = row.source === 'fto' ? row.record.category : row.row.category;
+    // Category filter — FTO 'transfer' is folded into 'system' at render level
+    const rawCat = row.source === 'fto' ? row.record.category : row.row.category;
+    const cat = row.source === 'fto' ? resolveFtoCat(rawCat) : (rawCat ?? '');
     if (f.cat && cat !== f.cat) return false;
 
     // Text search

@@ -246,7 +246,13 @@ async function PatentsDbView({
   // key resets client filter state on soft navigation (URL param change).
   const listKey = [initialGroup, initialCompany, initialQ, initialCat, initialVerdict, initialCountry, initialRights].join('|');
   // Surface Supabase load errors above the (possibly empty) list.
-  const loadError = allFto.error ?? watch.error ?? null;
+  // autoStatus error means 권리상태 auto-data is unavailable; the rights filter still works
+  // from raw FTO status values so we surface it with an explanatory note instead of the raw message.
+  const statusNote = autoStatus?.error
+    ? '권리상태 자동조회 로드 실패 — 권리상태 필터는 FTO 원본 기준'
+    : null;
+  const loadError =
+    [allFto.error, watch.error, statusNote].filter(Boolean).join(' / ') || null;
   return (
     <>
       <UpdatedAt cadence={CADENCE.kipris} iso={lastUpdated} />
@@ -344,8 +350,8 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
           <p className="mt-1 text-muted-foreground">{competitor.error}</p>
         </div>
       )}
-      {/* error={null}: the banner above already surfaces competitor.error once. */}
-      {stats && (
+      {/* Only render when load succeeded; the error banner above covers the failure case. */}
+      {stats && !competitor?.error && (
         <CompetitorPatentStats stats={stats} error={null} />
       )}
       {portfolioDataError && (

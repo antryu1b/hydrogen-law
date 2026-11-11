@@ -5,6 +5,8 @@ import {
   rightsStatusBucket,
   buildDbRows,
   computePortfolioCounts,
+  resolveFtoCat,
+  shouldShowDbEmptyNote,
   type PatentDbRow,
 } from '@/lib/patent-db';
 import { COMPETITOR_GROUPS } from '@/lib/patent-watch';
@@ -27,7 +29,7 @@ function makeFtoRow(overrides: Partial<FtoRecord> = {}): PatentDbRow {
     filedDate: '2020-05-10',
     ...overrides,
   };
-  return { source: 'fto', sortKey: record.filedDate ?? '', record };
+  return { source: 'fto', sortKey: record.filedDate ?? '', srcIdx: 0, record };
 }
 
 function makeWatchRow(overrides: Partial<WatchListRow> = {}): PatentDbRow {
@@ -478,5 +480,85 @@ describe('joint filing pipe format', () => {
       makeFtoRow({ no: 1, appNo: '10-2020-0010', applicant: '현대자동차 | Toyota' }),
     ];
     expect(filterPatentDb(rows, { ...emptyFilter, group: '수전해 전문업체' })).toHaveLength(0);
+  });
+});
+
+// ── resolveFtoCat: 이관 → 시스템 fold ───────────────────────────────────────
+
+describe('resolveFtoCat', () => {
+  it("maps 'transfer' → 'system'", () => {
+    expect(resolveFtoCat('transfer')).toBe('system');
+  });
+
+  it('leaves other categories unchanged', () => {
+    expect(resolveFtoCat('gas-liquid')).toBe('gas-liquid');
+    expect(resolveFtoCat('stack')).toBe('stack');
+    expect(resolveFtoCat('control')).toBe('control');
+    expect(resolveFtoCat('system')).toBe('system');
+  });
+
+  it('returns empty string for undefined', () => {
+    expect(resolveFtoCat(undefined)).toBe('');
+  });
+
+  it('transfer category rows match 시스템 (system) filter, not transfer filter', () => {
+    const rows = [makeFtoRow({ category: 'transfer' })];
+    expect(filterPatentDb(rows, { ...emptyFilter, cat: 'system' })).toHaveLength(1);
+    expect(filterPatentDb(rows, { ...emptyFilter, cat: 'transfer' })).toHaveLength(0);
+  });
+
+  it('transfer rows do NOT match gas-liquid filter', () => {
+    const rows = [makeFtoRow({ category: 'transfer' })];
+    expect(filterPatentDb(rows, { ...emptyFilter, cat: 'gas-liquid' })).toHaveLength(0);
+  });
+});
+
+// ── shouldShowDbEmptyNote ────────────────────────────────────────────────────
+
+describe('shouldShowDbEmptyNote', () => {
+  it('shows empty note when no error and filtered empty', () => {
+    expect(shouldShowDbEmptyNote(null, 0)).toBe(true);
+    expect(shouldShowDbEmptyNote(undefined, 0)).toBe(true);
+    expect(shouldShowDbEmptyNote('', 0)).toBe(true);
+  });
+
+  it('suppresses empty note when loadError is set (error explains empty state)', () => {
+    expect(shouldShowDbEmptyNote('connection failed', 0)).toBe(false);
+  });
+
+  it('suppresses empty note when list has items (nothing to show)', () => {
+    expect(shouldShowDbEmptyNote(null, 5)).toBe(false);
+    expect(shouldShowDbEmptyNote('error', 5)).toBe(false);
+  });
+});
+
+// ── buildDbRows: stable srcIdx ───────────────────────────────────────────────
+
+describe('buildDbRows: stable srcIdx', () => {
+  it('assigns unique srcIdx even when two FTO records share same no and appNo', () => {
+    const records: FtoRecord[] = [
+      { no: 1, appNo: '10-2020-0001', title: 'A', filedDate: '2020-01-01' },
+      { no: 1, appNo: '10-2020-0001', title: 'B', filedDate: '2020-01-02' }, // duplicate no+appNo
+    ];
+    const rows = buildDbRows(records, {}, []);
+    const ftoRows = rows.filter((r): r is Extract<typeof r, { source: 'fto' }> => r.source === 'fto');
+    expect(ftoRows).toHaveLength(2);
+    const indices = ftoRows.map((r) => r.srcIdx);
+    // All srcIdx values must be unique
+    expect(new Set(indices).size).toBe(indices.length);
+    // srcIdx values match input positions (0 and 1)
+    expect(indices.sort((a, b) => a - b)).toEqual([0, 1]);
+  });
+
+  it('srcIdx is stable across sorting (assigned before sort)', () => {
+    const records: FtoRecord[] = [
+      { no: 1, appNo: '10-2020-0001', title: 'Earlier', filedDate: '2019-01-01' }, // srcIdx 0, sorts last
+      { no: 2, appNo: '10-2021-0001', title: 'Later', filedDate: '2021-01-01' },   // srcIdx 1, sorts first
+    ];
+    const rows = buildDbRows(records, {}, []);
+    // After sort: Later comes first
+    expect(rows[0].source).toBe('fto');
+    if (rows[0].source === 'fto') expect(rows[0].srcIdx).toBe(1);
+    if (rows[1].source === 'fto') expect(rows[1].srcIdx).toBe(0);
   });
 });

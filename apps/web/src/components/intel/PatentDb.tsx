@@ -17,6 +17,8 @@ import {
   dbCompanyOptions,
   dbGroupOptions,
   filterPatentDb,
+  resolveFtoCat,
+  shouldShowDbEmptyNote,
   type PatentDbRow,
 } from '@/lib/patent-db';
 import { SectionHeading, EmptyNote } from './PatentWatchList';
@@ -89,7 +91,7 @@ function FtoRowCard({
           검토됨
         </span>
         <span className="rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">
-          {CATEGORY_LABEL[record.category ?? ''] ?? record.category ?? '-'}
+          {CATEGORY_LABEL[resolveFtoCat(record.category)] ?? record.category ?? '-'}
         </span>
         {record.verdict && (
           <span
@@ -333,9 +335,11 @@ export function PatentDbList({
           className={control}
         >
           <option value="">전체 분류</option>
-          {Object.entries(PATENT_CATEGORY_LABEL).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
-          ))}
+          {Object.entries(PATENT_CATEGORY_LABEL)
+            .filter(([k]) => k !== 'transfer') // 이관 is folded into 시스템 at render level
+            .map(([k, v]) => (
+              <option key={k} value={k}>{v}</option>
+            ))}
         </select>
 
         <label htmlFor={`${id}-verdict`} className="sr-only">판정 (FTO 검토 항목, 선택 시 미검토 행 숨김)</label>
@@ -369,10 +373,14 @@ export function PatentDbList({
       <div>
         <SectionHeading
           title="특허 종합 DB"
-          desc={`FTO 검토 ${ftoRecords.length}건 + KIPRIS 신규 ${watchRows.length}건 · 출원일 최신순${watchRows.length >= max ? ` · 신규는 최신 ${max}건까지만 불러옴` : ''}`}
+          desc={
+            loadError
+              ? '데이터 미상 · 로드 실패로 건수 표시 불가'
+              : `FTO 검토 ${ftoRecords.length}건 + KIPRIS 신규 ${watchRows.length}건 · 출원일 최신순${watchRows.length >= max ? ` · 신규는 최신 ${max}건까지만 불러옴` : ''}`
+          }
         />
 
-        {filtered.length === 0 ? (
+        {shouldShowDbEmptyNote(loadError, filtered.length) ? (
           <EmptyNote>검색 결과가 없습니다.</EmptyNote>
         ) : (
           <>
@@ -385,11 +393,12 @@ export function PatentDbList({
             </p>
             <div className="mt-2 space-y-2">
               {shown.map((row, i) => {
-                // FTO: stable on no+appNo (no alone can be duplicate if records re-seed).
+                // FTO: srcIdx is the position in the original ftoRecords input — unique even
+                // when two records share the same no+appNo.
                 // Watch: id is the Supabase row PK, stable and unique across countries.
                 const key =
                   row.source === 'fto'
-                    ? `fto-${row.record.no ?? 'x'}-${row.record.appNo ?? `idx-${i}`}`
+                    ? `fto-${row.srcIdx}`
                     : `watch-${row.row.id || `idx-${i}`}`;
                 return <DbRowCard key={key} row={row} />;
               })}
