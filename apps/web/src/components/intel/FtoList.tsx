@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import type { FtoRecord } from '@/lib/intel';
+import { PATENT_CATEGORY_LABEL } from '@/lib/patent-watch';
 
-const CATEGORY_LABEL: Record<string, string> = { 'gas-liquid': '기액분리기', system: '시스템', transfer: '이관' };
+const CATEGORY_LABEL: Record<string, string> = PATENT_CATEGORY_LABEL;
 const MAX_RENDER = 300;
 
 function safeHref(url?: string) {

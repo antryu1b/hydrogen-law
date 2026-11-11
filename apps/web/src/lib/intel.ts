@@ -1,4 +1,11 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import {
+  COMPETITOR_SECTION,
+  PATENT_DATA_SECTIONS,
+  WATCH_SECTION,
+  type CompetitorStatRow,
+  type PatentWatchPayload,
+} from '@/lib/patent-watch';
 
 // ── Content block model (produced by scripts/intel/extract.mjs) ─────────────
 export interface IntelLink {
@@ -94,12 +101,12 @@ async function selectAll<T>(
   table: IntelTable,
   columns: string,
   order: { column: string; ascending: boolean },
-  excludeSection?: string,
+  excludeSections?: string[],
 ): Promise<{ rows: T[]; error: string | null }> {
   const rows: T[] = [];
   for (let from = 0; ; from += PAGE) {
     let q = sb.from(table).select(columns);
-    if (excludeSection) q = q.neq('section', excludeSection);
+    if (excludeSections) q = q.not('section', 'in', `(${excludeSections.join(',')})`);
     const { data, error } = await q
       .order(order.column, { ascending: order.ascending })
       .range(from, from + PAGE - 1);
@@ -118,10 +125,11 @@ export async function loadBlocks(table: 'intel_competitors' | 'intel_patents'): 
   const { rows, error } = await selectAll<BlockRow>(
     sb,
     table,
-    // FTO records (section = 'fto') are loaded separately and trimmed by loadFto.
+    // FTO records (section = 'fto') are loaded separately and trimmed by loadFto;
+    // KIPRIS watch/competitor rows by loadPatentWatch.
     'id,section,sort,updated_at,payload',
     { column: 'sort', ascending: true },
-    table === 'intel_patents' ? 'fto' : undefined,
+    table === 'intel_patents' ? ['fto', ...PATENT_DATA_SECTIONS] : undefined,
   );
   const lastUpdated = rows.reduce<string | null>((m, r) => (!m || r.updated_at > m ? r.updated_at : m), null);
   return { rows, lastUpdated, error };
@@ -153,6 +161,42 @@ export async function loadFto(): Promise<Loaded<FtoRecord>> {
     if (!data || data.length < PAGE) break;
   }
   return { rows, lastUpdated, error: null };
+}
+
+async function loadPatentSection<T>(section: string, columns: string): Promise<Loaded<T>> {
+  const sb = intelSupabase();
+  if (!sb) return { rows: [], lastUpdated: null, error: NOT_CONFIGURED };
+  const rows: T[] = [];
+  let lastUpdated: string | null = null;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await sb
+      .from('intel_patents')
+      .select(`updated_at,${columns}`)
+      .eq('section', section)
+      .order('sort', { ascending: false })
+      .range(from, from + PAGE - 1);
+    if (error) return { rows: [], lastUpdated: null, error: describeError(error.message) };
+    for (const r of (data ?? []) as unknown as (T & { updated_at: string })[]) {
+      const { updated_at, ...rec } = r;
+      if (!lastUpdated || updated_at > lastUpdated) lastUpdated = updated_at;
+      rows.push(rec as T);
+    }
+    if (!data || data.length < PAGE) break;
+  }
+  return { rows, lastUpdated, error: null };
+}
+
+/** KIPRIS watch rows (written by /api/cron/kipris-patents), newest filing first. */
+export async function loadPatentWatch(): Promise<Loaded<{ payload: PatentWatchPayload }>> {
+  return loadPatentSection(WATCH_SECTION, 'payload');
+}
+
+/** Competitor filings trimmed to what the statistics need. */
+export async function loadCompetitorPatents(): Promise<Loaded<CompetitorStatRow>> {
+  return loadPatentSection(
+    COMPETITOR_SECTION,
+    'companies:payload->companies,category:payload->>category,filedDate:payload->>filedDate',
+  );
 }
 
 export async function loadNews(limit = 500): Promise<Loaded<NewsRow>> {

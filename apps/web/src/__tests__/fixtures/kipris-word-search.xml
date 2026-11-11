@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<response>
+  <header>
+    <resultCode>00</resultCode>
+    <resultMsg>NORMAL SERVICE.</resultMsg>
+  </header>
+  <body>
+    <items>
+      <item>
+        <indexNo>1</indexNo>
+        <registerStatus>공개</registerStatus>
+        <inventionTitle>수전해 시스템의 부하추종 운전 제어 방법</inventionTitle>
+        <ipcNumber>C25B 15/02</ipcNumber>
+        <registerNumber></registerNumber>
+        <registerDate></registerDate>
+        <applicationNumber>1020230123456</applicationNumber>
+        <applicationDate>20230915</applicationDate>
+        <openNumber>1020250012345</openNumber>
+        <openDate>20250320</openDate>
+        <astrtCont><![CDATA[재생에너지 변동에 따라 전해조 스택의 전류를 제어하는 수전해 시스템을 개시한다.]]></astrtCont>
+        <applicantName>현대자동차주식회사 | 기아 주식회사</applicantName>
+      </item>
+      <item>
+        <registerStatus>등록</registerStatus>
+        <inventionTitle>Water electrolysis stack &amp; separator plate</inventionTitle>
+        <ipcNumber>C25B 9/77</ipcNumber>
+        <registerNumber>1023456780000</registerNumber>
+        <registerDate>20220110</registerDate>
+        <applicationNumber>1020190087654</applicationNumber>
+        <applicationDate>20190718</applicationDate>
+        <openDate>20210125</openDate>
+        <astrtCont>수전해 스택의 분리판 구조.</astrtCont>
+        <applicantName>HONDA MOTOR CO., LTD.</applicantName>
+      </item>
+      <item>
+        <registerStatus>공개</registerStatus>
+        <inventionTitle>리튬 이차전지용 전해액</inventionTitle>
+        <applicationNumber>1020210000001</applicationNumber>
+        <applicationDate>20210101</applicationDate>
+        <astrtCont>배터리 전해액.</astrtCont>
+        <applicantName>어떤 회사</applicantName>
+      </item>
+      <item>
+        <registerStatus>소멸</registerStatus>
+        <inventionTitle>전기분해시 발생된 부생 수소의 처리 장치</inventionTitle>
+        <applicationNumber>1020110042643</applicationNumber>
+        <applicationDate>20110504</applicationDate>
+        <astrtCont>전기분해모듈.</astrtCont>
+        <applicantName>(주) 테크윈</applicantName>
+      </item>
+      <item>
+        <inventionTitle>수전해 장치</inventionTitle>
+        <applicationNumber>1020080000002</applicationNumber>
+        <applicationDate>20080101</applicationDate>
+        <applicantName>옛날 회사</applicantName>
+      </item>
+    </items>
+  </body>
+  <count>
+    <numOfRows>50</numOfRows>
+    <pageNo>1</pageNo>
+    <totalCount>5</totalCount>
+  </count>
+</response>

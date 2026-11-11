@@ -2,8 +2,19 @@ import type { Metadata } from 'next';
 import { IntelBlockList } from '@/components/intel/IntelBlocks';
 import { FtoList } from '@/components/intel/FtoList';
 import { NewsList } from '@/components/intel/NewsList';
+import { CompetitorPatentStats, PatentWatchList } from '@/components/intel/PatentWatch';
 import { filterPatentRows, parsePatentSec, stripSectionWords, type PatentSec } from '@/lib/intel-utils';
-import { formatKst, loadBlocks, loadFto, loadNews, type BlockRow, type IntelBlock } from '@/lib/intel';
+import {
+  formatKst,
+  loadBlocks,
+  loadCompetitorPatents,
+  loadFto,
+  loadNews,
+  loadPatentWatch,
+  type BlockRow,
+  type IntelBlock,
+} from '@/lib/intel';
+import { aggregateCompetitorStats } from '@/lib/patent-watch';
 
 export const metadata: Metadata = { title: '수전해 인텔리전스' };
 export const dynamic = 'force-dynamic';
@@ -101,7 +112,14 @@ function stripHeadingDescs(block: IntelBlock, words: string[]): IntelBlock {
 }
 
 async function PatentsTab({ sec }: { sec: PatentSec | null }) {
-  const [allBlocks, allFto] = await Promise.all([loadBlocks('intel_patents'), loadFto()]);
+  // FTO 1차 검토 DB and the KIPRIS views are competitor-facing: all view and 경쟁사 view only.
+  const competitorFacing = !sec || sec === 'competitor';
+  const [allBlocks, allFto, watch, competitor] = await Promise.all([
+    loadBlocks('intel_patents'),
+    loadFto(),
+    competitorFacing ? loadPatentWatch() : null,
+    competitorFacing ? loadCompetitorPatents() : null,
+  ]);
   const filtered = filterPatentRows(allBlocks.rows, sec);
   const blocks = {
     ...allBlocks,
@@ -110,10 +128,10 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
         ? filtered.map((r) => ({ ...r, payload: stripHeadingDescs(r.payload, PROPOSALS_STRIP_WORDS) }))
         : filtered,
   };
-  // FTO 1차 검토 DB is competitor-facing: shown in the all view and the 경쟁사 view only.
-  const fto = !sec || sec === 'competitor' ? allFto : { ...allFto, rows: [] };
-  const lastUpdated = [blocks.lastUpdated, fto.lastUpdated].filter(Boolean).sort().pop() ?? null;
-  if (!blocks.rows.length && !fto.rows.length) {
+  const fto = competitorFacing ? allFto : { ...allFto, rows: [] };
+  const lastUpdated =
+    [blocks.lastUpdated, fto.lastUpdated, watch?.lastUpdated, competitor?.lastUpdated].filter(Boolean).sort().pop() ?? null;
+  if (!blocks.rows.length && !fto.rows.length && !competitorFacing) {
     return (
       <>
         <UpdatedAt iso={lastUpdated} />
@@ -129,6 +147,10 @@ async function PatentsTab({ sec }: { sec: PatentSec | null }) {
         sectionLabel="특허 분석"
         stripWords={sec === 'proposals' ? PROPOSALS_STRIP_WORDS : undefined}
       />
+      {competitor && (
+        <CompetitorPatentStats stats={aggregateCompetitorStats(competitor.rows)} error={competitor.error} />
+      )}
+      {watch && <PatentWatchList rows={watch.rows.map((r) => r.payload)} error={watch.error} />}
       {fto.rows.length > 0 && (
         <div className="space-y-3">
           <div className="mt-8 border-b border-border/70 pb-2">
