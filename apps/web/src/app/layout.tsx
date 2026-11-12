@@ -49,7 +49,7 @@ export default function RootLayout({
                     PEM 수전해 개발 인텔리전스
                   </span>
                   <span className="mt-0.5 text-[10px] tracking-[0.1em] text-muted-foreground">
-                    HMC · 대외비 · 2026.09
+                    경쟁사 동향 및 수소·고압가스 안전 법령
                   </span>
                 </div>
                 {/* Right zone: utility controls */}
