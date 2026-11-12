@@ -106,6 +106,43 @@ describe('PatentDbList: loadError vs statusWarning', () => {
   });
 });
 
+// ── PatentDbList: CheckFailures banner tone ───────────────────────────────────
+
+describe('PatentDbList: CheckFailures banner tone', () => {
+  const makeCheck = (failures: string[]): import('@/lib/patent-watch').CheckState => ({
+    at: '2024-01-15T00:00:00Z',
+    requests: failures.length + 1,
+    failures,
+  });
+
+  it('overseas-only failure (US+EP) renders amber warning, not destructive', () => {
+    const html = renderToStaticMarkup(
+      <PatentDbList
+        {...BASE_PROPS}
+        ftoRecords={ONE_RECORD}
+        checks={{ US: makeCheck(['timeout']), EP: makeCheck(['500']) }}
+      />,
+    );
+    expect(html).toContain('해외(US·EP) 수집 일부 실패 · 국내 수집은 정상입니다');
+    expect(html).not.toContain('확인 실패 · 마지막 자동 수집에서 일부 요청이 실패했습니다');
+    // amber color classes present, not destructive
+    expect(html).toContain('border-amber-500');
+    expect(html).not.toContain('border-destructive');
+  });
+
+  it('domestic failure (KR) renders destructive banner', () => {
+    const html = renderToStaticMarkup(
+      <PatentDbList
+        {...BASE_PROPS}
+        ftoRecords={ONE_RECORD}
+        checks={{ KR: makeCheck(['timeout']), US: makeCheck(['500']) }}
+      />,
+    );
+    expect(html).toContain('확인 실패 · 마지막 자동 수집에서 일부 요청이 실패했습니다');
+    expect(html).not.toContain('해외(US·EP) 수집 일부 실패');
+  });
+});
+
 // ── CompetitorPatentStats: legend contains no 이관 ─────────────────────────
 
 describe('CompetitorPatentStats: legend', () => {

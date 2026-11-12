@@ -54,12 +54,39 @@ const CHECK_LABEL: Record<CheckKey, string> = {
   status: 'KR 권리상태 갱신',
 };
 
+const OVERSEAS_KEYS: ReadonlySet<CheckKey> = new Set(['US', 'EP']);
+const DOMESTIC_KEYS: ReadonlySet<CheckKey> = new Set(['KR', 'status']);
+
+/** 「확인 실패」 entries: per country, the last run that had failed requests.
+ *  - Overseas only (US/EP) → amber warning banner
+ *  - Any domestic failure (KR/status) → red destructive banner
+ */
 function CheckFailures({ checks }: { checks: Partial<Record<CheckKey, CheckState>> | null }) {
   const failed = (Object.keys(CHECK_LABEL) as CheckKey[]).flatMap((k) => {
     const c = checks?.[k];
     return c && c.failures.length ? [[k, c] as const] : [];
   });
   if (failed.length === 0) return null;
+
+  const hasDomesticFailure = failed.some(([k]) => DOMESTIC_KEYS.has(k));
+  const overseasOnly = !hasDomesticFailure && failed.every(([k]) => OVERSEAS_KEYS.has(k));
+
+  if (overseasOnly) {
+    return (
+      <div role="status" className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs">
+        <p className="font-semibold text-amber-700 dark:text-amber-400">해외(US·EP) 수집 일부 실패 · 국내 수집은 정상입니다</p>
+        <ul className="mt-1.5 space-y-1 text-muted-foreground">
+          {failed.map(([k, c]) => (
+            <li key={k} className="break-words">
+              <span className="font-medium text-foreground">{CHECK_LABEL[k]}</span> · {c.at.slice(0, 10)} ·{' '}
+              {c.failures.length}/{c.requests}건 실패 — {c.failures.join(' / ')}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
   return (
     <div role="status" className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs">
       <p className="font-semibold text-destructive">확인 실패 · 마지막 자동 수집에서 일부 요청이 실패했습니다</p>
