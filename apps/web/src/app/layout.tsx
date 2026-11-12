@@ -43,6 +43,15 @@ export default function RootLayout({
                   <MobileNav />
                   <BrandLink />
                 </div>
+                {/* Center zone: app title + classification meta (desktop only) */}
+                <div className="hidden flex-col justify-center border-l border-border/50 pl-5 md:flex">
+                  <span className="font-display text-[13px] font-bold leading-tight tracking-tight text-foreground">
+                    PEM 수전해 개발 인텔리전스
+                  </span>
+                  <span className="mt-0.5 text-[10px] tracking-[0.1em] text-muted-foreground">
+                    HMC · 대외비 · 2026.09
+                  </span>
+                </div>
                 {/* Right zone: utility controls */}
                 <nav className="flex flex-1 items-center justify-end gap-1 pr-4 sm:gap-2 sm:pr-6">
                   <VisitorCounter />
