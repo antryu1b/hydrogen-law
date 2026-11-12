@@ -408,11 +408,12 @@ export function parseForeignXml(xml: string): KiprisResult {
     ipcNumber: tag(b, 'ipcNumber', 'ipc'),
     astrtCont: tag(b, 'astrtCont', 'abstract'),
   }));
-  // Accept an empty resultCode when items were successfully parsed, regardless of the root element
-  // name. Production overseas responses sometimes omit the resultCode or use a non-<response> root
-  // (e.g. <ForeignPatentAdvencedSearchService>), which caused the previous /<response/ guard to
-  // return ok=false even though valid searchResult items were present (logged as 'resultCode -').
-  const ok = FOREIGN_OK_CODES.includes(resultCode) || (resultCode === '' && items.length > 0);
+  // Accept an empty resultCode only when at least one item has a non-empty applicationNumber.
+  // Production overseas responses sometimes use a service-name root element (not <response>),
+  // which caused the previous /<response/ guard to return ok=false even with valid items.
+  // Requiring a non-empty applicationNumber prevents <error>-style bodies from slipping through.
+  const hasUsableItem = items.some((it) => Boolean(normalizeAppNo(it.applicationNumber)));
+  const ok = FOREIGN_OK_CODES.includes(resultCode) || (resultCode === '' && hasUsableItem);
   const total = Number(totalRaw);
   return {
     ok,

@@ -4,7 +4,6 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { middleware } from '@/middleware';
-import { ALL_JOBS } from '@/lib/patent-watch';
 
 const fixture = readFileSync(path.join(__dirname, 'fixtures/kipris-word-search.xml'), 'utf8');
 const foreignFixture = readFileSync(path.join(__dirname, 'fixtures/kipris-foreign-search.xml'), 'utf8');
@@ -184,13 +183,26 @@ describe('/api/cron/kipris-patents GET', () => {
     expect(JSON.stringify(body)).not.toContain('test-key');
   });
 
-  it('skips overseas batches when the deadline would be exceeded and records timing as skipped', async () => {
-    const fetchMock = routedFetch();
-    vi.stubGlobal('fetch', fetchMock);
-    // Date.now() is called twice in the overseas phase: once for runStart, once for the guard check.
-    // The KR phase has no Date.now() calls. Returning 0 then 31_001 gives:
-    //   31_001 - 0 + OVERSEAS_TIMEOUT_MS(20_000) = 51_001 > DEADLINE_MS(50_000) → all 3 overseas skipped.
-    vi.spyOn(Date, 'now').mockReturnValueOnce(0).mockReturnValue(31_001);
+  it('skips overseas when phase 1 consumes enough wall time to exceed the deadline', async () => {
+    vi.stubGlobal('fetch', routedFetch());
+    // Date.now() is called once at handler entry (runStart), then once per KR batch guard
+    // check, then once for the overseas guard.  Advancing by KR_TIMEOUT_MS (8 000 ms) each
+    // call simulates each KR batch taking its full timeout.
+    //
+    // With 17 KR tasks / CONCURRENCY 5 there are 4 KR batches → 4 guard calls after runStart.
+    // Call sequence (elapsed when checked):
+    //   runStart = 0
+    //   KR guard 1: elapsed=8 000  → 8 000+8 000=16 000 < 50 000 → runs
+    //   KR guard 2: elapsed=16 000 → 16 000+8 000=24 000 < 50 000 → runs
+    //   KR guard 3: elapsed=24 000 → 24 000+8 000=32 000 < 50 000 → runs
+    //   KR guard 4: elapsed=32 000 → 32 000+8 000=40 000 < 50 000 → runs
+    //   Overseas guard: elapsed=40 000 → 40 000+20 000=60 000 > 50 000 → SKIP
+    let nowMs = 0;
+    vi.spyOn(Date, 'now').mockImplementation(() => {
+      const t = nowMs;
+      nowMs += 8_000;
+      return t;
+    });
     const { GET } = await import('@/app/api/cron/kipris-patents/route');
     const body = await (await GET()).json();
     vi.restoreAllMocks();
@@ -207,9 +219,23 @@ describe('/api/cron/kipris-patents GET', () => {
 
     // requests reflects only KR + status (no overseas dispatched); result is still ok.
     expect(body.requests).toBe(17); // 1 status + 16 KR + 0 overseas
-    expect(body.searchRequests).toBe(16); // plan.kr.length + overseasDone
+    expect(body.searchRequests).toBe(16);
     expect(body.statusRequests).toBe(1);
     expect(body.ok).toBe(true);
+  });
+
+  it('runs overseas tasks when phase 1 is fast (deadline guard does not fire)', async () => {
+    vi.stubGlobal('fetch', routedFetch());
+    // Date.now() always returns 0: elapsed+KR_TIMEOUT_MS (8 000)<50 000 and
+    // elapsed+OVERSEAS_TIMEOUT_MS (20 000)<50 000, so neither guard fires.
+    vi.spyOn(Date, 'now').mockReturnValue(0);
+    const { GET } = await import('@/app/api/cron/kipris-patents/route');
+    const body = await (await GET()).json();
+    vi.restoreAllMocks();
+
+    expect(body.overseasTiming).toHaveLength(3);
+    expect(body.overseasTiming.every((e: { outcome: string }) => e.outcome === 'ok')).toBe(true);
+    expect(body.requests).toBe(20); // 1 status + 16 KR + 3 overseas
   });
 
   it('stores a tag-name hint when an overseas 00 response parses to nothing', async () => {

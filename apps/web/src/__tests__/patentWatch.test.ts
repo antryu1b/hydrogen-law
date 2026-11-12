@@ -430,7 +430,7 @@ describe('parseForeignXml', () => {
     expect(parseForeignXml('<html>gateway</html>').ok).toBe(false);
   });
 
-  it('accepts empty resultCode when items parse successfully, regardless of root element name', () => {
+  it('accepts empty resultCode only when at least one item has a non-empty applicationNumber', () => {
     // Production evidence: overseas responses sometimes use a service-name root element (not
     // <response>) with an empty <resultCode>. The previous /<response/ guard returned ok=false
     // even when valid <searchResult> items were present, logging "resultCode -".
@@ -452,8 +452,26 @@ describe('parseForeignXml', () => {
     expect(r.items).toHaveLength(1);
     expect(r.items[0].applicationNumber).toBe('17/999,000');
     expect(r.items[0].applicantName).toBe('NEL ASA');
-    // empty resultCode with no items (pure HTML or empty body) must still be rejected.
+
+    // Non-OK resultCode with items → still fails (resultCode takes precedence).
+    const nonOkWithItems = parseForeignXml(
+      '<response><header><resultCode>99</resultCode><resultMsg>RATE LIMIT</resultMsg></header>' +
+      '<body><items><searchResult><applicationNo>17/999,000</applicationNo></searchResult></items></body></response>',
+    );
+    expect(nonOkWithItems.ok).toBe(false);
+    expect(nonOkWithItems.resultCode).toBe('99');
+
+    // Error-style body with no parseable applicationNumber → rejected even with empty resultCode.
+    expect(parseForeignXml('<?xml version="1.0"?><error>Service unavailable</error>').ok).toBe(false);
     expect(parseForeignXml('<html>gateway</html>').ok).toBe(false);
+
+    // Empty resultCode + items all missing applicationNumber → rejected.
+    const noAppNo =
+      '<?xml version="1.0"?><ForeignPatentAdvencedSearchService>' +
+      '<header><resultCode></resultCode></header>' +
+      '<body><items><searchResult><applicant>NEL ASA</applicant></searchResult></items></body>' +
+      '</ForeignPatentAdvencedSearchService>';
+    expect(parseForeignXml(noAppNo).ok).toBe(false);
   });
 });
 

@@ -134,7 +134,8 @@ export async function GET() {
   const cursor: CursorState = { ...prev, offset: prev.offset ?? 0, jobs: { ...(prev.jobs ?? {}) } };
 
   const now = new Date().toISOString();
-  const plan = planRun(ALL_JOBS, cursor, krStatusTargets(ftoRaw));
+  const statusTargets = krStatusTargets(ftoRaw);
+  const plan = planRun(ALL_JOBS, cursor, statusTargets);
 
   // Phase 1: KR domestic word-searches + status refreshes — shorter timeout, higher concurrency.
   const krTasks: Task[] = [
@@ -183,16 +184,29 @@ export async function GET() {
     });
   }
 
+  // Wall-clock start covers both phases so phase 1 latency is charged against the same budget.
+  const runStart = Date.now();
+
   // Phase 1: KR + status (timeout 8 s, concurrency 5).
+  // A batch that would push past the deadline is skipped (not a failure); the cursor does not
+  // advance past it so those jobs are retried on the next run.
+  let krSearchDone = 0;
+  let statusDone = 0;
   for (let i = 0; i < krTasks.length; i += CONCURRENCY) {
+    if (Date.now() - runStart + KR_TIMEOUT_MS > DEADLINE_MS) {
+      break; // remaining KR/status tasks are not failures; cursors will not advance past them
+    }
     const batch = krTasks.slice(i, i + CONCURRENCY);
+    for (const t of batch) {
+      if (t.kind === 'status') statusDone++;
+      else krSearchDone++;
+    }
     processBatch(batch, await Promise.allSettled(batch.map((t) => runTask(t, key, KR_TIMEOUT_MS))));
   }
 
   // Phase 2: overseas (timeout 20 s, concurrency 3).
   // Batches that would not finish before DEADLINE_MS are skipped — not counted as failures — so
   // the cursor does not advance past them and they are retried on the next run.
-  const runStart = Date.now();
   let overseasDone = 0;
   const overseasTiming: OverseasTimingEntry[] = [];
   for (let i = 0; i < overseasTasks.length; i += OVERSEAS_CONCURRENCY) {
@@ -226,13 +240,17 @@ export async function GET() {
     processBatch(batch, timedSettled);
   }
 
-  cursor.offset = plan.nextOffset;
-  // Only advance the foreign cursor by jobs that were actually dispatched; skipped jobs are
-  // retried on the next run when the round-robin reaches them again.
+  // Advance each cursor only by the number of tasks actually dispatched this run.
+  // Skipped jobs (deadline guard) are retried on the next run when the round-robin reaches them.
+  const krJobs = ALL_JOBS.filter((j) => !j.country);
+  const initKrOffset = krJobs.length ? (cursor.offset % krJobs.length) : 0;
+  cursor.offset = krJobs.length ? (initKrOffset + krSearchDone) % krJobs.length : 0;
+
   const foreignJobsPool = ALL_JOBS.filter((j) => j.country);
   const initForeignOffset = prev.foreignOffset ?? 0;
   cursor.foreignOffset = foreignJobsPool.length ? (initForeignOffset + overseasDone) % foreignJobsPool.length : 0;
-  cursor.statusOffset = plan.nextStatusOffset;
+
+  cursor.statusOffset = statusTargets.length ? ((prev.statusOffset ?? 0) + statusDone) % statusTargets.length : 0;
   // Only countries with requests this run replace their previous result.
   cursor.checks = { ...(prev.checks ?? {}), ...checks };
   // Replace timing on every run (no history — the array covers only this run's overseas requests).
@@ -268,13 +286,13 @@ export async function GET() {
   });
   if (cursorError) failures.push(`cursor: ${cursorError.message}`);
 
-  const totalDispatched = krTasks.length + overseasDone;
+  const totalDispatched = krSearchDone + statusDone + overseasDone;
   return NextResponse.json({
     ok: failures.length < totalDispatched,
     timestamp: now,
     requests: totalDispatched,
-    searchRequests: plan.kr.length + overseasDone,
-    statusRequests: plan.status.length,
+    searchRequests: krSearchDone + overseasDone,
+    statusRequests: statusDone,
     fetched: rows.length,
     inserted,
     statusUpdated: statusRows.length,
