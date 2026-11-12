@@ -1,7 +1,59 @@
 import { ChevronDown } from 'lucide-react';
 import { safeHref, type IntelBlock, type IntelLink, type TableCell } from '@/lib/intel';
 import { IntelTabs } from './IntelTabs';
+import { CellSourceTooltip } from './CellSourceTooltip';
 import { stripSectionWords } from '@/lib/intel-utils';
+
+// ── Column→footnote mapping ──────────────────────────────────────────────────
+
+/** Map Unicode superscript character → 1-based footnote index. */
+const SUPERSCRIPT_INDEX: Record<string, number> = {
+  '¹': 1, '²': 2, '³': 3, '⁴': 4, '⁵': 5, '⁶': 6, '⁷': 7, '⁸': 8, '⁹': 9,
+};
+
+/** Return the footnote index (1-based) encoded in a table header string, or null. */
+function headerFootnoteIndex(header: string): number | null {
+  for (const [ch, idx] of Object.entries(SUPERSCRIPT_INDEX)) {
+    if (header.includes(ch)) return idx;
+  }
+  return null;
+}
+
+/**
+ * Build a per-column links array by matching the table's superscript footnote
+ * numbers to a sibling `text` block whose `links` array is ordered by footnote index.
+ *
+ * Returns `IntelLink[][]` indexed by column (0-based).
+ * Columns without a footnote get an empty array.
+ * Returns [] if no footnote references are found.
+ */
+function buildColLinks(blocks: IntelBlock[], tableIdx: number): IntelLink[][] {
+  const tableBlock = blocks[tableIdx];
+  if (tableBlock.type !== 'table') return [];
+
+  const colFootnotes = tableBlock.headers.map(headerFootnoteIndex);
+  const maxFootnote = Math.max(0, ...colFootnotes.filter((n): n is number => n !== null));
+  if (maxFootnote === 0) return [];
+
+  // Find the first sibling text block with enough links for the highest footnote index.
+  let footnoteLinks: IntelLink[] | undefined;
+  for (let i = 0; i < blocks.length; i++) {
+    if (i === tableIdx) continue;
+    const b = blocks[i];
+    if (b.type === 'text' && b.links && b.links.length >= maxFootnote) {
+      footnoteLinks = b.links;
+      break;
+    }
+  }
+  if (!footnoteLinks) return [];
+
+  return tableBlock.headers.map((_, col) => {
+    const fnIdx = colFootnotes[col];
+    if (fnIdx === null) return [];
+    const link = footnoteLinks![fnIdx - 1];
+    return link ? [link] : [];
+  });
+}
 
 // Renders the generic content blocks stored in intel_competitors / intel_patents.
 // Everything is rendered as text (no raw HTML), so uploaded JSON cannot inject markup.
@@ -34,7 +86,20 @@ function Links({ links }: { links?: IntelLink[] }) {
   );
 }
 
-function Cell({ cell, header, hlCol, col }: { cell: TableCell; header?: boolean; hlCol?: number; col: number }) {
+function Cell({
+  cell,
+  header,
+  hlCol,
+  col,
+  srcLinks,
+}: {
+  cell: TableCell;
+  header?: boolean;
+  hlCol?: number;
+  col: number;
+  /** Per-column footnote links from the sibling text block; shown as hover tooltip. */
+  srcLinks?: IntelLink[];
+}) {
   const [main, ...rest] = (cell.t || '').split('\n');
   const hl = cell.hl || (hlCol !== undefined && col === hlCol);
   const cls = [
@@ -54,6 +119,10 @@ function Cell({ cell, header, hlCol, col }: { cell: TableCell; header?: boolean;
       )}
       {rest.length > 0 && <span className="mt-0.5 block text-[11px] text-muted-foreground">{rest.join('\n')}</span>}
       <Links links={cell.links} />
+      {/* Source tooltip: only on data columns (col > 0) with a footnote link */}
+      {!header && col > 0 && srcLinks && srcLinks.length > 0 && (
+        <CellSourceTooltip links={srcLinks} />
+      )}
     </td>
   );
 }
@@ -61,9 +130,12 @@ function Cell({ cell, header, hlCol, col }: { cell: TableCell; header?: boolean;
 export function IntelBlockView({
   block,
   stripWords,
+  colLinks,
 }: {
   block: IntelBlock;
   stripWords?: string[];
+  /** Per-column source links for table blocks (indexed by column, from buildColLinks). */
+  colLinks?: IntelLink[][];
 }) {
   const st = (title: string) =>
     stripWords?.length ? stripSectionWords(title, stripWords) : title;
@@ -151,7 +223,7 @@ export function IntelBlockView({
               {block.rows.map((row, r) => (
                 <tr key={r} className="hover:bg-accent/30">
                   {row.map((cell, c) => (
-                    <Cell key={c} cell={cell} col={c} hlCol={block.hlCol} />
+                    <Cell key={c} cell={cell} col={c} hlCol={block.hlCol} srcLinks={colLinks?.[c]} />
                   ))}
                 </tr>
               ))}
@@ -224,7 +296,8 @@ export function IntelBlockList({
         ) {
           return null;
         }
-        return <IntelBlockView key={i} block={b} stripWords={stripWords} />;
+        const colLinks = b.type === 'table' ? buildColLinks(blocks, i) : undefined;
+        return <IntelBlockView key={i} block={b} stripWords={stripWords} colLinks={colLinks} />;
       })}
     </>
   );
