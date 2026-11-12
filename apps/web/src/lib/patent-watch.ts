@@ -155,6 +155,17 @@ export const REQUEST_BUDGET = 20;
 export const STATUS_BUDGET = 3;
 /** Overseas applicant searches stop backfilling after this many pages (newest filings first). */
 export const FOREIGN_MAX_PAGES = 5;
+/** Timeout for overseas (US/EP) applicant searches — the foreign API is slower than domestic. */
+export const OVERSEAS_TIMEOUT_MS = 20_000;
+/** Concurrency cap for overseas batches (lower than domestic to reduce simultaneous load). */
+export const OVERSEAS_CONCURRENCY = 3;
+/**
+ * Maximum overseas applicant-search requests per run. With OVERSEAS_CONCURRENCY and
+ * OVERSEAS_TIMEOUT_MS, one overseas batch takes up to 20 s. Combined with the domestic
+ * phase (≤ 32 s worst case at CONCURRENCY 5, timeout 8 s), the total stays under maxDuration = 60 s.
+ *   Worst case: ceil(17/5) KR batches × 8 s + 1 overseas batch × 20 s = 32 + 20 = 52 s < 60 s.
+ */
+export const OVERSEAS_PER_RUN = 3;
 
 // Require water-electrolysis meaning to avoid false positives:
 //   전해액 (electrolyte solution), 전해도금 (electroplating), 전해연마 (electrolytic polishing),
@@ -397,7 +408,11 @@ export function parseForeignXml(xml: string): KiprisResult {
     ipcNumber: tag(b, 'ipcNumber', 'ipc'),
     astrtCont: tag(b, 'astrtCont', 'abstract'),
   }));
-  const ok = FOREIGN_OK_CODES.includes(resultCode) || (resultCode === '' && /<response/i.test(xml) && items.length > 0);
+  // Accept an empty resultCode when items were successfully parsed, regardless of the root element
+  // name. Production overseas responses sometimes omit the resultCode or use a non-<response> root
+  // (e.g. <ForeignPatentAdvencedSearchService>), which caused the previous /<response/ guard to
+  // return ok=false even though valid searchResult items were present (logged as 'resultCode -').
+  const ok = FOREIGN_OK_CODES.includes(resultCode) || (resultCode === '' && items.length > 0);
   const total = Number(totalRaw);
   return {
     ok,
@@ -566,15 +581,36 @@ export interface CheckState {
 }
 export type CheckKey = Country | 'status';
 
+/** Timing entry for one overseas request (never includes URLs or the access key). */
+export interface OverseasTimingEntry {
+  country: string;
+  /** Job key (e.g. 'US-nel'). */
+  job: string;
+  /** Wall-clock milliseconds for this request; 0 for skipped entries. */
+  ms: number;
+  outcome: 'ok' | 'timeout' | 'error' | 'skipped';
+}
+
 export interface CursorState {
-  /** Round-robin start index into ALL_JOBS. */
+  /** Round-robin start index into the KR domestic subset of ALL_JOBS (SEARCH_JOBS). */
   offset: number;
+  /**
+   * Round-robin start index into the overseas subset of ALL_JOBS (US+EP interleaved).
+   * Tracked separately so the domestic and overseas cursors advance independently.
+   * Absent on legacy cursor rows written before overseas tracking was added (treated as 0).
+   */
+  foreignOffset?: number;
   jobs: Record<string, JobState>;
   /** Round-robin start index into the sorted KR FTO application numbers. */
   statusOffset?: number;
   /** Last overseas structure hint (see foreignDiag). */
   foreignDiag?: { at: string; job: string; tags: string };
   checks?: Partial<Record<CheckKey, CheckState>>;
+  /**
+   * Per-request timing for the most recent run's overseas phase only (no history).
+   * Lets a single production run reveal the latency distribution without retaining old data.
+   */
+  overseasTiming?: OverseasTimingEntry[];
 }
 
 export const EMPTY_CURSOR: CursorState = { offset: 0, jobs: {} };
@@ -595,18 +631,49 @@ export function planRequests(jobs: SearchJob[], cursor: CursorState, budget: num
 }
 
 /**
- * Splits REQUEST_BUDGET for one run: up to STATUS_BUDGET KR status refreshes (round-robin over
- * `statusAppNos`), the rest for search jobs (round-robin over `jobs`). Returns the next offsets.
+ * Splits REQUEST_BUDGET for one run:
+ *   - up to STATUS_BUDGET KR rights-status refreshes (round-robin over `statusAppNos`),
+ *   - up to OVERSEAS_PER_RUN overseas applicant-search requests (round-robin via `foreignOffset`),
+ *   - the remainder for KR domestic word-searches (round-robin via `offset`).
+ *
+ * Domestic and overseas are planned against separate round-robin offsets (`offset` and
+ * `foreignOffset`) so each advances independently. The overseas pool is `jobs` filtered to
+ * country-bearing entries, which preserves the interleaved US/EP order that ALL_JOBS builds;
+ * consecutive positions alternate countries, so each run naturally covers both.
+ *
+ * Legacy cursor rows used `offset` as an index into ALL_JOBS (66 items). The modulo clamp
+ * `(cursor.offset ?? 0) % krJobs.length` silently maps any out-of-range value to a valid
+ * domestic index, so no migration is needed.
  */
 export function planRun(jobs: SearchJob[], cursor: CursorState, statusAppNos: string[], budget = REQUEST_BUDGET) {
   const statusN = Math.min(STATUS_BUDGET, statusAppNos.length, budget);
   const statusOffset = cursor.statusOffset ?? 0;
   const status = Array.from({ length: statusN }, (_, i) => statusAppNos[(statusOffset + i) % statusAppNos.length]);
-  const search = planRequests(jobs, cursor, budget - statusN);
+
+  const krJobs = jobs.filter((j) => !j.country);
+  const foreignJobs = jobs.filter((j) => j.country);
+
+  const remaining = budget - statusN;
+  // Overseas capped per run so worst-case wall time fits within maxDuration.
+  const foreignN = Math.min(OVERSEAS_PER_RUN, foreignJobs.length, remaining);
+  const krN = Math.min(remaining - foreignN, krJobs.length);
+
+  const krOffset = krJobs.length ? (cursor.offset ?? 0) % krJobs.length : 0;
+  const foreignOffset = cursor.foreignOffset ?? 0;
+
+  const kr = planRequests(krJobs, { ...cursor, offset: krOffset }, krN);
+  const overseas: { job: SearchJob; page: number }[] = Array.from({ length: foreignN }, (_, i) => {
+    const job = foreignJobs[(foreignOffset + i) % foreignJobs.length];
+    const s = cursor.jobs[job.key];
+    return { job, page: !s || s.done ? 1 : s.page + 1 };
+  });
+
   return {
-    search,
+    kr,
+    overseas,
     status,
-    nextOffset: jobs.length ? (cursor.offset + search.length) % jobs.length : 0,
+    nextOffset: krJobs.length ? (krOffset + kr.length) % krJobs.length : 0,
+    nextForeignOffset: foreignJobs.length ? (foreignOffset + foreignN) % foreignJobs.length : 0,
     nextStatusOffset: statusAppNos.length ? (statusOffset + statusN) % statusAppNos.length : 0,
   };
 }

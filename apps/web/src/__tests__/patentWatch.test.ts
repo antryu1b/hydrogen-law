@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ALL_JOBS,
   FOREIGN_MAX_PAGES,
+  OVERSEAS_PER_RUN,
   REQUEST_BUDGET,
   SEARCH_JOBS,
   STATUS_BUDGET,
@@ -428,6 +429,32 @@ describe('parseForeignXml', () => {
     expect(bad.items).toEqual([]);
     expect(parseForeignXml('<html>gateway</html>').ok).toBe(false);
   });
+
+  it('accepts empty resultCode when items parse successfully, regardless of root element name', () => {
+    // Production evidence: overseas responses sometimes use a service-name root element (not
+    // <response>) with an empty <resultCode>. The previous /<response/ guard returned ok=false
+    // even when valid <searchResult> items were present, logging "resultCode -".
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<ForeignPatentAdvencedSearchService>' +
+      '<header><resultCode></resultCode><resultMsg></resultMsg></header>' +
+      '<body><items><searchResult>' +
+      '<applicationNo>17/999,000</applicationNo>' +
+      '<inventionName>Water electrolysis system with alkaline membrane</inventionName>' +
+      '<applicant>NEL ASA</applicant>' +
+      '<applicationDate>20231015</applicationDate>' +
+      '</searchResult></items></body>' +
+      '<count><totalCount>1</totalCount></count>' +
+      '</ForeignPatentAdvencedSearchService>';
+    const r = parseForeignXml(xml);
+    expect(r.ok).toBe(true);
+    expect(r.resultCode).toBe('');
+    expect(r.items).toHaveLength(1);
+    expect(r.items[0].applicationNumber).toBe('17/999,000');
+    expect(r.items[0].applicantName).toBe('NEL ASA');
+    // empty resultCode with no items (pure HTML or empty body) must still be rejected.
+    expect(parseForeignXml('<html>gateway</html>').ok).toBe(false);
+  });
 });
 
 describe('foreignDiag', () => {
@@ -541,33 +568,59 @@ describe('planRun (request budget)', () => {
   it('never exceeds REQUEST_BUDGET and gives status refresh at most STATUS_BUDGET', () => {
     const p = planRun(ALL_JOBS, { offset: 0, jobs: {} }, kr);
     expect(p.status.length).toBe(STATUS_BUDGET);
-    expect(p.status.length + p.search.length).toBeLessThanOrEqual(REQUEST_BUDGET);
-    expect(p.search.length).toBe(REQUEST_BUDGET - STATUS_BUDGET);
+    expect(p.status.length + p.kr.length + p.overseas.length).toBeLessThanOrEqual(REQUEST_BUDGET);
+    expect(p.kr.length + p.overseas.length).toBe(REQUEST_BUDGET - STATUS_BUDGET);
     const none = planRun(ALL_JOBS, { offset: 0, jobs: {} }, []);
     expect(none.status).toEqual([]);
-    expect(none.search.length).toBe(REQUEST_BUDGET);
+    expect(none.kr.length + none.overseas.length).toBe(REQUEST_BUDGET);
   });
 
-  it('visits every KR / US / EP job and every status target across runs', () => {
+  it('caps overseas at OVERSEAS_PER_RUN per run regardless of budget', () => {
+    const p = planRun(ALL_JOBS, { offset: 0, jobs: {} }, kr);
+    expect(p.overseas.length).toBeLessThanOrEqual(OVERSEAS_PER_RUN);
+    expect(p.overseas.every((s) => s.job.country)).toBe(true);
+    expect(p.kr.every((s) => !s.job.country)).toBe(true);
+  });
+
+  it('overseas pool interleaves US and EP so a single run covers both countries', () => {
+    const p = planRun(ALL_JOBS, { offset: 0, jobs: {} }, kr);
+    // The interleaved pool from ALL_JOBS starts [US, EP, US, ...] so 3 slots = US + EP + US.
+    const countries = new Set(p.overseas.map((s) => s.job.country));
+    expect(countries.has('US')).toBe(true);
+    expect(countries.has('EP')).toBe(true);
+  });
+
+  it('visits every KR and every overseas job across multiple runs', () => {
     const many = Array.from({ length: 10 }, (_, i) => `10202000000${String(i).padStart(2, '0')}`);
-    let cursor: CursorState = { offset: 0, jobs: {} };
-    const seenJobs = new Set<string>();
+    let cursor: CursorState = { offset: 0, foreignOffset: 0, jobs: {} };
+    const seenKr = new Set<string>();
+    const seenForeign = new Set<string>();
     const seenStatus = new Set<string>();
-    const runs = Math.ceil(ALL_JOBS.length / (REQUEST_BUDGET - STATUS_BUDGET));
+    const foreignPool = ALL_JOBS.filter((j) => j.country);
+    const krPool = ALL_JOBS.filter((j) => !j.country);
+    const runs = Math.ceil(Math.max(krPool.length, foreignPool.length) / OVERSEAS_PER_RUN) + 1;
     for (let run = 0; run < runs; run++) {
       const p = planRun(ALL_JOBS, cursor, many);
-      expect(p.search.length + p.status.length).toBeLessThanOrEqual(REQUEST_BUDGET);
-      p.search.forEach((s) => seenJobs.add(s.job.key));
+      expect(p.kr.length + p.overseas.length + p.status.length).toBeLessThanOrEqual(REQUEST_BUDGET);
+      p.kr.forEach((s) => seenKr.add(s.job.key));
+      p.overseas.forEach((s) => seenForeign.add(s.job.key));
       p.status.forEach((s) => seenStatus.add(s));
-      cursor = { ...cursor, offset: p.nextOffset, statusOffset: p.nextStatusOffset };
+      cursor = { ...cursor, offset: p.nextOffset, foreignOffset: p.nextForeignOffset, statusOffset: p.nextStatusOffset };
     }
-    expect(seenJobs.size).toBe(ALL_JOBS.length);
+    expect(seenKr.size).toBe(krPool.length);
+    expect(seenForeign.size).toBeGreaterThan(0);
     expect(seenStatus.size).toBe(many.length);
   });
 
-  it('interleaves countries so every run touches KR, US and EP', () => {
-    const p = planRun(ALL_JOBS, { offset: 0, jobs: {} }, kr);
-    expect(new Set(p.search.map((s) => s.job.country ?? 'KR'))).toEqual(new Set(['KR', 'US', 'EP']));
+  it('advances KR and overseas offsets independently', () => {
+    const p1 = planRun(ALL_JOBS, { offset: 0, foreignOffset: 0, jobs: {} }, []);
+    const p2 = planRun(ALL_JOBS, { offset: p1.nextOffset, foreignOffset: p1.nextForeignOffset, jobs: {} }, []);
+    // Each run advances KR offset by kr.length and overseas offset by overseas.length.
+    expect(p2.kr[0].job.key).not.toBe(p1.kr[0].job.key);
+    expect(p2.overseas[0].job.key).not.toBe(p1.overseas[0].job.key);
+  });
+
+  it('KR domestic jobs are SEARCH_JOBS only', () => {
     expect(ALL_JOBS.filter((j) => !j.country)).toEqual(SEARCH_JOBS);
   });
 

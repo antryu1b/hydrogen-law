@@ -5,6 +5,8 @@ import {
   CURSOR_ID,
   CURSOR_SECTION,
   EMPTY_CURSOR,
+  OVERSEAS_CONCURRENCY,
+  OVERSEAS_TIMEOUT_MS,
   advanceForeignJob,
   advanceJob,
   foreignDiag,
@@ -20,6 +22,7 @@ import {
   type CheckState,
   type CursorState,
   type KiprisResult,
+  type OverseasTimingEntry,
   type PatentRow,
   type SearchJob,
   type StatusRow,
@@ -34,8 +37,11 @@ import {
 //    rows (id = pstatus:<digits>, overwritten each refresh). The reviewed FTO payload is never written.
 // FTO records (section 'fto') are otherwise only read, for dedupe.
 // Each run sends at most REQUEST_BUDGET requests. The 'patent-cursor' row keeps the per-job page
-// cursor, both rotation offsets, the last result per country (`checks`, shown in the UI as
-// 「확인 실패」) and the last overseas structure hint (`foreignDiag`).
+// cursor, the KR/overseas/status rotation offsets, the last result per country (`checks`, shown in
+// the UI as 「확인 실패」) and the last overseas structure hint (`foreignDiag`).
+// KR domestic + status tasks run first (timeout 8 s, concurrency 5); overseas tasks follow at a
+// higher timeout (20 s) and lower concurrency (3). A deadline guard skips overseas batches that
+// would not finish before DEADLINE_MS, leaving them for the next run.
 // Auth: middleware requires `Authorization: Bearer ${CRON_SECRET}` on /api/cron/*.
 
 export const runtime = 'nodejs';
@@ -46,12 +52,16 @@ const KIPO = 'https://plus.kipris.or.kr/kipo-api/kipi/patUtiModInfoSearchSevice'
 // 「추정」 Overseas service per a third-party wrapper (not official docs). "Advenced" is the real spelling.
 const FOREIGN = 'https://plus.kipris.or.kr/openapi/rest/ForeignPatentAdvencedSearchService';
 const ROWS = 50;
+// KR domestic + status tasks use this timeout and concurrency.
+const KR_TIMEOUT_MS = 8_000;
 const CONCURRENCY = 5;
-const TIMEOUT_MS = 8000;
+// Overseas tasks use OVERSEAS_TIMEOUT_MS / OVERSEAS_CONCURRENCY (imported from patent-watch).
+/** Stop scheduling overseas batches if starting one would push the wall time past this limit. */
+const DEADLINE_MS = 50_000;
 
 // Errors carry only status/result codes, never the URL (it contains the key).
-async function fetchXml(url: string): Promise<string> {
-  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+async function fetchXml(url: string, timeoutMs: number): Promise<string> {
+  const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const text = await res.text();
   // Surface non-XML responses (e.g. HTML gateway error) as an explicit failure entry.
@@ -65,11 +75,12 @@ function throwIfNotOk(r: { ok: boolean; resultCode: string; resultMsg: string })
 
 type SearchResult = { parsed: KiprisResult; diag: string | null };
 
-async function searchPage(job: SearchJob, page: number, key: string): Promise<SearchResult> {
+async function searchPage(job: SearchJob, page: number, key: string, timeoutMs: number): Promise<SearchResult> {
   if (!job.country) {
     const xml = await fetchXml(
       `${KIPO}/getWordSearch?word=${encodeURIComponent(job.word)}&numOfRows=${ROWS}&pageNo=${page}` +
         `&ServiceKey=${encodeURIComponent(key)}`,
+      timeoutMs,
     );
     const parsed = parseKiprisXml(xml);
     throwIfNotOk(parsed);
@@ -79,15 +90,17 @@ async function searchPage(job: SearchJob, page: number, key: string): Promise<Se
   const xml = await fetchXml(
     `${FOREIGN}/applicantSearch?applicant=${encodeURIComponent(job.word)}&collectionValues=${job.country}` +
       `&currentPage=${page}&numOfRows=${ROWS}&sortField=AD&sortState=true&accessKey=${encodeURIComponent(key)}`,
+    timeoutMs,
   );
   const parsed = parseForeignXml(xml);
   throwIfNotOk(parsed);
   return { parsed, diag: foreignDiag(xml, parsed) };
 }
 
-async function fetchStatus(appNo: string, key: string): Promise<string> {
+async function fetchStatus(appNo: string, key: string, timeoutMs: number): Promise<string> {
   const xml = await fetchXml(
     `${KIPO}/getBibliographyDetailInfoSearch?applicationNumber=${appNo}&ServiceKey=${encodeURIComponent(key)}`,
+    timeoutMs,
   );
   const r = parseStatusXml(xml);
   throwIfNotOk(r);
@@ -98,10 +111,10 @@ async function fetchStatus(appNo: string, key: string): Promise<string> {
 type Task = { kind: 'search'; job: SearchJob; page: number } | { kind: 'status'; appNo: string };
 type TaskResult = { kind: 'search'; value: SearchResult } | { kind: 'status'; value: string };
 
-function runTask(t: Task, key: string): Promise<TaskResult> {
+function runTask(t: Task, key: string, timeoutMs: number): Promise<TaskResult> {
   return t.kind === 'status'
-    ? fetchStatus(t.appNo, key).then((value) => ({ kind: 'status', value }))
-    : searchPage(t.job, t.page, key).then((value) => ({ kind: 'search', value }));
+    ? fetchStatus(t.appNo, key, timeoutMs).then((value) => ({ kind: 'status', value }))
+    : searchPage(t.job, t.page, key, timeoutMs).then((value) => ({ kind: 'search', value }));
 }
 
 export async function GET() {
@@ -122,19 +135,23 @@ export async function GET() {
 
   const now = new Date().toISOString();
   const plan = planRun(ALL_JOBS, cursor, krStatusTargets(ftoRaw));
-  const tasks: Task[] = [
+
+  // Phase 1: KR domestic word-searches + status refreshes — shorter timeout, higher concurrency.
+  const krTasks: Task[] = [
     ...plan.status.map((appNo): Task => ({ kind: 'status', appNo })),
-    ...plan.search.map((p): Task => ({ kind: 'search', ...p })),
+    ...plan.kr.map((p): Task => ({ kind: 'search', ...p })),
   ];
+  // Phase 2: overseas (US/EP) applicant-searches — longer timeout, lower concurrency.
+  const overseasTasks: Task[] = plan.overseas.map((p): Task => ({ kind: 'search', ...p }));
+
   const ctx = { ftoAppNos, seenWatch: new Set<string>(), seenCompetitor: new Set<string>(), foundAt: now };
   const rows: PatentRow[] = [];
   const statusRows: StatusRow[] = [];
   const failures: string[] = [];
   const checks: Partial<Record<CheckKey, CheckState>> = {};
 
-  for (let i = 0; i < tasks.length; i += CONCURRENCY) {
-    const batch = tasks.slice(i, i + CONCURRENCY);
-    const results = await Promise.allSettled(batch.map((t) => runTask(t, key)));
+  /** Process the settled results of one batch, mutating rows/statusRows/failures/checks/cursor. */
+  function processBatch(batch: Task[], results: PromiseSettledResult<TaskResult>[]) {
     results.forEach((r, j) => {
       const t = batch[j];
       const checkKey: CheckKey = t.kind === 'status' ? 'status' : (t.job.country ?? 'KR');
@@ -165,10 +182,61 @@ export async function GET() {
       rows.push(...rowsFromItems(parsed.items, job, ctx));
     });
   }
+
+  // Phase 1: KR + status (timeout 8 s, concurrency 5).
+  for (let i = 0; i < krTasks.length; i += CONCURRENCY) {
+    const batch = krTasks.slice(i, i + CONCURRENCY);
+    processBatch(batch, await Promise.allSettled(batch.map((t) => runTask(t, key, KR_TIMEOUT_MS))));
+  }
+
+  // Phase 2: overseas (timeout 20 s, concurrency 3).
+  // Batches that would not finish before DEADLINE_MS are skipped — not counted as failures — so
+  // the cursor does not advance past them and they are retried on the next run.
+  const runStart = Date.now();
+  let overseasDone = 0;
+  const overseasTiming: OverseasTimingEntry[] = [];
+  for (let i = 0; i < overseasTasks.length; i += OVERSEAS_CONCURRENCY) {
+    if (Date.now() - runStart + OVERSEAS_TIMEOUT_MS > DEADLINE_MS) {
+      // Record all remaining planned tasks as skipped (ms: 0, never attempted).
+      for (const t of overseasTasks.slice(i)) {
+        if (t.kind === 'search') overseasTiming.push({ country: t.job.country!, job: t.job.key, ms: 0, outcome: 'skipped' });
+      }
+      break; // deadline guard
+    }
+    const batch = overseasTasks.slice(i, i + OVERSEAS_CONCURRENCY);
+    overseasDone += batch.length;
+    // Run each task with individual timing so the production latency distribution is visible.
+    const timedSettled = await Promise.allSettled(
+      batch.map(async (t) => {
+        const taskStart = Date.now();
+        try {
+          const result = await runTask(t, key, OVERSEAS_TIMEOUT_MS);
+          if (t.kind === 'search')
+            overseasTiming.push({ country: t.job.country!, job: t.job.key, ms: Date.now() - taskStart, outcome: 'ok' });
+          return result;
+        } catch (err) {
+          const ms = Date.now() - taskStart;
+          const isTimeout = err instanceof Error && err.name === 'TimeoutError';
+          if (t.kind === 'search')
+            overseasTiming.push({ country: t.job.country!, job: t.job.key, ms, outcome: isTimeout ? 'timeout' : 'error' });
+          throw err;
+        }
+      }),
+    );
+    processBatch(batch, timedSettled);
+  }
+
   cursor.offset = plan.nextOffset;
+  // Only advance the foreign cursor by jobs that were actually dispatched; skipped jobs are
+  // retried on the next run when the round-robin reaches them again.
+  const foreignJobsPool = ALL_JOBS.filter((j) => j.country);
+  const initForeignOffset = prev.foreignOffset ?? 0;
+  cursor.foreignOffset = foreignJobsPool.length ? (initForeignOffset + overseasDone) % foreignJobsPool.length : 0;
   cursor.statusOffset = plan.nextStatusOffset;
   // Only countries with requests this run replace their previous result.
   cursor.checks = { ...(prev.checks ?? {}), ...checks };
+  // Replace timing on every run (no history — the array covers only this run's overseas requests).
+  cursor.overseasTiming = overseasTiming;
 
   let inserted = 0;
   if (rows.length) {
@@ -200,11 +268,12 @@ export async function GET() {
   });
   if (cursorError) failures.push(`cursor: ${cursorError.message}`);
 
+  const totalDispatched = krTasks.length + overseasDone;
   return NextResponse.json({
-    ok: failures.length < tasks.length,
+    ok: failures.length < totalDispatched,
     timestamp: now,
-    requests: tasks.length,
-    searchRequests: plan.search.length,
+    requests: totalDispatched,
+    searchRequests: plan.kr.length + overseasDone,
     statusRequests: plan.status.length,
     fetched: rows.length,
     inserted,
@@ -212,6 +281,7 @@ export async function GET() {
     backfillDone: ALL_JOBS.filter((j) => cursor.jobs[j.key]?.done).length,
     jobs: ALL_JOBS.length,
     foreignDiag: cursor.foreignDiag ?? null,
+    overseasTiming,
     failures,
   });
 }

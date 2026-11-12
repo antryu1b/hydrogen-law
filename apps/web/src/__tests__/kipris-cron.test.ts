@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { middleware } from '@/middleware';
+import { ALL_JOBS } from '@/lib/patent-watch';
 
 const fixture = readFileSync(path.join(__dirname, 'fixtures/kipris-word-search.xml'), 'utf8');
 const foreignFixture = readFileSync(path.join(__dirname, 'fixtures/kipris-foreign-search.xml'), 'utf8');
@@ -20,15 +21,19 @@ function routedFetch(foreign: () => Response = () => new Response(foreignFixture
   });
 }
 
-// Minimal Supabase stand-in: records upserts, serves FTO appNos and no cursor.
+// Minimal Supabase stand-in: records upserts, serves FTO appNos and an initial cursor with
+// foreignOffset=8 so the first overseas tasks are US-nel / EP-nel (which match the NEL fixture).
 const upserts: { rows: unknown; opts: unknown }[] = [];
+// Position 8 in ALL_JOBS.filter(country) = US-nel (FOREIGN_APPLICANTS index 4 × 2 = 8).
+const INITIAL_FOREIGN_OFFSET = 8;
 function fakeSupabase() {
   return {
     from: () => ({
       select: () => ({
         eq: (col: string) => {
+          const cursorPayload = col === 'id' ? { payload: { offset: 0, foreignOffset: INITIAL_FOREIGN_OFFSET, jobs: {} } } : null;
           const res = Promise.resolve({ data: col === 'section' ? [{ appNo: '10-2011-0042643' }] : null, error: null });
-          return Object.assign(res, { maybeSingle: () => Promise.resolve({ data: null, error: null }) });
+          return Object.assign(res, { maybeSingle: () => Promise.resolve({ data: cursorPayload, error: null }) });
         },
       }),
       upsert: (rows: unknown, opts?: unknown) => {
@@ -101,6 +106,7 @@ describe('/api/cron/kipris-patents GET', () => {
     expect(urls.some((u) => u.includes('collectionValues=EP') && u.includes('accessKey=test-key'))).toBe(true);
     expect(body.ok).toBe(true);
     expect(body.failures).toEqual([]);
+    // 1 status + 16 KR + 3 overseas = 20; searchRequests = 16 KR + 3 overseas = 19.
     expect(body).toMatchObject({ requests: 20, statusRequests: 1, searchRequests: 19, statusUpdated: 1 });
 
     const [rowsCall, statusCall, cursorCall] = upserts;
@@ -128,14 +134,34 @@ describe('/api/cron/kipris-patents GET', () => {
 
     const cursor = cursorCall.rows as {
       section: string;
-      payload: { offset: number; statusOffset: number; jobs: Record<string, { done: boolean }>; checks: object };
+      payload: {
+        offset: number;
+        foreignOffset: number;
+        statusOffset: number;
+        jobs: Record<string, { done: boolean }>;
+        checks: object;
+        overseasTiming: { country: string; job: string; ms: number; outcome: string }[];
+      };
     };
     expect(cursor.section).toBe('patent-cursor');
-    expect(cursor.payload.offset).toBe(19);
+    // KR offset: (0 + 16 KR tasks) % 28 = 16.
+    expect(cursor.payload.offset).toBe(16);
+    // Foreign offset: (8 + 3 overseas dispatched) % 38 = 11.
+    expect(cursor.payload.foreignOffset).toBe(11);
     expect(cursor.payload.statusOffset).toBe(0); // one target → wraps to 0
     // KR totalCount 5 < numOfRows and overseas totalCount 4 on page 1: every fetched job is finished.
     expect(Object.values(cursor.payload.jobs).every((j) => j.done)).toBe(true);
     expect(Object.keys(cursor.payload.checks).sort()).toEqual(['EP', 'KR', 'US', 'status']);
+
+    // Overseas timing: 3 entries (US-nel, EP-nel, US-itm); all 'ok' in mock (fetch resolves instantly).
+    expect(cursor.payload.overseasTiming).toHaveLength(3);
+    expect(cursor.payload.overseasTiming.every((e) => e.outcome === 'ok')).toBe(true);
+    expect(cursor.payload.overseasTiming.map((e) => e.country).sort()).toEqual(['EP', 'US', 'US']);
+    expect(cursor.payload.overseasTiming.every((e) => typeof e.ms === 'number')).toBe(true);
+    // Response also carries timing.
+    expect(body.overseasTiming).toHaveLength(3);
+    expect(body.overseasTiming.every((e: { job: string }) => !e.job.includes('test-key'))).toBe(true);
+
     expect(JSON.stringify(upserts)).not.toContain('test-key');
   });
 
@@ -156,6 +182,34 @@ describe('/api/cron/kipris-patents GET', () => {
     expect(checks.US.failures[0]).toMatch(/^US-\S+ p1: resultCode 99/);
     expect(checks.EP.failures.length).toBeGreaterThan(0);
     expect(JSON.stringify(body)).not.toContain('test-key');
+  });
+
+  it('skips overseas batches when the deadline would be exceeded and records timing as skipped', async () => {
+    const fetchMock = routedFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    // Date.now() is called twice in the overseas phase: once for runStart, once for the guard check.
+    // The KR phase has no Date.now() calls. Returning 0 then 31_001 gives:
+    //   31_001 - 0 + OVERSEAS_TIMEOUT_MS(20_000) = 51_001 > DEADLINE_MS(50_000) → all 3 overseas skipped.
+    vi.spyOn(Date, 'now').mockReturnValueOnce(0).mockReturnValue(31_001);
+    const { GET } = await import('@/app/api/cron/kipris-patents/route');
+    const body = await (await GET()).json();
+    vi.restoreAllMocks();
+
+    // All 3 planned overseas tasks recorded as skipped (ms: 0, never dispatched).
+    expect(body.overseasTiming).toHaveLength(3);
+    expect(body.overseasTiming.every((e: { outcome: string }) => e.outcome === 'skipped')).toBe(true);
+    expect(body.overseasTiming.every((e: { ms: number }) => e.ms === 0)).toBe(true);
+    expect(body.overseasTiming.every((e: { job: string }) => !e.job.includes('test-key'))).toBe(true);
+
+    // foreignOffset does not advance when no overseas tasks were dispatched.
+    const cursor = (upserts[upserts.length - 1].rows as { payload: { foreignOffset: number } });
+    expect(cursor.payload.foreignOffset).toBe(INITIAL_FOREIGN_OFFSET);
+
+    // requests reflects only KR + status (no overseas dispatched); result is still ok.
+    expect(body.requests).toBe(17); // 1 status + 16 KR + 0 overseas
+    expect(body.searchRequests).toBe(16); // plan.kr.length + overseasDone
+    expect(body.statusRequests).toBe(1);
+    expect(body.ok).toBe(true);
   });
 
   it('stores a tag-name hint when an overseas 00 response parses to nothing', async () => {
