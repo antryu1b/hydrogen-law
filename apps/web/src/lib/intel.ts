@@ -79,11 +79,7 @@ export function intelSupabase(): SupabaseClient | null {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-/** Only render http(s) links — guards against javascript: URLs in uploaded JSON. */
-export function safeHref(url: string | undefined | null): string | undefined {
-  if (!url) return undefined;
-  return /^https?:\/\//i.test(url) ? url : undefined;
-}
+export { safeHref } from './intel-utils';
 
 export interface Loaded<T> {
   rows: T[];

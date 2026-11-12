@@ -1,7 +1,10 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { safeHref, type IntelLink } from '@/lib/intel';
+// Import only client-safe modules: '@/lib/intel' transitively pulls in
+// node:crypto via competitor-watch, which cannot enter this client bundle.
+import type { IntelLink } from '@/lib/intel';
+import { safeHref } from '@/lib/intel-utils';
 
 interface TooltipPos {
   top: number;

@@ -90,3 +90,9 @@ export function applyFtoStageCleanup<T extends { id: string; payload: { type: st
       return r;
     });
 }
+
+/** Only render http(s) links — guards against javascript: URLs in uploaded JSON. */
+export function safeHref(url: string | undefined | null): string | undefined {
+  if (!url) return undefined;
+  return /^https?:\/\//i.test(url) ? url : undefined;
+}
