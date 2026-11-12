@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { VisitorCounter } from '@/components/VisitorCounter';
 import { Sidebar } from '@/components/nav/Sidebar';
 import { MobileNav } from '@/components/nav/MobileNav';
+import { BrandLink } from '@/components/BrandLink';
 
 export const metadata: Metadata = {
   title: '수전해 인텔리전스',
@@ -38,8 +39,9 @@ export default function RootLayout({
               <div className="h-[3px] w-full bg-[hsl(var(--brass))]" aria-hidden="true" />
               <div className="flex h-[53px] items-center">
                 {/* Left zone: matches sidebar width on desktop; logo aligns with sidebar items */}
-                <div className="flex items-center gap-2 pl-3 pr-2 md:w-64 md:shrink-0 md:pl-5">
+                <div className="flex items-center gap-2 pl-3 pr-2 md:w-64 md:shrink-0 md:justify-center md:px-0">
                   <MobileNav />
+                  <BrandLink />
                 </div>
                 {/* Center zone: app title + classification meta (desktop only) */}
                 <div className="hidden flex-col justify-center border-l border-border/50 pl-5 md:flex">
