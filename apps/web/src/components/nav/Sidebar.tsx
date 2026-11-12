@@ -19,6 +19,7 @@ import {
   Lightbulb,
   Database,
 } from 'lucide-react';
+import { BrandLink } from '@/components/BrandLink';
 import {
   NAV_MAIN,
   NAV_ADMIN,
@@ -135,6 +136,10 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
 
   return (
     <div className="flex h-full flex-col">
+    {/* Brand lockup — moved from the header: sidebar top, centered */}
+    <div className="flex justify-center border-b border-border/50 py-4">
+      <BrandLink />
+    </div>
     {/* Scrollable main navigation */}
     <nav className="flex flex-col flex-1 overflow-y-auto py-3 px-2 gap-0.5" aria-label="주 메뉴">
       {/* Main sections */}

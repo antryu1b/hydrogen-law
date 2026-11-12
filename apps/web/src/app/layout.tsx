@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { LogOut, Scale } from 'lucide-react';
-import { BrandLink } from '@/components/BrandLink';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VisitorCounter } from '@/components/VisitorCounter';
@@ -41,7 +40,6 @@ export default function RootLayout({
                 {/* Left zone: matches sidebar width on desktop; logo aligns with sidebar items */}
                 <div className="flex items-center gap-2 pl-3 pr-2 md:w-64 md:shrink-0 md:pl-5">
                   <MobileNav />
-                  <BrandLink />
                 </div>
                 {/* Center zone: app title + classification meta (desktop only) */}
                 <div className="hidden flex-col justify-center border-l border-border/50 pl-5 md:flex">
