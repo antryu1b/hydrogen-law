@@ -130,7 +130,7 @@ export default function UploadPage() {
               법령 PDF 업로드
             </CardTitle>
             <CardDescription>
-              법령 PDF를 업로드하면 조문 파싱 → 청킹 → 임베딩 → Supabase 저장이 자동으로 수행됩니다
+              법령 PDF를 업로드하면 조문 파싱 → 청킹 → 임베딩 → DB 저장이 자동으로 수행됩니다
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -257,21 +257,21 @@ export default function UploadPage() {
                 </div>
                 <div className="text-center p-3 bg-muted/30 rounded-lg">
                   <p className="text-2xl font-bold">{result.supabase.migrated}</p>
-                  <p className="text-xs text-muted-foreground">Supabase 저장</p>
+                  <p className="text-xs text-muted-foreground">DB 저장</p>
                 </div>
               </div>
 
               {result.supabase.failed > 0 && (
                 <div className="flex items-center gap-2 text-sm text-yellow-600">
                   <AlertCircle className="w-4 h-4" />
-                  Supabase 저장 실패: {result.supabase.failed}건
+                  DB 저장 실패: {result.supabase.failed}건
                 </div>
               )}
 
               {result.supabase_verification && (
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <CheckCircle2 className="w-4 h-4" />
-                  Supabase 검증 완료: {result.supabase_verification.document_count}개 문서 확인
+                  DB 검증 완료: {result.supabase_verification.document_count}개 문서 확인
                 </div>
               )}
 
