@@ -1,41 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { kgsCodesData } from '@/data/kgs-codes-data';
-import kgsOcrRaw from '@/data/kgs_ocr.json';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { getKgsSectionsDoc, getKgsOcrIndex, type KgsOcrIndex, type KgsSectionsDoc } from '@/lib/kgs-source';
 import { whitespaceInsensitivePattern } from '@/lib/highlight';
 import { parseSearchQuery, matchesQuery, stemForMatch, type OrGroup } from '@/lib/search-query';
 
 // 키워드 목록에 없는 본문 용어(예: "농도")도 검색되도록 수식 OCR 코퍼스를 코드별로 평탄화.
-const _ocrByCode: Record<string, string> = {};
-for (const [k, v] of Object.entries(kgsOcrRaw as Record<string, unknown>)) {
-  _ocrByCode[k.toLowerCase()] = JSON.stringify(v).toLowerCase();
-}
-function ocrTextByCode(code: string): string {
-  return _ocrByCode[code.toLowerCase()] ?? '';
+// Recomputed only when kgs-source hands back a different index object.
+let _ocrSource: KgsOcrIndex | null = null;
+let _ocrByCode: Record<string, string> = {};
+async function loadOcrByCode(): Promise<Record<string, string>> {
+  const index = await getKgsOcrIndex();
+  if (index !== _ocrSource) {
+    const flat: Record<string, string> = {};
+    for (const [k, v] of Object.entries(index)) flat[k.toLowerCase()] = JSON.stringify(v).toLowerCase();
+    _ocrByCode = flat;
+    _ocrSource = index;
+  }
+  return _ocrByCode;
 }
 
 interface MatchedSection { sec_no: string; title: string; snippet: string; keyword: string; }
 interface CodeSections { full: string; sections: Array<{ sec_no: string; title: string; body: string }>; }
 
-// 조항 본문(kgs_sections) 전체를 코드별로 1회 로드·캐시 — 본문 전문(full-text) 검색용.
-let _sectionsCache: Record<string, CodeSections> | null = null;
+// 조항 본문(kgs_sections) 전체를 코드별로 로드·캐시 — 본문 전문(full-text) 검색용.
+// Per-code entry is rebuilt only when kgs-source returns a different document object.
+const EMPTY_SECTIONS: CodeSections = { full: '', sections: [] };
+const _sectionsCache = new Map<string, { doc: KgsSectionsDoc; entry: CodeSections }>();
 async function loadSections(codes: string[]): Promise<Record<string, CodeSections>> {
-  if (_sectionsCache) return _sectionsCache;
   const cache: Record<string, CodeSections> = {};
   await Promise.all(
     codes.map(async (code) => {
+      let doc: KgsSectionsDoc;
       try {
-        const raw = await fs.readFile(path.join(process.cwd(), 'data', 'kgs_sections', `${code}.json`), 'utf-8');
-        const doc = JSON.parse(raw) as { sections?: Array<{ sec_no: string; title: string; body?: string }> };
-        const sections = (doc.sections ?? []).map((s) => ({ sec_no: s.sec_no, title: s.title, body: s.body ?? '' }));
-        cache[code] = { full: sections.map((s) => `${s.title} ${s.body}`).join(' ').toLowerCase(), sections };
+        doc = await getKgsSectionsDoc(code);
       } catch {
-        cache[code] = { full: '', sections: [] };
+        cache[code] = EMPTY_SECTIONS;
+        return;
       }
+      const hit = _sectionsCache.get(code);
+      if (hit && hit.doc === doc) {
+        cache[code] = hit.entry;
+        return;
+      }
+      const raw = (doc.sections ?? []) as Array<{ sec_no: string; title: string; body?: string }>;
+      const sections = raw.map((s) => ({ sec_no: s.sec_no, title: s.title, body: s.body ?? '' }));
+      const entry = { full: sections.map((s) => `${s.title} ${s.body}`).join(' ').toLowerCase(), sections };
+      _sectionsCache.set(code, { doc, entry });
+      cache[code] = entry;
     })
   );
-  _sectionsCache = cache;
   return cache;
 }
 
@@ -116,6 +129,7 @@ export async function POST(request: NextRequest) {
     // 각 CODE와 매칭 점수 계산
     const codes = kgsCodesData.codes as KGSCode[];
     const sectionsCache = await loadSections(codes.map((c) => c.code));
+    const ocrByCode = await loadOcrByCode();
     const scored = codes.map((code) => {
       // 검색 코퍼스: 키워드 + 이름 + 세부분류 + 기준 본문 + 수식 OCR
       // (키워드 목록에 없는 본문 용어 — 예: "농도" — 도 검색되게 확장)
@@ -124,7 +138,7 @@ export async function POST(request: NextRequest) {
         code.subcategory,
         ...code.keywords,
         ...(code.criteria ? Object.values(code.criteria) : []),
-        ocrTextByCode(code.code),
+        ocrByCode[code.code.toLowerCase()] ?? '',
         sectionsCache[code.code]?.full ?? '',
       ].join(' ').toLowerCase();
 

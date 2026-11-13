@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { getKgsSectionsDoc } from '@/lib/kgs-source';
 
 interface RawSection {
   sec_no: string;
@@ -18,9 +17,6 @@ interface SectionMeta {
   is_umbrella: boolean;
 }
 
-// In-memory cache per code
-const cache = new Map<string, SectionMeta[]>();
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
@@ -29,14 +25,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Valid code parameter is required' }, { status: 400 });
   }
 
-  if (cache.has(code)) {
-    return NextResponse.json({ code, sections: cache.get(code) });
-  }
-
   try {
-    const filePath = path.join(process.cwd(), 'data', 'kgs_sections', `${code}.json`);
-    const raw = await fs.readFile(filePath, 'utf-8');
-    const data = JSON.parse(raw);
+    const data = await getKgsSectionsDoc(code);
 
     const sections: SectionMeta[] = (data.sections as RawSection[]).map((s) => ({
       sec_no: s.sec_no,
@@ -46,7 +36,6 @@ export async function GET(request: NextRequest) {
       is_umbrella: s.is_umbrella ?? false,
     }));
 
-    cache.set(code, sections);
     return NextResponse.json({ code, sections });
   } catch (error: unknown) {
     if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {

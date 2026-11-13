@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { getKgsSectionsDoc, getKgsOcrIndex, type KgsOcrEntry } from '@/lib/kgs-source';
 
 export interface EquationRegion {
   page: number;
@@ -73,49 +72,19 @@ interface RawSectionFile {
   appendix_sections?: RawSection[];
 }
 
-// Cache full file contents per code to avoid re-reading on repeated requests
-const fileCache = new Map<string, { sections: RawSection[]; appendix_sections: RawSection[] }>();
-
 async function getSections(code: string): Promise<{ sections: RawSection[]; appendix_sections: RawSection[] }> {
-  if (fileCache.has(code)) return fileCache.get(code)!;
-
-  const filePath = path.join(process.cwd(), 'data', 'kgs_sections', `${code}.json`);
-  const raw = await fs.readFile(filePath, 'utf-8');
-  const data = JSON.parse(raw) as RawSectionFile;
-  const result = {
+  const data = (await getKgsSectionsDoc(code)) as RawSectionFile;
+  return {
     sections: data.sections as RawSection[],
     appendix_sections: (data.appendix_sections ?? []) as RawSection[],
   };
-  fileCache.set(code, result);
-  return result;
 }
 
 // --- OCR sidecar ------------------------------------------------------------
-// Precomputed by scripts/ocr-kgs.mjs into data/kgs_ocr.json:
-//   { [code]: { [regionId]: { ocr_text, ocr_confidence, ocr_good } }, _meta }
-// Loaded once and cached. NO OCR happens at request time.
-interface OcrEntry {
-  ocr_text: string;
-  ocr_confidence: number;
-  ocr_good: boolean;
-}
-let ocrIndexCache: Record<string, Record<string, OcrEntry>> | null = null;
-
-async function getOcrIndex(): Promise<Record<string, Record<string, OcrEntry>>> {
-  if (ocrIndexCache) return ocrIndexCache;
-  try {
-    const raw = await fs.readFile(
-      path.join(process.cwd(), 'data', 'kgs_ocr.json'),
-      'utf-8'
-    );
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    delete parsed._meta;
-    ocrIndexCache = parsed as Record<string, Record<string, OcrEntry>>;
-  } catch {
-    ocrIndexCache = {};
-  }
-  return ocrIndexCache;
-}
+// Precomputed by scripts/ocr-kgs.mjs (data/kgs_ocr.json, or body.ocr in the DB):
+//   { [code]: { [regionId]: { ocr_text, ocr_confidence, ocr_good } } }
+// Served by kgs-source. NO OCR happens at request time.
+type OcrEntry = KgsOcrEntry;
 
 /** Attach precomputed OCR fields to a region (in place) if available. */
 function enrichRegions(
@@ -175,7 +144,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { sections, appendix_sections } = await getSections(code);
-    const codeOcr = (await getOcrIndex())[code];
+    const codeOcr = (await getKgsOcrIndex())[code];
 
     // Search in both sections and appendix_sections
     const allSections = [...sections, ...appendix_sections];

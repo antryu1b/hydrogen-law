@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { getKgsSectionsDoc } from '@/lib/kgs-source';
 
 interface RawSection {
   sec_no: string;
@@ -37,21 +36,12 @@ interface RawSectionFile {
   appendix_sections?: RawSection[];
 }
 
-// Cache per code
-const fileCache = new Map<string, { sections: RawSection[]; appendix_sections: RawSection[] }>();
-
 async function getSections(code: string): Promise<{ sections: RawSection[]; appendix_sections: RawSection[] }> {
-  if (fileCache.has(code)) return fileCache.get(code)!;
-
-  const filePath = path.join(process.cwd(), 'data', 'kgs_sections', `${code}.json`);
-  const raw = await fs.readFile(filePath, 'utf-8');
-  const data = JSON.parse(raw) as RawSectionFile;
-  const result = {
+  const data = (await getKgsSectionsDoc(code)) as RawSectionFile;
+  return {
     sections: data.sections as RawSection[],
     appendix_sections: (data.appendix_sections ?? []) as RawSection[],
   };
-  fileCache.set(code, result);
-  return result;
 }
 
 /**
